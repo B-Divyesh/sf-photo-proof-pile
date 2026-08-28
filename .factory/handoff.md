@@ -1,59 +1,75 @@
 # Proof Pile handoff
 
-## What was built
+## Independent verification verdict: FAIL
 
-- A Tauri 2 desktop app with a Vite and TypeScript interface.
-- Local recursive scanning for JPEG, PNG, WebP, GIF, TIFF, and BMP files.
-- SHA-256 exact matching, 64-bit visual difference hashes, and EXIF same-minute grouping.
-- Evidence rows for paths, dimensions, bytes, capture dates, cameras, hashes, and other selected drives.
-- A review-first quarantine plan with confirmation, collision-safe moves, cross-drive copies, date preservation, rollback on a failed batch, and restore.
-- A portable CSV decision and move log.
-- A separate one-click demo with eight records across three realistic groups.
-- A US$29 one-time license flow through the Sociobot billing API. The license removes the 1,000-file scan limit.
-- A responsive static product site with legal pages, offline support, release downloads, and three real app walkthrough frames.
-- Original generative hero art and hand-authored sample illustrations. Provenance is in `.factory/design.md`.
-- A GitHub Actions matrix for unsigned macOS arm64/x86_64, Windows, and Linux bundles, plus `SHA256SUMS` and `latest.json`.
+- Tested candidate: `14ed919d93be9d1ccb662e868906fe19fbfdd3d0`
+- Tested deployment: `https://photo-proof-pile.sociobot.in`
+- Verified: 28 August 2026 UTC
+- Detailed evidence: `.factory/verification.md`
 
-## How to run
+The candidate must not be released. The sample experience, automated tests,
+builds, privacy boundary, offline reload, rate limiting, release artifacts, and
+performance budgets pass. Production checkout and the core durable-reversal
+promise do not.
 
-```sh
-npm ci
-npm run dev
-npm run dev:desktop
-```
+## Release blockers
 
-The demo URL is `/demo`. The production site build command is `npm run build:site`, and its output root is `dist/site`.
+1. The live US$29 checkout returns HTTP 404 with
+   `{"error":"enabled factory product","status":404}`.
+2. Quarantine move records exist only in memory. After reload, Restore
+   disappears and a new CSV contains no quarantine paths. The product cannot
+   restore “from the decision log” as advertised. It also accepts a plan that
+   quarantines every copy in a group.
+3. Axe reports serious failures: 1.1:1 dark-mode contrast on the paid section
+   and a non-focusable horizontally scrollable photo strip at 390px.
+4. Public native-matching, restore-log, cross-drive safety, and installer claims
+   are missing equivalent entries/tests in `.factory/claims.json`.
+5. An Intel Mac user agent is linked to the ARM64 DMG even though an x86_64 DMG
+   exists.
+
+Other defects: the `www.sociobot.in` footer link has an invalid certificate,
+hashed assets cache for only 30 seconds, unknown routes return HTTP 200, and the
+web manifest is not linked from the document.
 
 ## Verification completed
 
-- `npm test`: passed.
-  - Rust: 3 passed, including a real 1,001-image free-limit scan and quarantine/restore.
-  - Vitest: 3 passed.
-  - Playwright: 11 passed across claims, mobile layout, routing, console, and axe checks.
-- `npm run build`: passed; `dist/site/index.html` exists.
-- `/opt/fleet/lib/verify-url.sh http://127.0.0.1:4173/ .factory/evidence`: passed with no console errors, one h1, one main landmark, `lang`, title, and complete alt text.
-- Lighthouse 12.8.2 mobile: Performance 100, Accessibility 100, Best Practices 100, SEO 100.
-- Lab metrics: LCP 1.4 s, CLS 0, total blocking time 60 ms, speed index 0.9 s.
-- Initial app JavaScript: 28.53 KB raw and 10.51 KB gzip. CSS: 17.28 KB raw and 4.85 KB gzip. Hero WebP: 29.92 KB.
-- JSON, shell syntax, workflow YAML, and `git diff --check`: passed.
-- GitHub Actions release run `33187465920`: all four native build jobs and the checksum job passed.
-- Public release: `https://github.com/B-Divyesh/sf-photo-proof-pile/releases/tag/v0.1.0`.
-- Published assets include two macOS DMGs, Windows MSI and EXE installers, Linux AppImage, DEB, and RPM packages, `latest.json`, and `SHA256SUMS`.
-- Downloaded `Proof.Pile_0.1.0_x64_en-US.msi` and matched SHA-256 `c9a41d73ebb3515d97ab8cfa1543869756ffb2c990ea51c68c41ffb0b9e38a88` against the published checksum file.
+- All nine declared claim commands: PASS after clean `npm ci`.
+- `npm test`: PASS (Rust 3, Vitest 3, Playwright 11).
+- `npm run build`: PASS; output in `dist/site`.
+- `CI=true npm run build:desktop`: PASS; DEB, RPM, and AppImage produced after
+  installing the documented Linux/Tauri build prerequisites and `file`.
+- `cargo fmt -- --check` and Clippy: PASS (warnings only).
+- Live candidate asset hashes match the local production build.
+- GitHub release run `33187465920`: all native build/checksum jobs PASS.
+- Linux installer: PASS in an isolated directory; published checksum matched.
+- Rate-limit burst: first 429 at request 30, `Retry-After: 2`.
+- Lighthouse mobile: 100/100/100/100; LCP 1.1s, CLS 0, TBT 20ms.
+- Service-worker update and offline `/demo` reload: PASS.
 
-Local desktop core tests run without GUI libraries. The container lacks GLib/WebKitGTK development packages, so full desktop bundles were verified through the successful GitHub matrix instead.
+## How to reproduce
 
-## Known gaps
+```sh
+npm ci
+npm test
+npm run build
+CI=true npm run build:desktop
+```
 
-- HEIC and camera RAW formats are not decoded in v0.1. The scanner reports unreadable files as skipped.
-- “Same moment” currently means matching EXIF capture minute and dimensions. It does not identify a camera burst across a minute boundary.
-- Quarantine moves are reversible from the current app session. The exported CSV remains the durable record after the app closes.
-- A matching copy count is not a restore test. The interface warns users to open important backups.
-- Desktop packages are unsigned until owner certificates are available.
+Open the live landing page in dark mode and run axe to reproduce the contrast
+failure. At 390px, run axe on `/demo` for the photo-strip failure. Quarantine
+sample files, reload, then inspect Restore and export CSV to reproduce the lost
+move record. Request the checkout URL directly to reproduce the 404.
 
-## Needs operator action
+## Known product gaps retained from builder handoff
 
-1. Register `photo-proof-pile` with the Sociobot billing API at US$29 and set its return URL to `https://photo-proof-pile.sociobot.in/`.
-2. Add macOS signing secrets when certificates are available: `APPLE_CERTIFICATE`, `APPLE_CERTIFICATE_PASSWORD`, `APPLE_SIGNING_IDENTITY`, `APPLE_ID`, `APPLE_PASSWORD`, and `APPLE_TEAM_ID`.
-3. Add Windows signing secrets when a certificate is available: `WINDOWS_CERT_PFX` and `WINDOWS_CERT_PASSWORD`, then wire the certificate import into the release workflow.
-4. Submit the resulting signed installers to platform stores only if desired. The current release route is direct download.
+- HEIC and camera RAW are not decoded.
+- “Same moment” is limited to matching EXIF minute and dimensions.
+- Desktop packages are unsigned pending owner certificates.
+
+## Required operator and builder action
+
+1. Register/enable `photo-proof-pile` in the production Sociobot billing API.
+2. Fix durable restore and the all-copies safety invariant before release.
+3. Clear all serious accessibility findings and add regression tests.
+4. Complete the claims registry and repair download architecture selection.
+5. Add macOS and Windows signing credentials when available.
