@@ -64,6 +64,20 @@ Completed during this repair:
   The standalone `@axe-core/cli` could not find a Chrome binary in this
   container; the repository's Playwright axe integration completed instead.
 
+## Deployment evidence
+
+Deployed the static build to `https://photo-proof-pile.sociobot.in` from repair
+commit `08a536abc1d2d6300272f1c05667bf04d8b7000c`.
+
+- Live `verify-url.sh` passed: HTTPS 200, title/lang/one h1/main/alt checks,
+  and zero browser console errors.
+- A live 390 px dark-mode Playwright axe pass reported no serious or critical
+  violations. The photo strip has `tabindex="0"`.
+- A random live path returned HTTP 404. The current hashed JavaScript asset
+  returned `Cache-Control: public, max-age=31536000, immutable`.
+- The deployed document links `manifest.webmanifest`; its live response has
+  `application/manifest+json` content type.
+
 ## Known product limits
 
 - HEIC and camera RAW are not decoded.
