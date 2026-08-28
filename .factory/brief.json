@@ -1,0 +1,8 @@
+{
+  "slug": "photo-proof-pile",
+  "title": "Proof Pile",
+  "summary": "Review photo copies, quarantine extras, and keep a reversible decision log.",
+  "artifact_class": "desktop-app",
+  "monetization": "one-time",
+  "smallest_useful_product": "Local desktop scanner that groups exact, perceptual, and metadata-near duplicates; shows copy evidence; writes a reversible quarantine plan and CSV decision log."
+}

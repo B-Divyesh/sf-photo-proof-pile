@@ -1,0 +1,9 @@
+{
+  "name": "Proof Pile",
+  "short_name": "Proof Pile",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#f4f0e6",
+  "theme_color": "#155b4b",
+  "icons": [{"src":"/apple-touch-icon.png","sizes":"180x180","type":"image/png"}]
+}

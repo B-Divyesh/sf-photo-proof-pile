@@ -1,0 +1,7 @@
+{
+  "date": "2026-08-28",
+  "tool": "/opt/fleet/lib/gen-image.sh",
+  "deployment": "factory-image",
+  "use_case": "stylized-concept",
+  "prompt": "Editorial architectural still life for a desktop photo-library utility. An abstract archival light table on warm cream drafting paper holds five overlapping blank photographic plates, with one forest-green glass plate protected in a precise registration frame and two offset duplicate plates connected by fine blueprint-blue evidence lines. Add small brass registration pins, graphite crop marks, and one restrained muted-coral translucent quarantine sleeve at the far edge. Generative geometry, orthographic three-quarter view, soft raking window light, tactile paper and smoked-film materials, crisp edges, restrained museum-archive mood, generous clean negative space on the left, palette of warm bone, ink green, blueprint blue, small amber and coral accents. No people, no faces, no readable text, no letters, no numbers, no logos, no brands, no watermarks, no cameras, no trash cans, no gradients, no glossy generic SaaS shapes."
+}

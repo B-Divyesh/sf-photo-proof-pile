@@ -1,0 +1,34 @@
+[package]
+name = "proof-pile"
+version = "0.1.0"
+description = "Evidence-first duplicate photo cleanup"
+authors = ["Param Factory"]
+edition = "2021"
+license = "MIT"
+
+[lib]
+name = "proof_pile_core"
+path = "src/lib.rs"
+
+[[bin]]
+name = "proof-pile"
+path = "src/main.rs"
+required-features = ["desktop"]
+
+[features]
+default = ["desktop"]
+desktop = ["dep:tauri", "dep:tauri-plugin-dialog"]
+
+[build-dependencies]
+tauri-build = { version = "2", features = [] }
+
+[dependencies]
+base64 = "0.22"
+filetime = "0.2"
+kamadak-exif = "0.6"
+image = { version = "0.25", default-features = false, features = ["jpeg", "png", "webp", "gif", "tiff", "bmp"] }
+serde = { version = "1", features = ["derive"] }
+sha2 = "0.10"
+tauri = { version = "2", optional = true }
+tauri-plugin-dialog = { version = "2", optional = true }
+walkdir = "2"
