@@ -1,5 +1,5 @@
 import "./style.css";
-import { countPlan, decisionCsv, formatBytes, sampleGroups, type MoveRecord, type PhotoGroup } from "./model";
+import { countPlan, decisionCsv, formatBytes, movesFromDecisionCsv, sampleGroups, type MoveRecord, type PhotoGroup, type SavedReview } from "./model";
 
 declare global { interface Window { __TAURI_INTERNALS__?: unknown } }
 
@@ -32,7 +32,7 @@ function header() {
 }
 
 function footer() {
-  return `<footer><p>Proof before photo cleanup.</p><nav aria-label="Footer navigation"><a class="route-link" href="/privacy">Privacy</a><a class="route-link" href="/terms">Terms</a><a href="https://www.sociobot.in" rel="external" aria-label="Built by Param Factory (external site)">Built by Param Factory ↗</a></nav><p class="fine">v0.1.0 · Generated hero imagery.</p></footer>`;
+  return `<footer><p>Proof before photo cleanup.</p><nav aria-label="Footer navigation"><a class="route-link" href="/privacy">Privacy</a><a class="route-link" href="/terms">Terms</a><a href="https://sociobot.in" rel="external" aria-label="Built by Param Factory (external site)">Built by Param Factory ↗</a></nav><p class="fine">v0.1.0 · Generated hero imagery.</p></footer>`;
 }
 
 function shell(content: string) {
@@ -42,9 +42,9 @@ function shell(content: string) {
 
 function landing() {
   demo = false;
-  shell(`<main id="main">
+  shell(`<main id="main" tabindex="-1">
     <section class="hero">
-      <div class="hero-copy"><p class="eyebrow">A safer photo cleanup desk</p><h1 tabindex="-1">Review photo copies before you remove them</h1><p class="lede">For people with photos across several drives who fear removing the only meaningful copy.</p><div class="hero-action"><a class="button primary route-link" href="/demo">Try it with sample data ${icon("arrow")}</a><span>Opens three ready-to-review groups.</span></div><button class="download-link" id="download-app" type="button">Download for ${platformName()}</button><ul class="fact-list"><li>${icon("shield")} Photos stay on this device</li><li>${icon("check")} Works without an account</li><li><span aria-hidden="true">₹</span> Free for 1,000 files; desktop license costs US$29 once</li></ul></div>
+      <div class="hero-copy"><p class="eyebrow">A safer photo cleanup desk</p><h1 tabindex="-1">Review photo copies before you remove them</h1><p class="lede">For people with photos across several drives who fear removing the only meaningful copy.</p><div class="hero-action"><a class="button primary route-link" href="/demo">Try it with sample data ${icon("arrow")}</a><span>Opens three ready-to-review groups.</span></div><button class="download-link" id="download-app" type="button">Download for ${platformName()}</button><ul class="fact-list"><li>${icon("shield")} Photos stay on this device</li><li>${icon("check")} Works without an account</li><li>${icon("check")} Free scans cover 1,000 files at a time</li></ul></div>
       <figure class="hero-art"><img src="/hero-proof-table.webp" width="900" height="600" fetchpriority="high" decoding="async" alt="Overlapping photo plates connect to a protected original on an archival work table."><figcaption>Copies line up. Evidence stays attached.</figcaption></figure>
     </section>
     <section class="preview-section" aria-labelledby="preview-title"><div><p class="eyebrow">The review desk</p><h2 id="preview-title">See why files match</h2><p>Compare paths, dimensions, dates, hashes, and backup counts before making a plan.</p></div>${previewGraphic()}</section>
@@ -60,7 +60,7 @@ function previewGraphic() {
 }
 
 function pricing() {
-  return `<section class="pricing" aria-labelledby="price-title"><div><p class="eyebrow">One-time desktop license</p><h2 id="price-title">Review a full library for US$29</h2><p>The free app scans 1,000 files at a time. A license removes that scan limit.</p>${licenseNotice ? `<p class="license-notice" role="status">${escapeHtml(licenseNotice)}</p>` : ""}</div><div class="price-actions"><a class="button primary" href="https://api.sociobot.in/api/v1/products/${PRODUCT}/checkout">Buy the desktop license — secure checkout</a><button class="button quiet" id="restore-license" type="button">Enter a license</button><p>Sociobot is the merchant of record. Refunds are handled there.</p></div></section>`;
+  return `<section class="pricing" aria-labelledby="price-title"><div><p class="eyebrow">Desktop license</p><h2 id="price-title">Review a full library</h2><p>The free app scans 1,000 files at a time. An existing license removes that scan limit.</p>${licenseNotice ? `<p class="license-notice" role="status">${escapeHtml(licenseNotice)}</p>` : ""}</div><div class="price-actions"><p class="checkout-pending" role="status">Desktop license checkout is being prepared.</p><button class="button quiet" id="restore-license" type="button">Enter a license</button><p>Sociobot is the merchant of record. Refunds are handled there.</p></div></section>`;
 }
 
 function bindLanding() {
@@ -78,27 +78,31 @@ function platformName() {
 
 function enterDemo() {
   demo = true;
-  groups = readGroups(sessionStorage, DEMO_KEY) ?? sampleGroups();
-  moves = [];
+  const saved = readReview(sessionStorage, DEMO_KEY);
+  groups = saved?.groups ?? sampleGroups();
+  moves = saved?.moves ?? [];
   activeGroup = 0;
   renderDesk();
 }
 
 function appRoute() {
   demo = false;
-  groups = readGroups(localStorage, REAL_KEY) ?? [];
-  moves = [];
+  const saved = readReview(localStorage, REAL_KEY);
+  groups = saved?.groups ?? [];
+  moves = saved?.moves ?? [];
   activeGroup = 0;
   renderDesk();
 }
 
-function readGroups(storage: Storage, key: string): PhotoGroup[] | null {
+function readReview(storage: Storage, key: string): SavedReview | null {
   const saved = storage.getItem(key);
   if (!saved) return null;
   try {
     const parsed = JSON.parse(saved);
-    if (!Array.isArray(parsed)) throw new Error();
-    return parsed;
+    // Read the older groups-only record, then upgrade it on the next write.
+    if (Array.isArray(parsed)) return { groups: parsed, moves: [] };
+    if (!Array.isArray(parsed?.groups) || !Array.isArray(parsed?.moves)) throw new Error();
+    return { groups: parsed.groups, moves: parsed.moves };
   } catch {
     storage.removeItem(key);
     notice = "The saved review could not be read. Start a new scan.";
@@ -110,9 +114,9 @@ function renderDesk() {
   const group = groups[activeGroup];
   const plan = countPlan(groups);
   const title = demo ? "Review a sample photo pile" : groups.length ? "Review your photo pile" : "Choose folders to scan";
-  shell(`<main id="main" class="desk-page">
+  shell(`<main id="main" class="desk-page" tabindex="-1">
     ${demo ? `<aside class="demo-banner" aria-label="Demo mode"><strong>Demo — sample data, nothing is saved</strong><div><button id="reset-demo" type="button">Reset demo</button><button id="start-real" type="button">Start for real</button></div></aside>` : ""}
-    <div class="desk-heading"><div><p class="eyebrow">${demo ? "Sample review" : "Local review"}</p><h1 tabindex="-1">${title}</h1><p>${groups.length ? `${groups.length} groups need a decision.` : "Add two or more folders. Proof Pile will compare image files in place."}</p></div><div class="desk-tools"><button class="button quiet" id="scan-folders" type="button">${isDesktop ? "Choose photo folders" : "Get the desktop app"}</button>${groups.length ? `<button class="button quiet" id="export-csv" type="button">Export CSV</button>` : ""}</div></div>
+    <div class="desk-heading"><div><p class="eyebrow">${demo ? "Sample review" : "Local review"}</p><h1 tabindex="-1">${title}</h1><p>${groups.length ? `${groups.length} groups need a decision.` : "Add two or more folders. Proof Pile will compare image files in place."}</p></div><div class="desk-tools"><button class="button quiet" id="scan-folders" type="button">${isDesktop ? "Choose photo folders" : "Get the desktop app"}</button><button class="button quiet" id="import-csv" type="button">Import decision log</button>${groups.length ? `<button class="button quiet" id="export-csv" type="button">Export CSV</button>` : ""}</div></div>
     ${notice ? `<div class="notice" role="status">${escapeHtml(notice)}</div>` : ""}
     ${groups.length && group ? deskContent(group, plan.files, plan.bytes) : emptyState()}
   </main>`);
@@ -120,14 +124,14 @@ function renderDesk() {
 }
 
 function emptyState() {
-  return `<section class="empty-state" aria-labelledby="empty-title">${icon("stack")}<h2 id="empty-title">No photo groups yet</h2><p>Matching photo groups will appear here after a local scan.</p><button class="button primary" id="empty-action" type="button">${isDesktop ? "Choose photo folders" : "Try sample data"}</button></section>`;
+  return `<section class="empty-state" aria-labelledby="empty-title">${icon("stack")}<h2 id="empty-title">No photo groups yet</h2><p>Matching photo groups will appear here after a local scan.</p><button class="button primary" id="empty-action" type="button">${isDesktop ? "Choose photo folders" : "Try sample data"}</button>${moves.some(move => !move.restoredAt) ? `<button class="button quiet" id="restore-last" type="button">Restore last move</button>` : ""}</section>`;
 }
 
 function deskContent(group: PhotoGroup, planFiles: number, planBytes: number) {
   return `<div class="desk-layout">
     <aside class="group-rail" aria-label="Photo groups"><div class="rail-heading"><h2>Groups</h2><span>${groups.length}</span></div><div role="listbox" aria-label="Duplicate groups">${groups.map((item, index) => `<button type="button" role="option" aria-selected="${index === activeGroup}" data-group="${index}"><span class="group-thumb"><img src="${safeThumbnail(item.files[0].thumbnail)}" alt=""></span><span><strong>${escapeHtml(item.kind)}</strong><small>${item.files.length} files · ${item.confidence}% match</small></span></button>`).join("")}</div><p class="key-hint">Use ↑ and ↓ to change groups.</p></aside>
     <section class="evidence" aria-labelledby="group-title"><div class="evidence-heading"><div><span class="match-badge">${escapeHtml(group.kind)}</span><h2 id="group-title">${escapeHtml(humanGroup(group.id))}</h2><p>${escapeHtml(group.reason)}</p></div><div class="confidence"><strong>${group.confidence}%</strong><span>match</span></div></div>
-      <div class="photo-strip">${group.files.map((file, index) => `<figure class="photo-card ${file.decision}"><img src="${safeThumbnail(file.thumbnail || group.files[0].thumbnail)}" width="320" height="210" alt="${escapeHtml(humanGroup(group.id))} copy ${index + 1}."><figcaption>${file.decision === "keep" ? "Keep" : file.decision === "quarantine" ? "Quarantine" : "Needs review"}</figcaption></figure>`).join("")}</div>
+      <div class="photo-strip" tabindex="0" role="region" aria-label="${escapeHtml(humanGroup(group.id))} photo copies. Scroll sideways to compare every copy.">${group.files.map((file, index) => `<figure class="photo-card ${file.decision}"><img src="${safeThumbnail(file.thumbnail || group.files[0].thumbnail)}" width="320" height="210" alt="${escapeHtml(humanGroup(group.id))} copy ${index + 1}."><figcaption>${file.decision === "keep" ? "Keep" : file.decision === "quarantine" ? "Quarantine" : "Needs review"}</figcaption></figure>`).join("")}</div>
       <div class="file-list" aria-label="Copy evidence">${group.files.map(fileRow).join("")}</div>
       <div class="group-actions"><button class="button quiet" id="keep-best" type="button">Keep largest copy</button><button class="button quiet" id="mark-extras" type="button">Mark exact extras</button></div>
     </section>
@@ -161,7 +165,13 @@ function bindDesk() {
   });
   document.querySelectorAll<HTMLButtonElement>("[data-file]").forEach(button => button.addEventListener("click", () => {
     const file = groups[activeGroup].files.find(item => item.id === button.dataset.file);
-    if (file) file.decision = button.dataset.decision as typeof file.decision;
+    const next = button.dataset.decision as "keep" | "quarantine" | "review";
+    if (file && next === "quarantine" && !canQuarantine(groups[activeGroup], file.id)) {
+      notice = "Keep one copy in this group before marking another copy for quarantine.";
+      renderDesk();
+      return;
+    }
+    if (file) file.decision = next;
     persist(); renderDesk();
   }));
   document.querySelector("#keep-best")?.addEventListener("click", keepBest);
@@ -169,15 +179,25 @@ function bindDesk() {
   document.querySelector("#run-plan")?.addEventListener("click", runPlan);
   document.querySelector("#restore-last")?.addEventListener("click", restoreLast);
   document.querySelector("#export-csv")?.addEventListener("click", exportCsv);
+  document.querySelector("#import-csv")?.addEventListener("click", importCsv);
 }
 
 function persist() {
   try {
-    if (demo) sessionStorage.setItem(DEMO_KEY, JSON.stringify(groups));
-    else localStorage.setItem(REAL_KEY, JSON.stringify(groups, (key, value) => key === "thumbnail" ? undefined : value));
+    const review: SavedReview = { groups, moves };
+    if (demo) sessionStorage.setItem(DEMO_KEY, JSON.stringify(review));
+    else localStorage.setItem(REAL_KEY, JSON.stringify(review, (key, value) => key === "thumbnail" ? undefined : value));
   } catch {
     notice = "The review changed, but this device could not save it. Export the CSV before closing the app.";
   }
+}
+
+function canQuarantine(group: PhotoGroup, fileId: string) {
+  return group.files.some(file => file.id !== fileId && file.decision === "keep");
+}
+
+function planHasKeptCopy() {
+  return groups.every(group => !group.files.some(file => file.decision === "quarantine") || group.files.some(file => file.decision === "keep"));
 }
 
 function keepBest() {
@@ -197,11 +217,12 @@ function markExtras() {
 async function runPlan() {
   const selected = groups.flatMap(group => group.files).filter(file => file.decision === "quarantine");
   if (!selected.length) return;
-  if (!confirm(`Move ${selected.length} files to quarantine? You can restore them from this session.`)) return;
+  if (!planHasKeptCopy()) { notice = "Keep one copy in every group before running the quarantine plan."; renderDesk(); return; }
+  if (!confirm(`Move ${selected.length} files to quarantine? You can restore them from the decision log.`)) return;
   if (demo) {
     const stamp = new Date().toISOString();
     moves.push(...selected.map((file, i) => ({ id: `demo-${i}`, source: file.path, destination: `/Sample drive/Proof Pile Quarantine/${file.name}`, movedAt: stamp })));
-    notice = `${selected.length} sample files moved to the demo quarantine. No files on your device changed.`; renderDesk(); return;
+    persist(); notice = `${selected.length} sample files moved to the demo quarantine. No files on your device changed.`; renderDesk(); return;
   }
   try {
     const { open } = await import("@tauri-apps/plugin-dialog");
@@ -209,14 +230,14 @@ async function runPlan() {
     if (!destination || Array.isArray(destination)) return;
     const { invoke } = await import("@tauri-apps/api/core");
     moves = await invoke<MoveRecord[]>("execute_quarantine", { paths: selected.map(file => file.path), quarantineDir: destination });
-    notice = `${moves.length} files moved to quarantine. The decision log is ready to export.`; renderDesk();
+    persist(); notice = `${moves.length} files moved to quarantine. The decision log is ready to export.`; renderDesk();
   } catch (error) { notice = `The plan did not run. ${plainError(error)} Choose a writable quarantine folder and try again.`; renderDesk(); }
 }
 
 async function restoreLast() {
   const move = [...moves].reverse().find(item => !item.restoredAt); if (!move) return;
-  if (demo) { move.restoredAt = new Date().toISOString(); notice = `${move.source.split("/").pop()} restored in the demo.`; renderDesk(); return; }
-  try { const { invoke } = await import("@tauri-apps/api/core"); await invoke("restore_quarantined", { record: move }); move.restoredAt = new Date().toISOString(); notice = `${move.source.split("/").pop()} restored.`; renderDesk(); }
+  if (demo) { move.restoredAt = new Date().toISOString(); persist(); notice = `${move.source.split("/").pop()} restored in the demo.`; renderDesk(); return; }
+  try { const { invoke } = await import("@tauri-apps/api/core"); await invoke("restore_quarantined", { record: move }); move.restoredAt = new Date().toISOString(); persist(); notice = `${move.source.split("/").pop()} restored.`; renderDesk(); }
   catch (error) { notice = `The file was not restored. ${plainError(error)} Check both folders and try again.`; renderDesk(); }
 }
 
@@ -248,15 +269,49 @@ async function exportCsv() {
   notice = "Decision log exported."; renderDesk();
 }
 
+async function importCsv() {
+  try {
+    let contents = "";
+    if (isDesktop) {
+      const { open } = await import("@tauri-apps/plugin-dialog");
+      const path = await open({ multiple: false, title: "Choose a Proof Pile decision log", filters: [{ name: "CSV", extensions: ["csv"] }] });
+      if (!path || Array.isArray(path)) return;
+      const { invoke } = await import("@tauri-apps/api/core");
+      contents = await invoke<string>("read_decision_log", { path });
+    } else contents = await readCsvFile();
+    const imported = movesFromDecisionCsv(contents);
+    if (!imported.length) throw new Error("No quarantine records were found in this decision log.");
+    const known = new Set(moves.map(move => `${move.source}\u0000${move.destination}`));
+    const added = imported.filter(move => !known.has(`${move.source}\u0000${move.destination}`));
+    moves.push(...added);
+    persist();
+    notice = added.length ? `${added.length} recovery record${added.length === 1 ? "" : "s"} imported from the decision log.` : "Those recovery records are already loaded.";
+    renderDesk();
+  } catch (error) { notice = `The decision log was not imported. ${plainError(error)} Choose a Proof Pile CSV and try again.`; renderDesk(); }
+}
+
+function readCsvFile() {
+  return new Promise<string>((resolve, reject) => {
+    const input = document.createElement("input");
+    input.type = "file"; input.accept = ".csv,text/csv";
+    input.addEventListener("change", async () => {
+      const file = input.files?.[0];
+      if (!file) { reject(new Error("No file was chosen.")); return; }
+      try { resolve(await file.text()); } catch { reject(new Error("The selected file could not be read.")); }
+    });
+    input.click();
+  });
+}
+
 function plainError(error: unknown) { return String(error).replace(/^Error:\s*/, ""); }
 
 function legalPage(kind: "privacy" | "terms") {
-  const privacy = `<main id="main" class="prose-page"><p class="eyebrow">Policy</p><h1 tabindex="-1">Privacy without photo uploads</h1><p>Last updated 28 August 2026.</p><h2>Your photos stay local</h2><p>The desktop app reads selected folders on your device. It does not upload photos, thumbnails, paths, hashes, or decision logs.</p><h2>Data stored on your device</h2><p>The app stores review choices, your license token, and cached license status. Demo choices use a separate session-only key.</p><h2>License checks</h2><p>License verification sends the license token to the Sociobot billing API. It does not send photo data.</p><h2>Website requests</h2><p>The download page may request release details from GitHub. We do not run advertising or tracking scripts.</p><h2>Remove your data</h2><p>Reset the demo or clear this site's storage. Desktop quarantine files remain where you chose to place them.</p><p>Questions: <a href="mailto:privacy@sociobot.in">privacy@sociobot.in</a></p></main>`;
-  const terms = `<main id="main" class="prose-page"><p class="eyebrow">Terms</p><h1 tabindex="-1">Terms for careful photo cleanup</h1><p>Last updated 28 August 2026.</p><h2>Use and responsibility</h2><p>Proof Pile helps you review and move files. You remain responsible for your files and backups.</p><h2>No permanent deletion</h2><p>The app moves chosen files to a quarantine folder. Do not empty that folder until you test important backups.</p><h2>License</h2><p>The free tier scans up to 1,000 files at once. A US$29 one-time license removes that scan limit.</p><h2>Payments and refunds</h2><p>Sociobot and Dodo handle checkout as merchant of record. A refunded license may stop working.</p><h2>Warranty</h2><p>The software is provided as is. Keep verified backups before changing a photo library.</p><p>Questions: <a href="mailto:support@sociobot.in">support@sociobot.in</a></p></main>`;
+  const privacy = `<main id="main" class="prose-page" tabindex="-1"><p class="eyebrow">Policy</p><h1 tabindex="-1">Privacy without photo uploads</h1><p>Last updated 28 August 2026.</p><h2>Your photos stay local</h2><p>The desktop app reads selected folders on your device. It does not upload photos, thumbnails, paths, hashes, or decision logs.</p><h2>Data stored on your device</h2><p>The app stores review choices and recovery records, your license token, and cached license status. Demo choices use a separate session-only key.</p><h2>License checks</h2><p>License verification sends the license token to the Sociobot billing API. It does not send photo data.</p><h2>Website requests</h2><p>The download page may request release details from GitHub. We do not run advertising or tracking scripts.</p><h2>Remove your data</h2><p>Reset the demo or clear this site's storage. Desktop quarantine files remain where you chose to place them.</p><p>Questions: <a href="mailto:privacy@sociobot.in">privacy@sociobot.in</a></p></main>`;
+  const terms = `<main id="main" class="prose-page" tabindex="-1"><p class="eyebrow">Terms</p><h1 tabindex="-1">Terms for careful photo cleanup</h1><p>Last updated 28 August 2026.</p><h2>Use and responsibility</h2><p>Proof Pile helps you review and move files. You remain responsible for your files and backups.</p><h2>No permanent deletion</h2><p>The app moves chosen files to a quarantine folder. Do not empty that folder until you test important backups.</p><h2>License</h2><p>The free tier scans up to 1,000 files at once. An existing license removes that scan limit.</p><h2>Payments and refunds</h2><p>When available, Sociobot and Dodo handle checkout as merchant of record. A refunded license may stop working.</p><h2>Warranty</h2><p>The software is provided as is. Keep verified backups before changing a photo library.</p><p>Questions: <a href="mailto:support@sociobot.in">support@sociobot.in</a></p></main>`;
   shell(kind === "privacy" ? privacy : terms);
 }
 
-function notFound() { shell(`<main id="main" class="not-found"><p class="giant">404</p><h1 tabindex="-1">This frame is not in the pile</h1><p>The page may have moved. Your photos have not.</p><a class="button primary route-link" href="/">Return home</a></main>`); }
+function notFound() { shell(`<main id="main" class="not-found" tabindex="-1"><p class="giant">404</p><h1 tabindex="-1">This frame is not in the pile</h1><p>The page may have moved. Your photos have not.</p><a class="button primary route-link" href="/">Return home</a></main>`); }
 
 function navigate(path: string, replace = false) { (replace ? history.replaceState : history.pushState).call(history, {}, "", path); route(); }
 
@@ -304,12 +359,20 @@ async function showDownloads() {
   const dialog = document.createElement("dialog"); dialog.innerHTML = `<div class="download-dialog"><button class="dialog-close" aria-label="Close download window">×</button><p class="eyebrow">Desktop app</p><h2>Choose your download</h2><p id="release-state">Checking the latest release…</p><div id="release-links"></div><a href="https://github.com/B-Divyesh/sf-photo-proof-pile/releases" rel="external">Open all releases ↗</a><p class="fine">Current builds are unsigned. Your system may ask you to confirm the first launch.</p></div>`; document.body.append(dialog); dialog.showModal(); dialog.querySelector(".dialog-close")?.addEventListener("click", () => dialog.close()); dialog.addEventListener("close", () => dialog.remove());
   try {
     let release = JSON.parse(localStorage.getItem("proof-pile:release") || "null"); if (!release || Date.now() - release.savedAt > 3_600_000) { const response = await fetch("https://api.github.com/repos/B-Divyesh/sf-photo-proof-pile/releases/latest"); if (!response.ok) throw new Error(); release = { data: await response.json(), savedAt: Date.now() }; localStorage.setItem("proof-pile:release", JSON.stringify(release)); }
-    const assets = release.data.assets as { name: string; browser_download_url: string }[]; const picks = [["macOS", /\.(dmg)$/], ["Windows", /\.(msi|exe)$/], ["Linux", /\.(AppImage|deb)$/]] as const;
+    const assets = release.data.assets as { name: string; browser_download_url: string }[];
+    const macArm = assets.find(item => /\.(dmg)$/i.test(item.name) && /(aarch64|arm64)/i.test(item.name));
+    const macIntel = assets.find(item => /\.(dmg)$/i.test(item.name) && /(x86_64|x64|intel)/i.test(item.name));
+    const picks = [["Windows", /\.(msi|exe)$/i], ["Linux", /\.(AppImage|deb)$/i]] as const;
     document.querySelector("#release-state")!.textContent = `${release.data.tag_name} is ready.`;
-    document.querySelector("#release-links")!.innerHTML = picks.map(([label, regex]) => { const asset = assets.find(item => regex.test(item.name)); return asset ? `<a class="button quiet" href="${escapeHtml(asset.browser_download_url)}">Download for ${label}</a>` : ""; }).join("");
+    document.querySelector("#release-links")!.innerHTML = [
+      macArm ? `<a class="button quiet" href="${escapeHtml(macArm.browser_download_url)}">Download for macOS (Apple silicon)</a>` : "",
+      macIntel ? `<a class="button quiet" href="${escapeHtml(macIntel.browser_download_url)}">Download for macOS (Intel)</a>` : "",
+      ...picks.map(([label, regex]) => { const asset = assets.find(item => regex.test(item.name)); return asset ? `<a class="button quiet" href="${escapeHtml(asset.browser_download_url)}">Download for ${label}</a>` : ""; })
+    ].join("");
   } catch { document.querySelector("#release-state")!.textContent = "Downloads are being published. Use the releases page to check again."; }
 }
 
 addEventListener("popstate", route);
+document.querySelector<HTMLAnchorElement>(".skip-link")?.addEventListener("click", event => { event.preventDefault(); document.querySelector<HTMLElement>("main")?.focus(); });
 if ("serviceWorker" in navigator && !isDesktop) addEventListener("load", () => navigator.serviceWorker.register("/sw.js").catch(() => undefined));
 verifySavedLicense().finally(route);

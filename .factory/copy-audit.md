@@ -12,7 +12,7 @@ Audited 28 August 2026. Counts treat hyphenated terms and prices as one word. No
 | Download for your computer | 4 | None |
 | Photos stay on this device | 5 | None |
 | Works without an account | 4 | None |
-| Free for 1,000 files; desktop license costs US$29 once | 9 | None |
+| Free scans cover 1,000 files at a time | 8 | None |
 | See why files match | 4 | None |
 | Compare paths, dimensions, dates, hashes, and backup counts before making a plan. | 12 | None |
 | Copies line up. | 3 | None |
@@ -33,12 +33,13 @@ Audited 28 August 2026. Counts treat hyphenated terms and prices as one word. No
 | Keep a tested backup. | 4 | None |
 | A matching copy can still live on a failing drive. | 9 | None |
 | Open important backups before cleanup. | 5 | None |
-| Review a full library for US$29 | 6 | None |
+| Review a full library | 5 | None |
 | The free app scans 1,000 files at a time. | 9 | None |
-| A license removes that scan limit. | 6 | None |
+| An existing license removes that scan limit. | 7 | None |
+| Desktop license checkout is being prepared. | 6 | None |
 | Sociobot is the merchant of record. | 6 | None |
 | Refunds are handled there. | 4 | None |
-| Buy the desktop license — secure checkout | 7 | None |
+| Enter a license | 3 | None |
 | Proof before photo cleanup. | 4 | None |
 
 ## Terminology

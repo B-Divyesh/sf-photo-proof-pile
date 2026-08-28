@@ -34,6 +34,12 @@ export interface MoveRecord {
   restoredAt?: string;
 }
 
+/** Decisions and move records are saved together so recovery survives restart. */
+export interface SavedReview {
+  groups: PhotoGroup[];
+  moves: MoveRecord[];
+}
+
 const base = (id: string, path: string, props: Partial<PhotoCopy>): PhotoCopy => ({
   id,
   path,
@@ -103,6 +109,46 @@ export function decisionCsv(groups: PhotoGroup[], moves: MoveRecord[] = []) {
 }
 
 const csvCell = (value: string) => `"${value.replaceAll('"', '""')}"`;
+
+/** Read portable recovery records from a Proof Pile decision CSV. */
+export function movesFromDecisionCsv(contents: string): MoveRecord[] {
+  const [header, ...rows] = parseCsv(contents);
+  if (!header) throw new Error("The decision log is empty.");
+  const columns = new Map(header.map((name, index) => [name, index]));
+  const sourceIndex = columns.get("path");
+  const destinationIndex = columns.get("quarantine_path");
+  const restoredIndex = columns.get("restored_at");
+  if (sourceIndex === undefined || destinationIndex === undefined) throw new Error("This CSV is not a Proof Pile decision log.");
+  const known = new Set<string>();
+  return rows.flatMap((row, index) => {
+    const source = row[sourceIndex]?.trim();
+    const destination = row[destinationIndex]?.trim();
+    if (!source || !destination || known.has(`${source}\u0000${destination}`)) return [];
+    known.add(`${source}\u0000${destination}`);
+    return [{ id: `import-${index + 1}`, source, destination, movedAt: "Imported from decision log", restoredAt: row[restoredIndex ?? -1]?.trim() || undefined }];
+  });
+}
+
+function parseCsv(input: string): string[][] {
+  const rows: string[][] = [];
+  let row: string[] = [];
+  let cell = "";
+  let quoted = false;
+  for (let index = 0; index < input.length; index += 1) {
+    const character = input[index];
+    if (quoted) {
+      if (character === '"' && input[index + 1] === '"') { cell += '"'; index += 1; }
+      else if (character === '"') quoted = false;
+      else cell += character;
+    } else if (character === '"') quoted = true;
+    else if (character === ",") { row.push(cell); cell = ""; }
+    else if (character === "\n") { row.push(cell.replace(/\r$/, "")); rows.push(row); row = []; cell = ""; }
+    else cell += character;
+  }
+  if (quoted) throw new Error("The decision log has an unfinished quoted value.");
+  if (cell || row.length) { row.push(cell.replace(/\r$/, "")); rows.push(row); }
+  return rows;
+}
 
 export const formatBytes = (bytes: number) => {
   if (bytes < 1_000_000) return `${Math.round(bytes / 1000)} KB`;

@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { countPlan, decisionCsv, formatBytes, sampleGroups } from "../src/model";
+import { countPlan, decisionCsv, formatBytes, movesFromDecisionCsv, sampleGroups } from "../src/model";
 
 describe("review model", () => {
   it("counts only files marked for quarantine", () => {
@@ -14,6 +14,14 @@ describe("review model", () => {
     const csv = decisionCsv(groups);
     expect(csv.split("\n")).toHaveLength(9);
     expect(csv).toContain('"/Photos/A ""good"" day/photo.jpg"');
+  });
+
+  it("recovers quoted quarantine paths from a decision log", () => {
+    const groups = sampleGroups();
+    groups[0].files[0].path = '/Photos/A "good" day/photo.jpg';
+    const moves = [{ id: "move-1", source: '/Photos/A "good" day/photo.jpg', destination: '/Quarantine/A "good" day/photo.jpg', movedAt: "2026-08-28" }];
+    const recovered = movesFromDecisionCsv(decisionCsv(groups, moves));
+    expect(recovered).toEqual([{ id: "import-1", source: '/Photos/A "good" day/photo.jpg', destination: '/Quarantine/A "good" day/photo.jpg', movedAt: "Imported from decision log", restoredAt: undefined }]);
   });
 
   it("formats byte totals for review", () => {

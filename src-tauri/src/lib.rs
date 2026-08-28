@@ -1,3 +1,5 @@
+#![cfg_attr(not(feature = "desktop"), allow(dead_code))]
+
 use base64::{engine::general_purpose::STANDARD as BASE64, Engine};
 use exif::{In, Reader as ExifReader, Tag, Value};
 use filetime::{set_file_times, FileTime};
@@ -81,7 +83,7 @@ pub struct MoveRecord {
 
 #[cfg_attr(feature = "desktop", tauri::command)]
 fn scan_directories(paths: Vec<String>, licensed: bool) -> Result<ScanReport, String> {
-    if paths.len() < 1 {
+    if paths.is_empty() {
         return Err("Choose at least one photo folder.".into());
     }
     let roots: Vec<PathBuf> = paths.iter().map(PathBuf::from).collect();
@@ -523,30 +525,39 @@ fn write_decision_log(path: String, contents: String) -> Result<(), String> {
     fs::write(path, contents).map_err(|error| format!("The CSV file could not be written: {error}"))
 }
 
+#[cfg_attr(feature = "desktop", tauri::command)]
+fn read_decision_log(path: String) -> Result<String, String> {
+    fs::read_to_string(path).map_err(|error| format!("The CSV file could not be read: {error}"))
+}
+
 fn move_file(source: &Path, destination: &Path) -> Result<(), String> {
     match fs::rename(source, destination) {
         Ok(()) => Ok(()),
-        Err(_) => {
-            let metadata = fs::metadata(source).map_err(|error| error.to_string())?;
-            let accessed = FileTime::from_last_access_time(&metadata);
-            let modified = FileTime::from_last_modification_time(&metadata);
-            fs::copy(source, destination)
-                .map_err(|error| format!("{} could not be copied: {error}", source.display()))?;
-            if let Err(error) = set_file_times(destination, accessed, modified) {
-                let _ = fs::remove_file(destination);
-                return Err(format!(
-                    "The copied file dates could not be preserved: {error}"
-                ));
-            }
-            if let Err(error) = fs::remove_file(source) {
-                let _ = fs::remove_file(destination);
-                return Err(format!(
-                    "The copied file could not be removed from its old folder: {error}"
-                ));
-            }
-            Ok(())
-        }
+        Err(_) => copy_then_remove(source, destination),
     }
+}
+
+/// Used when a rename crosses file systems: preserve timestamps before the
+/// source is removed, so a failed copy can never erase the original.
+fn copy_then_remove(source: &Path, destination: &Path) -> Result<(), String> {
+    let metadata = fs::metadata(source).map_err(|error| error.to_string())?;
+    let accessed = FileTime::from_last_access_time(&metadata);
+    let modified = FileTime::from_last_modification_time(&metadata);
+    fs::copy(source, destination)
+        .map_err(|error| format!("{} could not be copied: {error}", source.display()))?;
+    if let Err(error) = set_file_times(destination, accessed, modified) {
+        let _ = fs::remove_file(destination);
+        return Err(format!(
+            "The copied file dates could not be preserved: {error}"
+        ));
+    }
+    if let Err(error) = fs::remove_file(source) {
+        let _ = fs::remove_file(destination);
+        return Err(format!(
+            "The copied file could not be removed from its old folder: {error}"
+        ));
+    }
+    Ok(())
 }
 
 fn unique_destination(directory: &Path, file_name: &std::ffi::OsStr) -> PathBuf {
@@ -598,7 +609,8 @@ pub fn run() {
             scan_directories,
             execute_quarantine,
             restore_quarantined,
-            write_decision_log
+            write_decision_log,
+            read_decision_log
         ])
         .run(tauri::generate_context!())
         .expect("Proof Pile could not start");
@@ -621,13 +633,58 @@ mod tests {
         image.save(path).unwrap();
     }
 
+    fn patterned_sample(path: &Path, inverse: bool) {
+        let image = ImageBuffer::from_fn(9, 8, |x, _| {
+            let value = if inverse {
+                (x * 28) as u8
+            } else {
+                255_u8.saturating_sub((x * 28) as u8)
+            };
+            Rgb([value, value, value])
+        });
+        image.save(path).unwrap();
+    }
+
+    fn add_capture_exif(path: &Path) {
+        let image = fs::read(path).unwrap();
+        let mut tiff = vec![b'I', b'I', 42, 0, 8, 0, 0, 0];
+        tiff.extend_from_slice(&3_u16.to_le_bytes());
+        // Make, Model, and the pointer to the Exif IFD.
+        for (tag, kind, count, value) in [
+            (0x010f_u16, 2_u16, 5_u32, 50_u32),
+            (0x0110, 2, 7, 55),
+            (0x8769, 4, 1, 62),
+        ] {
+            tiff.extend_from_slice(&tag.to_le_bytes());
+            tiff.extend_from_slice(&kind.to_le_bytes());
+            tiff.extend_from_slice(&count.to_le_bytes());
+            tiff.extend_from_slice(&value.to_le_bytes());
+        }
+        tiff.extend_from_slice(&0_u32.to_le_bytes());
+        tiff.extend_from_slice(b"Lens\0Camera\0");
+        tiff.extend_from_slice(&1_u16.to_le_bytes());
+        tiff.extend_from_slice(&0x9003_u16.to_le_bytes());
+        tiff.extend_from_slice(&2_u16.to_le_bytes());
+        tiff.extend_from_slice(&20_u32.to_le_bytes());
+        tiff.extend_from_slice(&80_u32.to_le_bytes());
+        tiff.extend_from_slice(&0_u32.to_le_bytes());
+        tiff.extend_from_slice(b"2026:08:28 12:34:56\0");
+        let mut payload = b"Exif\0\0".to_vec();
+        payload.extend_from_slice(&tiff);
+        let mut output = vec![0xff, 0xd8, 0xff, 0xe1];
+        output.extend_from_slice(&((payload.len() + 2) as u16).to_be_bytes());
+        output.extend_from_slice(&payload);
+        output.extend_from_slice(&image[2..]);
+        fs::write(path, output).unwrap();
+    }
+
     #[test]
     fn exact_files_become_one_group() {
         let root = temp_dir("scan");
         sample(&root.join("first.png"), [40, 90, 120]);
         fs::copy(root.join("first.png"), root.join("copy.png")).unwrap();
         sample(&root.join("other.png"), [210, 80, 20]);
-        let report = scan(&[root.clone()], 100).unwrap();
+        let report = scan(std::slice::from_ref(&root), 100).unwrap();
         assert_eq!(report.scanned, 3);
         assert_eq!(
             report
@@ -659,6 +716,67 @@ mod tests {
         let _ = fs::remove_dir_all(quarantine);
     }
 
+    // @claim:native-matching
+    #[test]
+    fn claim_native_matching_groups_exact_visual_and_exif_moments() {
+        let root = temp_dir("native-matching");
+        sample(&root.join("exact-a.png"), [40, 90, 120]);
+        fs::copy(root.join("exact-a.png"), root.join("exact-b.png")).unwrap();
+        sample(&root.join("visual-a.png"), [90, 140, 180]);
+        sample(&root.join("visual-b.jpg"), [90, 140, 180]);
+        patterned_sample(&root.join("moment-a.jpg"), false);
+        patterned_sample(&root.join("moment-b.jpg"), true);
+        add_capture_exif(&root.join("moment-a.jpg"));
+        add_capture_exif(&root.join("moment-b.jpg"));
+        assert_eq!(
+            read_exif(&root.join("moment-a.jpg")).0.as_deref(),
+            Some("2026-08-28T12:34:56Z")
+        );
+        let first = inspect_photo(0, 0, &root.join("moment-a.jpg")).unwrap();
+        let second = inspect_photo(1, 0, &root.join("moment-b.jpg")).unwrap();
+        assert_ne!(first.visual_hash ^ second.visual_hash, 0);
+        let report = scan(std::slice::from_ref(&root), 100).unwrap();
+        let kinds: HashSet<_> = report
+            .groups
+            .iter()
+            .map(|group| group.kind.as_str())
+            .collect();
+        assert!(kinds.contains("Exact bytes"));
+        assert!(kinds.contains("Looks alike"));
+        assert!(kinds.contains("Same moment"), "groups: {kinds:?}");
+        let _ = fs::remove_dir_all(root);
+    }
+
+    // @claim:cross-drive-safety
+    #[test]
+    fn claim_cross_drive_safety_preserves_dates_and_never_overwrites() {
+        let source_dir = temp_dir("copy-source");
+        let destination_dir = temp_dir("copy-destination");
+        let source = source_dir.join("memory.jpg");
+        let destination = destination_dir.join("memory.jpg");
+        fs::write(&source, b"only copy").unwrap();
+        let stamp = FileTime::from_unix_time(1_700_000_000, 0);
+        set_file_times(&source, stamp, stamp).unwrap();
+        copy_then_remove(&source, &destination).unwrap();
+        assert!(!source.exists());
+        assert_eq!(fs::read(&destination).unwrap(), b"only copy");
+        assert_eq!(
+            FileTime::from_last_modification_time(&fs::metadata(&destination).unwrap())
+                .unix_seconds(),
+            stamp.unix_seconds()
+        );
+        fs::write(&source, b"second copy").unwrap();
+        fs::write(destination_dir.join("memory (2).jpg"), b"occupied").unwrap();
+        let records = execute_quarantine(
+            vec![source.to_string_lossy().to_string()],
+            destination_dir.to_string_lossy().to_string(),
+        )
+        .unwrap();
+        assert!(records[0].destination.ends_with("memory (3).jpg"));
+        let _ = fs::remove_dir_all(source_dir);
+        let _ = fs::remove_dir_all(destination_dir);
+    }
+
     // @claim:free-scan-limit
     #[test]
     fn claim_free_scan_limit() {
@@ -671,7 +789,7 @@ mod tests {
             )
             .unwrap();
         }
-        let report = scan(&[root.clone()], FREE_LIMIT).unwrap();
+        let report = scan(std::slice::from_ref(&root), FREE_LIMIT).unwrap();
         assert_eq!(report.scanned, FREE_LIMIT);
         assert!(report.limited);
         let _ = fs::remove_dir_all(root);

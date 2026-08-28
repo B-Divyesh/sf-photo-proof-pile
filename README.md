@@ -11,7 +11,7 @@ Try the isolated sample at <https://photo-proof-pile.sociobot.in/demo>. The samp
 - Groups exact byte matches, visually similar images, and images captured in the same minute.
 - Shows every path, image dimensions, byte size, capture date, camera, short hash, and matching-drive count.
 - Builds a reviewed plan before moving any file to a quarantine folder.
-- Restores quarantined files when the original path is free.
+- Keeps quarantine recovery records after restart. Import the decision CSV to recover those records on another device.
 - Exports every decision and move as CSV.
 - Keeps the review desk available offline after its first visit.
 
@@ -19,9 +19,9 @@ The app does not upload photos, recognize faces, host a cloud gallery, or perman
 
 ## Price and license
 
-The free desktop app scans up to 1,000 image files at a time. A US$29 one-time license removes that scan limit. Saved reviews, CSV export, and every safety feature stay free.
+The free desktop app scans up to 1,000 image files at a time. An existing license removes that scan limit. Saved reviews, CSV export, and every safety feature stay free.
 
-Purchases use the Sociobot hosted checkout. The app stores the returned license under `sb_license:photo-proof-pile` and checks it with the Sociobot API at most once each day. Photo data is never part of that request. Existing buyers can paste a license into the app.
+The app stores a returned license under `sb_license:photo-proof-pile` and checks it with the Sociobot API at most once each day. Photo data is never part of that request. Existing buyers can paste a license into the app. New license checkout is being prepared.
 
 ## Install
 

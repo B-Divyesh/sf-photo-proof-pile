@@ -38,14 +38,38 @@ test("@claim:csv-export downloads one decision row per sample file", async ({ pa
   expect(rows).toHaveLength(9);
 });
 
-test("@claim:reversible-plan quarantines and restores in the sandbox", async ({ page }) => {
+test("@claim:reversible-plan persists recovery records, exports them, and imports them again", async ({ page }) => {
   await page.goto("/demo");
   await page.getByRole("button", { name: "Mark exact extras" }).click();
   page.once("dialog", dialog => dialog.accept());
   await page.getByRole("button", { name: "Review and run plan" }).click();
   await expect(page.getByText(/2 sample files moved/)).toBeVisible();
+  const downloadPromise = page.waitForEvent("download");
+  await page.getByRole("button", { name: "Export CSV" }).click();
+  const download = await downloadPromise;
+  const stream = await download.createReadStream();
+  const chunks: Buffer[] = [];
+  for await (const chunk of stream!) chunks.push(Buffer.from(chunk));
+  const csv = Buffer.concat(chunks).toString("utf8");
+  expect(csv).toContain("/Sample drive/Proof Pile Quarantine/IMG_4812 (1).jpg");
+  await page.reload();
+  await expect(page.getByRole("button", { name: "Restore last move" })).toBeVisible();
+  await page.evaluate(() => sessionStorage.clear());
+  await page.reload();
+  const fileChooser = page.waitForEvent("filechooser");
+  await page.getByRole("button", { name: "Import decision log" }).click();
+  await (await fileChooser).setFiles({ name: "proof-pile-decisions.csv", mimeType: "text/csv", buffer: Buffer.from(csv) });
+  await expect(page.getByText(/2 recovery records imported/)).toBeVisible();
+  await expect(page.getByRole("button", { name: "Restore last move" })).toBeVisible();
   await page.getByRole("button", { name: "Restore last move" }).click();
   await expect(page.getByText(/restored in the demo/)).toBeVisible();
+});
+
+test("never allows a plan that quarantines a group's only kept copy", async ({ page }) => {
+  await page.goto("/demo");
+  await page.getByRole("button", { name: "Quarantine", exact: true }).first().click();
+  await expect(page.getByText("Keep one copy in this group before marking another copy for quarantine.")).toBeVisible();
+  await expect(page.locator(".plan-number strong")).toHaveText("0");
 });
 
 test("@claim:local-privacy sends no sample photo data off origin", async ({ page }) => {
@@ -94,8 +118,9 @@ test("@claim:offline-reload reloads the demo without a network", async ({ page, 
   await expect(page.getByRole("option")).toHaveCount(3);
 });
 
-test("pages meet the automated accessibility baseline", async ({ page }) => {
-  for (const path of ["/", "/demo", "/privacy", "/terms", "/missing-frame"]) {
+test("pages meet the automated accessibility baseline in light and dark presentations", async ({ page }) => {
+  for (const colorScheme of ["light", "dark"] as const) for (const path of ["/", "/demo", "/privacy", "/terms", "/missing-frame"]) {
+    await page.emulateMedia({ colorScheme });
     await page.goto(path);
     await expect(page.locator("main")).toHaveCount(1);
     await expect(page.locator("h1")).toHaveCount(1);
@@ -111,6 +136,38 @@ test("the phone layout keeps actions usable", async ({ page }) => {
   const action = page.getByRole("button", { name: "Mark exact extras" });
   await action.scrollIntoViewIfNeeded();
   expect((await action.boundingBox())?.height).toBeGreaterThanOrEqual(44);
+  await page.locator(".photo-strip").focus();
+  await expect(page.locator(".photo-strip")).toBeFocused();
+  const results = await new AxeBuilder({ page: page as never }).analyze();
+  expect(results.violations.filter(item => ["serious", "critical"].includes(item.impact ?? ""))).toEqual([]);
+  for (const link of await page.locator("header a:visible, footer a:visible").all()) {
+    const box = await link.boundingBox();
+    expect(box?.width).toBeGreaterThanOrEqual(44);
+    expect(box?.height).toBeGreaterThanOrEqual(44);
+  }
+});
+
+test("the skip link moves keyboard focus to main", async ({ page }) => {
+  await page.goto("/");
+  await page.getByRole("link", { name: "Skip to main content" }).focus();
+  await page.keyboard.press("Enter");
+  await expect(page.locator("main")).toBeFocused();
+});
+
+test("download picker offers both published macOS architectures", async ({ page }) => {
+  await page.route("https://api.github.com/repos/B-Divyesh/sf-photo-proof-pile/releases/latest", route => route.fulfill({
+    status: 200,
+    contentType: "application/json",
+    body: JSON.stringify({ tag_name: "v0.1.1", assets: [
+      { name: "Proof.Pile_0.1.1_aarch64.dmg", browser_download_url: "https://example.test/arm.dmg" },
+      { name: "Proof.Pile_0.1.1_x86_64.dmg", browser_download_url: "https://example.test/intel.dmg" },
+      { name: "Proof.Pile_0.1.1_x64_en-US.msi", browser_download_url: "https://example.test/app.msi" }
+    ] })
+  }));
+  await page.goto("/");
+  await page.getByRole("button", { name: /Download for/ }).click();
+  await expect(page.getByRole("link", { name: "Download for macOS (Apple silicon)" })).toHaveAttribute("href", "https://example.test/arm.dmg");
+  await expect(page.getByRole("link", { name: "Download for macOS (Intel)" })).toHaveAttribute("href", "https://example.test/intel.dmg");
 });
 
 test("routes load without console errors and back restores the page", async ({ page }) => {
