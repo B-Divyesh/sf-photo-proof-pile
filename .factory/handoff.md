@@ -36,8 +36,12 @@ The demo URL is `/demo`. The production site build command is `npm run build:sit
 - Lab metrics: LCP 1.4 s, CLS 0, total blocking time 60 ms, speed index 0.9 s.
 - Initial app JavaScript: 28.53 KB raw and 10.51 KB gzip. CSS: 17.28 KB raw and 4.85 KB gzip. Hero WebP: 29.92 KB.
 - JSON, shell syntax, workflow YAML, and `git diff --check`: passed.
+- GitHub Actions release run `33187465920`: all four native build jobs and the checksum job passed.
+- Public release: `https://github.com/B-Divyesh/sf-photo-proof-pile/releases/tag/v0.1.0`.
+- Published assets include two macOS DMGs, Windows MSI and EXE installers, Linux AppImage, DEB, and RPM packages, `latest.json`, and `SHA256SUMS`.
+- Downloaded `Proof.Pile_0.1.0_x64_en-US.msi` and matched SHA-256 `c9a41d73ebb3515d97ab8cfa1543869756ffb2c990ea51c68c41ffb0b9e38a88` against the published checksum file.
 
-Local desktop core tests run without GUI libraries. The full Linux desktop bundle was not built in this container because GLib/WebKitGTK development packages are absent. The release workflow installs those packages before Tauri builds.
+Local desktop core tests run without GUI libraries. The container lacks GLib/WebKitGTK development packages, so full desktop bundles were verified through the successful GitHub matrix instead.
 
 ## Known gaps
 
