@@ -80,7 +80,7 @@ pub struct MoveRecord {
 }
 
 #[cfg_attr(feature = "desktop", tauri::command)]
-pub fn scan_directories(paths: Vec<String>, licensed: bool) -> Result<ScanReport, String> {
+fn scan_directories(paths: Vec<String>, licensed: bool) -> Result<ScanReport, String> {
     if paths.len() < 1 {
         return Err("Choose at least one photo folder.".into());
     }
@@ -468,7 +468,7 @@ fn to_copy(
 }
 
 #[cfg_attr(feature = "desktop", tauri::command)]
-pub fn execute_quarantine(
+fn execute_quarantine(
     paths: Vec<String>,
     quarantine_dir: String,
 ) -> Result<Vec<MoveRecord>, String> {
@@ -503,7 +503,7 @@ pub fn execute_quarantine(
 }
 
 #[cfg_attr(feature = "desktop", tauri::command)]
-pub fn restore_quarantined(record: MoveRecord) -> Result<(), String> {
+fn restore_quarantined(record: MoveRecord) -> Result<(), String> {
     let source = PathBuf::from(record.source);
     let quarantined = PathBuf::from(record.destination);
     if source.exists() {
@@ -519,7 +519,7 @@ pub fn restore_quarantined(record: MoveRecord) -> Result<(), String> {
 }
 
 #[cfg_attr(feature = "desktop", tauri::command)]
-pub fn write_decision_log(path: String, contents: String) -> Result<(), String> {
+fn write_decision_log(path: String, contents: String) -> Result<(), String> {
     fs::write(path, contents).map_err(|error| format!("The CSV file could not be written: {error}"))
 }
 
@@ -588,6 +588,20 @@ fn now_epoch() -> u64 {
         .duration_since(UNIX_EPOCH)
         .map(|duration| duration.as_secs())
         .unwrap_or_default()
+}
+
+#[cfg(feature = "desktop")]
+pub fn run() {
+    tauri::Builder::default()
+        .plugin(tauri_plugin_dialog::init())
+        .invoke_handler(tauri::generate_handler![
+            scan_directories,
+            execute_quarantine,
+            restore_quarantined,
+            write_decision_log
+        ])
+        .run(tauri::generate_context!())
+        .expect("Proof Pile could not start");
 }
 
 #[cfg(test)]
