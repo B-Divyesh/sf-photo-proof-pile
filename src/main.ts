@@ -60,7 +60,7 @@ function previewGraphic() {
 }
 
 function pricing() {
-  return `<section class="pricing" aria-labelledby="price-title"><div><p class="eyebrow">One-time desktop license</p><h2 id="price-title">Review a full library for US$29</h2><p>The free app scans 1,000 files at a time. A license removes that limit and saves review projects.</p>${licenseNotice ? `<p class="license-notice" role="status">${escapeHtml(licenseNotice)}</p>` : ""}</div><div class="price-actions"><a class="button primary" href="https://api.sociobot.in/api/v1/products/${PRODUCT}/checkout">Buy the desktop license — secure checkout</a><button class="button quiet" id="restore-license" type="button">Enter a license</button><p>Sociobot is the merchant of record. Refunds are handled there.</p></div></section>`;
+  return `<section class="pricing" aria-labelledby="price-title"><div><p class="eyebrow">One-time desktop license</p><h2 id="price-title">Review a full library for US$29</h2><p>The free app scans 1,000 files at a time. A license removes that scan limit.</p>${licenseNotice ? `<p class="license-notice" role="status">${escapeHtml(licenseNotice)}</p>` : ""}</div><div class="price-actions"><a class="button primary" href="https://api.sociobot.in/api/v1/products/${PRODUCT}/checkout">Buy the desktop license — secure checkout</a><button class="button quiet" id="restore-license" type="button">Enter a license</button><p>Sociobot is the merchant of record. Refunds are handled there.</p></div></section>`;
 }
 
 function bindLanding() {
@@ -78,8 +78,7 @@ function platformName() {
 
 function enterDemo() {
   demo = true;
-  const saved = sessionStorage.getItem(DEMO_KEY);
-  groups = saved ? JSON.parse(saved) : sampleGroups();
+  groups = readGroups(sessionStorage, DEMO_KEY) ?? sampleGroups();
   moves = [];
   activeGroup = 0;
   renderDesk();
@@ -87,11 +86,24 @@ function enterDemo() {
 
 function appRoute() {
   demo = false;
-  const saved = licenseActive ? localStorage.getItem(REAL_KEY) : null;
-  groups = saved ? JSON.parse(saved) : [];
+  groups = readGroups(localStorage, REAL_KEY) ?? [];
   moves = [];
   activeGroup = 0;
   renderDesk();
+}
+
+function readGroups(storage: Storage, key: string): PhotoGroup[] | null {
+  const saved = storage.getItem(key);
+  if (!saved) return null;
+  try {
+    const parsed = JSON.parse(saved);
+    if (!Array.isArray(parsed)) throw new Error();
+    return parsed;
+  } catch {
+    storage.removeItem(key);
+    notice = "The saved review could not be read. Start a new scan.";
+    return null;
+  }
 }
 
 function renderDesk() {
@@ -115,7 +127,7 @@ function deskContent(group: PhotoGroup, planFiles: number, planBytes: number) {
   return `<div class="desk-layout">
     <aside class="group-rail" aria-label="Photo groups"><div class="rail-heading"><h2>Groups</h2><span>${groups.length}</span></div><div role="listbox" aria-label="Duplicate groups">${groups.map((item, index) => `<button type="button" role="option" aria-selected="${index === activeGroup}" data-group="${index}"><span class="group-thumb"><img src="${safeThumbnail(item.files[0].thumbnail)}" alt=""></span><span><strong>${escapeHtml(item.kind)}</strong><small>${item.files.length} files · ${item.confidence}% match</small></span></button>`).join("")}</div><p class="key-hint">Use ↑ and ↓ to change groups.</p></aside>
     <section class="evidence" aria-labelledby="group-title"><div class="evidence-heading"><div><span class="match-badge">${escapeHtml(group.kind)}</span><h2 id="group-title">${escapeHtml(humanGroup(group.id))}</h2><p>${escapeHtml(group.reason)}</p></div><div class="confidence"><strong>${group.confidence}%</strong><span>match</span></div></div>
-      <div class="photo-strip">${group.files.map((file, index) => `<figure class="photo-card ${file.decision}"><img src="${safeThumbnail(file.thumbnail)}" width="320" height="210" alt="${escapeHtml(humanGroup(group.id))} copy ${index + 1}."><figcaption>${file.decision === "keep" ? "Keep" : file.decision === "quarantine" ? "Quarantine" : "Needs review"}</figcaption></figure>`).join("")}</div>
+      <div class="photo-strip">${group.files.map((file, index) => `<figure class="photo-card ${file.decision}"><img src="${safeThumbnail(file.thumbnail || group.files[0].thumbnail)}" width="320" height="210" alt="${escapeHtml(humanGroup(group.id))} copy ${index + 1}."><figcaption>${file.decision === "keep" ? "Keep" : file.decision === "quarantine" ? "Quarantine" : "Needs review"}</figcaption></figure>`).join("")}</div>
       <div class="file-list" aria-label="Copy evidence">${group.files.map(fileRow).join("")}</div>
       <div class="group-actions"><button class="button quiet" id="keep-best" type="button">Keep largest copy</button><button class="button quiet" id="mark-extras" type="button">Mark exact extras</button></div>
     </section>
@@ -160,8 +172,12 @@ function bindDesk() {
 }
 
 function persist() {
-  if (demo) sessionStorage.setItem(DEMO_KEY, JSON.stringify(groups));
-  else if (licenseActive) localStorage.setItem(REAL_KEY, JSON.stringify(groups));
+  try {
+    if (demo) sessionStorage.setItem(DEMO_KEY, JSON.stringify(groups));
+    else localStorage.setItem(REAL_KEY, JSON.stringify(groups, (key, value) => key === "thumbnail" ? undefined : value));
+  } catch {
+    notice = "The review changed, but this device could not save it. Export the CSV before closing the app.";
+  }
 }
 
 function keepBest() {
@@ -236,7 +252,7 @@ function plainError(error: unknown) { return String(error).replace(/^Error:\s*/,
 
 function legalPage(kind: "privacy" | "terms") {
   const privacy = `<main id="main" class="prose-page"><p class="eyebrow">Policy</p><h1 tabindex="-1">Privacy without photo uploads</h1><p>Last updated 28 August 2026.</p><h2>Your photos stay local</h2><p>The desktop app reads selected folders on your device. It does not upload photos, thumbnails, paths, hashes, or decision logs.</p><h2>Data stored on your device</h2><p>The app stores review choices, your license token, and cached license status. Demo choices use a separate session-only key.</p><h2>License checks</h2><p>License verification sends the license token to the Sociobot billing API. It does not send photo data.</p><h2>Website requests</h2><p>The download page may request release details from GitHub. We do not run advertising or tracking scripts.</p><h2>Remove your data</h2><p>Reset the demo or clear this site's storage. Desktop quarantine files remain where you chose to place them.</p><p>Questions: <a href="mailto:privacy@sociobot.in">privacy@sociobot.in</a></p></main>`;
-  const terms = `<main id="main" class="prose-page"><p class="eyebrow">Terms</p><h1 tabindex="-1">Terms for careful photo cleanup</h1><p>Last updated 28 August 2026.</p><h2>Use and responsibility</h2><p>Proof Pile helps you review and move files. You remain responsible for your files and backups.</p><h2>No permanent deletion</h2><p>The app moves chosen files to a quarantine folder. Do not empty that folder until you test important backups.</p><h2>License</h2><p>The free tier scans up to 1,000 files at once. A US$29 one-time license removes that limit and saves projects.</p><h2>Payments and refunds</h2><p>Sociobot and Dodo handle checkout as merchant of record. A refunded license may stop working.</p><h2>Warranty</h2><p>The software is provided as is. Keep verified backups before changing a photo library.</p><p>Questions: <a href="mailto:support@sociobot.in">support@sociobot.in</a></p></main>`;
+  const terms = `<main id="main" class="prose-page"><p class="eyebrow">Terms</p><h1 tabindex="-1">Terms for careful photo cleanup</h1><p>Last updated 28 August 2026.</p><h2>Use and responsibility</h2><p>Proof Pile helps you review and move files. You remain responsible for your files and backups.</p><h2>No permanent deletion</h2><p>The app moves chosen files to a quarantine folder. Do not empty that folder until you test important backups.</p><h2>License</h2><p>The free tier scans up to 1,000 files at once. A US$29 one-time license removes that scan limit.</p><h2>Payments and refunds</h2><p>Sociobot and Dodo handle checkout as merchant of record. A refunded license may stop working.</p><h2>Warranty</h2><p>The software is provided as is. Keep verified backups before changing a photo library.</p><p>Questions: <a href="mailto:support@sociobot.in">support@sociobot.in</a></p></main>`;
   shell(kind === "privacy" ? privacy : terms);
 }
 
@@ -267,7 +283,7 @@ function showLicenseDialog() {
     const token = dialog.querySelector<HTMLInputElement>("input")!.value.trim(); const result = dialog.querySelector<HTMLElement>("#license-result")!;
     if (!token) { result.textContent = "Enter the token from your receipt."; return; }
     result.textContent = "Checking this license…";
-    try { const response = await fetch(`https://api.sociobot.in/api/v1/products/${PRODUCT}/verify?license=${encodeURIComponent(token)}`); const verdict = await response.json(); if (!verdict.valid) throw new Error("This license is not active."); localStorage.setItem(LICENSE_KEY, token); localStorage.setItem(`${LICENSE_KEY}:verified`, JSON.stringify({ valid: true, checkedAt: Date.now() })); licenseActive = true; result.textContent = "License verified. Full-library scans are active."; }
+    try { const response = await fetch(`https://api.sociobot.in/api/v1/products/${PRODUCT}/verify?license=${encodeURIComponent(token)}`); if (!response.ok) throw new Error("The license service did not respond."); const verdict = await response.json(); if (!verdict.valid) throw new Error("This license is not active."); localStorage.setItem(LICENSE_KEY, token); localStorage.setItem(`${LICENSE_KEY}:verified`, JSON.stringify({ valid: true, checkedAt: Date.now() })); licenseActive = true; result.textContent = "License verified. Full-library scans are active."; }
     catch (error) { result.textContent = `${plainError(error)} Check the token and your connection.`; }
   });
 }
@@ -276,8 +292,10 @@ async function verifySavedLicense() {
   const params = new URLSearchParams(location.search); const returned = params.get("license");
   if (returned) { localStorage.setItem(LICENSE_KEY, returned); params.delete("license"); history.replaceState({}, "", `${location.pathname}${params.size ? `?${params}` : ""}`); licenseActive = true; }
   const token = localStorage.getItem(LICENSE_KEY); if (!token) return;
-  const cached = JSON.parse(localStorage.getItem(`${LICENSE_KEY}:verified`) || "null"); if (cached?.valid && Date.now() - cached.checkedAt < 86_400_000) { licenseActive = true; return; }
-  try { const response = await fetch(`https://api.sociobot.in/api/v1/products/${PRODUCT}/verify?license=${encodeURIComponent(token)}`); const verdict = await response.json(); localStorage.setItem(`${LICENSE_KEY}:verified`, JSON.stringify({ ...verdict, checkedAt: Date.now() })); licenseActive = Boolean(verdict.valid); if (!verdict.valid) licenseNotice = "This license is no longer active. Enter another license or buy a new one."; }
+  let cached: { valid?: boolean; checkedAt?: number } | null = null;
+  try { cached = JSON.parse(localStorage.getItem(`${LICENSE_KEY}:verified`) || "null"); } catch { localStorage.removeItem(`${LICENSE_KEY}:verified`); }
+  if (cached?.valid && cached.checkedAt && Date.now() - cached.checkedAt < 86_400_000) { licenseActive = true; return; }
+  try { const response = await fetch(`https://api.sociobot.in/api/v1/products/${PRODUCT}/verify?license=${encodeURIComponent(token)}`); if (!response.ok) throw new Error(); const verdict = await response.json(); localStorage.setItem(`${LICENSE_KEY}:verified`, JSON.stringify({ ...verdict, checkedAt: Date.now() })); licenseActive = Boolean(verdict.valid); if (!verdict.valid) licenseNotice = "This license is no longer active. Enter another license or buy a new one."; }
   catch { licenseActive = Boolean(cached?.valid); }
 }
 

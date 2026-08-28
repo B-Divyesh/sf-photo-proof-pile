@@ -22,7 +22,7 @@ target="$target_dir/proof-pile.AppImage"
 curl -fL "$asset_url" -o "$target"
 curl -fsSL "$checksum_url" -o "$checksums"
 asset_name=${asset_url##*/}
-expected=$(awk -v name="$asset_name" '$2 == name {print $1}' "$checksums")
+expected=$(awk -v suffix="  $asset_name" 'index($0, suffix) == length($0) - length(suffix) + 1 {print substr($0, 1, 64)}' "$checksums")
 actual=$(sha256sum "$target" | awk '{print $1}')
 if [ -z "$expected" ] || [ "$expected" != "$actual" ]; then
   rm -f "$target"

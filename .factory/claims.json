@@ -1,0 +1,65 @@
+[
+  {
+    "id": "demo-isolated",
+    "claim": "The sample review uses separate session-only storage and can be reset.",
+    "where": "demo banner and README",
+    "test": "npm run test:e2e -- --grep @claim:demo-isolated",
+    "sandbox": "fresh browser context at /demo; edit the sample, reset it, and assert the starting state"
+  },
+  {
+    "id": "match-evidence",
+    "claim": "Shows exact, visual, and same-moment groups with copy evidence.",
+    "where": "review desk and README",
+    "test": "npm run test:e2e -- --grep @claim:match-evidence",
+    "sandbox": "fresh browser context at /demo; inspect all three seeded group types and evidence fields"
+  },
+  {
+    "id": "csv-export",
+    "claim": "Exports the decision log as CSV.",
+    "where": "review toolbar and README",
+    "test": "npm run test:e2e -- --grep @claim:csv-export",
+    "sandbox": "fresh browser context at /demo; assert the downloaded header and one row for each sample file"
+  },
+  {
+    "id": "reversible-plan",
+    "claim": "Moves reviewed copies to quarantine and supports restore.",
+    "where": "landing page, review plan, and README",
+    "test": "npm run test:e2e -- --grep @claim:reversible-plan",
+    "sandbox": "fresh browser context at /demo; mark exact extras, run the sample plan, then restore a move"
+  },
+  {
+    "id": "local-privacy",
+    "claim": "Photos and sample photo data are not uploaded.",
+    "where": "landing page, privacy page, and README",
+    "test": "npm run test:e2e -- --grep @claim:local-privacy",
+    "sandbox": "intercept every request during the demo review and assert every request is same-origin"
+  },
+  {
+    "id": "no-account",
+    "claim": "Works without an account.",
+    "where": "landing page",
+    "test": "npm run test:e2e -- --grep @claim:no-account",
+    "sandbox": "fresh browser context at /demo; assert the complete review desk opens without identity fields"
+  },
+  {
+    "id": "free-scan-limit",
+    "claim": "The free desktop app scans 1,000 image files at a time.",
+    "where": "landing page, pricing section, terms, and README",
+    "test": "cargo test --manifest-path src-tauri/Cargo.toml --no-default-features claim_free_scan_limit",
+    "sandbox": "temporary folder with 1,001 valid image files; assert the scanner reports exactly 1,000 scanned and a limit flag"
+  },
+  {
+    "id": "paid-license",
+    "claim": "A license can be restored and is checked at most once each day.",
+    "where": "pricing section, privacy page, and README",
+    "test": "npm run test:e2e -- --grep @claim:paid-license",
+    "sandbox": "mock the Sociobot verification response; paste a token, reload, and assert one request plus the namespaced stored token"
+  },
+  {
+    "id": "offline-reload",
+    "claim": "The review desk works offline after the first visit.",
+    "where": "README",
+    "test": "npm run test:e2e -- --grep @claim:offline-reload",
+    "sandbox": "load /demo online, wait for its service worker, switch the browser context offline, then reload"
+  }
+]

@@ -6,4 +6,5 @@ graphify-out/
 test-results/
 playwright-report/
 src-tauri/target/
+.factory/evidence/
 .DS_Store
