@@ -68,9 +68,32 @@ Evidence collected in this worker:
 
 ## Release and deployment status
 
-The signed cross-platform release and static-site deployment are performed
-after this repair commit is pushed. Their tag, workflow, checksum, package,
-and live-site evidence will be appended here in the final deployment commit.
+- Repair commit `21c4c0ce9e2d17422e53d23e1d7aeb92705008a6` is pushed to
+  `main`. Annotated tag `v0.1.11` resolves to that exact commit.
+- The required tagged release was triggered as GitHub Actions run
+  [`33263273062`](https://github.com/B-Divyesh/sf-photo-proof-pile/actions/runs/33263273062).
+  It failed only in `validate-signing`; `prepare-release`, all platform build
+  jobs, and checksums were skipped before a release could be created.
+- The rebuilt static site is deployed at
+  <https://photo-proof-pile.sociobot.in>. It serves
+  `assets/index-DfxKpIIx.js`, whose compiled web version is `0.1.11`, and its
+  static 404 footer also reports `v0.1.11`.
+- Live `/demo` verification passed: HTTP 200; title `Demo — Proof Pile`;
+  `lang=en`; one h1 and one main landmark; no missing alt text or unlabeled
+  buttons; no console/page errors. Live desktop and 390 px axe scans found
+  zero serious or critical violations, no horizontal overflow, and no
+  third-party requests. A live service-worker offline reload retained the
+  sample-review heading and demo banner with no errors.
+
+## Remaining release blocker
+
+`v0.1.11` could not be published because the repository does not provide the
+trusted macOS notarization and Windows Authenticode credentials listed below.
+The public latest release therefore remains `v0.1.10`, which is the old
+desktop package identified by verification 9. This S1 is not closed: the
+static deployment is current, but it must not be represented as a completed
+desktop release until a signed `v0.1.11` (or successor containing commit
+`21c4c0c`) is published with `latest.json` pointing to its tagged commit.
 
 ## Operator prerequisites
 
