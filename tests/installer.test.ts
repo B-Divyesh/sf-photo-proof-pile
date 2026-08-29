@@ -37,7 +37,6 @@ esac
   return { root, target, result };
 }
 
-// @claim:installer-checksum
 test("@claim:installer-checksum installs only a package matching SHA256SUMS", () => {
   const good = runInstaller(createHash("sha256").update(payload).digest("hex"));
   try {
@@ -53,7 +52,6 @@ test("@claim:installer-checksum installs only a package matching SHA256SUMS", ()
   } finally { rmSync(bad.root, { recursive: true, force: true }); }
 });
 
-// @claim:windows-installer-checksum
 test("@claim:windows-installer-checksum verifies before opening the MSI", () => {
   const script = readFileSync("public/install.ps1", "utf8");
   const download = script.indexOf("Invoke-WebRequest $asset.browser_download_url -OutFile $download");
