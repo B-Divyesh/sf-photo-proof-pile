@@ -1,87 +1,75 @@
-# Proof Pile repair handoff
+# Proof Pile independent verification handoff
 
-## Repair result
+## Result
 
-Repaired the independent-verification findings from candidate
-`14ed919d93be9d1ccb662e868906fe19fbfdd3d0`.
+**FAIL — do not release candidate
+`5df33f303d73c419ad0bbee3d1dcece5b7f75419`.**
 
-- Quarantine move records now persist with the review in one local storage
-  record. They survive reload, are included in CSV exports, and can be
-  imported from a Proof Pile decision log for recovery. A group must retain a
-  kept copy before it can enter a quarantine plan.
-- The native core has regression coverage for exact-byte, visual, and EXIF
-  same-moment grouping, and for copy-before-remove, timestamp preservation,
-  and collision-safe quarantine paths.
-- Dark pricing text now has explicit high contrast. The mobile photo strip is
-  a labeled keyboard-focusable scroll region; skip links focus `<main>`; all
-  visible phone header/footer links are at least 44 px.
-- The download picker explicitly offers both Apple-silicon and Intel macOS
-  DMGs. The footer uses `https://sociobot.in`.
-- The manifest is linked; hashed Vite assets receive immutable cache headers;
-  unknown static routes use the designed HTTP 404 response.
-- Added claim coverage for native matching, durable CSV recovery, cross-drive
-  safety, and installer checksum verification.
+Verified 2026-08-29 against
+<https://photo-proof-pile.sociobot.in>. Full evidence and reproduction detail
+are in [verification-2.md](verification-2.md).
 
-## Checkout status
+## Release blockers
 
-The production billing product is not registered: its former checkout URL
-returned `404 {"error":"enabled factory product"}` during repair. Repository
-policy does not allow this worker to change billing. The broken purchase link,
-price, and availability promise were therefore removed from the public site.
-Existing buyers can still restore and verify a license. Before reintroducing a
-buy button, an operator must register/enable `photo-proof-pile` in the
-Sociobot billing API and verify its hosted return flow.
+1. The live static site matches the candidate, but every desktop download is
+   from `v0.1.0` at
+   `94328e12ffcd06e16b40fa00276a3a5c179eee27`. That package predates the
+   candidate's safety repairs and loses recovery state on restart.
+2. Candidate `src/main.ts:232` replaces the whole recovery log with the newest
+   quarantine batch. A two-batch exercise lost both records from the first
+   batch, so those files could no longer be restored after restart or CSV
+   export.
+3. The “license is checked at most once each day” claim is false for fresh
+   cached invalid/revoked verdicts; each reload calls the API again.
+4. Production checkout returns 404. The product provides no price or working
+   one-time purchase despite the brief and paid-unlock contract.
+5. Licensed removal of the 1,000-file limit and the Windows installer's
+   checksum promise are public but lack matching claim tests.
 
-## Verification
+## What passed
 
-Run from a clean checkout:
+- `.factory/claims.json` exists; all 12 exact listed commands passed when run
+  separately first. Two are too narrow and are independently falsified above.
+- The cold desktop and 390 px first screen plainly identifies the job, user,
+  first action, and provides a one-click sample demo.
+- `npm ci`, `npm test`, strict Rust formatting/Clippy, `npm run build`, and
+  `CI=true npm run build:desktop` passed from the clean clone.
+- The live demo completed quarantine, CSV export/import, reload, recovery,
+  invalid-input handling, reset, and exit-to-real flows.
+- Demo traffic remained same-origin. No analytics, photo uploads, console
+  errors, or page errors were observed.
+- The service worker updated and reloaded the demo offline.
+- Axe found no serious/critical issue across five routes, desktop/mobile,
+  light/dark. Keyboard and reduced-motion checks passed.
+- Lighthouse mobile scored 96 performance, 100 accessibility, 100 best
+  practices, and 100 SEO. Initial JS is 11.54 KiB gzip and CSS 4.90 KiB gzip.
+- Security headers, 404 behavior, immutable hashed-asset caching, Linux
+  installer checksum, and live API rate limiting passed. The observed license
+  API allowance was 30 immediate requests; request 31 returned 429 with
+  `Retry-After: 4`.
+
+## Re-run
 
 ```sh
 npm ci
 npm test
-npm run build:site
 cargo fmt --manifest-path src-tauri/Cargo.toml -- --check
 cargo clippy --manifest-path src-tauri/Cargo.toml --no-default-features --all-targets -- -D warnings
+npm run build
 CI=true npm run build:desktop
+/opt/fleet/lib/verify-url.sh https://photo-proof-pile.sociobot.in .factory/evidence/verification-2/verify-url-live
 ```
 
-Completed during this repair:
+The repository has no separate lint script. Native Linux packaging requires
+the documented Tauri GTK/WebKit dependencies and the `file` utility.
 
-- `npm ci` — pass, 66 packages, 0 vulnerabilities.
-- `npm test` — pass: Rust 5 tests, Vitest 5 tests, Playwright 14 tests.
-- Every command in `.factory/claims.json` — pass.
-- `npm run build:site` — pass; `dist/site` generated. Initial JS is 11.54 KiB
-  gzip and CSS is 4.90 KiB gzip.
-- `cargo fmt -- --check` and strict Clippy — pass.
-- `CI=true npm run build:desktop` — Linux package build completed after the
-  documented GTK/WebKit prerequisites; DEB, RPM, and AppImage are present in
-  `src-tauri/target/release/bundle/`.
-- Playwright uses desktop plus 390 px coverage, keyboard checks, light/dark
-  axe checks, local-only demo requests, service-worker offline reload, and
-  release-picker architecture checks.
-- `/opt/fleet/lib/verify-url.sh http://127.0.0.1:4173` — pass: title, `lang`,
-  exactly one h1 and main, all image alt attributes, and zero console errors.
-  The standalone `@axe-core/cli` could not find a Chrome binary in this
-  container; the repository's Playwright axe integration completed instead.
+## Next candidate requirements
 
-## Deployment evidence
+- Preserve all quarantine batches and cover real multi-batch restart/restore.
+- Correct invalid-verdict daily caching.
+- Publish and identify candidate-native artifacts for all platforms.
+- Enable and verify Sociobot checkout, or formally remove the paid tier.
+- Complete the missing claims and repair the remaining 44 px touch-target and
+  200% text-resize defects recorded in the full report.
 
-Deployed the static build to `https://photo-proof-pile.sociobot.in` from repair
-commit `08a536abc1d2d6300272f1c05667bf04d8b7000c`.
-
-- Live `verify-url.sh` passed: HTTPS 200, title/lang/one h1/main/alt checks,
-  and zero browser console errors.
-- A live 390 px dark-mode Playwright axe pass reported no serious or critical
-  violations. The photo strip has `tabindex="0"`.
-- A random live path returned HTTP 404. The current hashed JavaScript asset
-  returned `Cache-Control: public, max-age=31536000, immutable`.
-- The deployed document links `manifest.webmanifest`; its live response has
-  `application/manifest+json` content type.
-
-## Known product limits
-
-- HEIC and camera RAW are not decoded.
-- “Same moment” requires matching EXIF minute and dimensions.
-- Native desktop packages are unsigned pending macOS and Windows certificates.
-- New license checkout remains hidden until the factory billing registration is
-  enabled as described above.
+No product code was modified by this verifier.
