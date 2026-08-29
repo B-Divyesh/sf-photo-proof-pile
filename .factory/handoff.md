@@ -1,58 +1,125 @@
-# Proof Pile verification 12 handoff — FAIL
+# Proof Pile repair 8 handoff — 29 August 2026
 
-Date: 29 August 2026 (UTC)
+## Outcome
 
-## Decision
+Release blocker fixed and deployed. Proof Pile v0.1.15 is publicly installable
+for Linux, Windows, macOS Apple silicon, and macOS Intel. The live download
+dialog resolves to those assets, and the published Linux installer downloads a
+checksum-matched AppImage.
 
-**FAIL — do not release candidate
-`c573996dbaabdba0190785b34e1ec6e6cafcc693`.**
+The root cause was the release workflow's unconditional signing preflight. The
+repository has no Apple or Windows signing secrets, so the preflight skipped
+all four package builds, including Linux. The workflow now builds every target
+without certificates, signs when owner credentials are present, records the
+truthful status in `latest.json`, and publishes only after the matrix and
+checksums pass.
 
-The live website and demo pass, every claim test passes, the candidate builds,
-and the deployed web assets match the candidate. The release-blocking defect is
-distribution: GitHub has no public Proof Pile release, the live download dialog
-offers no package, and the one-line installer exits without installing. A user
-therefore cannot obtain the desktop app required for local folder scanning and
-quarantine.
+This follows the work order's desktop rule to ship unsigned macOS and Windows
+packages when certificates are unavailable and state that clearly. The site,
+README, and PowerShell installer warn that those two packages are unsigned.
+No package is described as signed unless CI emits
+`DESKTOP_SIGNATURES_VERIFIED.json` after native signature checks.
 
-Full evidence and reproduction details are in
-`.factory/verification-12.md` and `.factory/verification-artifacts-12/`.
+## Source, release, and deployment
 
-## Verified
+- Repair commit and release source:
+  `c9e1d6eab6ccc36da27507a1dff854ac5bb22b3f`
+- Release tag: `v0.1.15`
+- Public release:
+  <https://github.com/B-Divyesh/sf-photo-proof-pile/releases/tag/v0.1.15>
+- Successful release workflow:
+  <https://github.com/B-Divyesh/sf-photo-proof-pile/actions/runs/33278280973>
+- Static deployment ID: `8d962e16-4ada-401c-98bc-b20f348cc375`
+- Live site: <https://photo-proof-pile.sociobot.in>
+- Release marker binds the package matrix to commit
+  `c9e1d6eab6ccc36da27507a1dff854ac5bb22b3f`.
 
-- All 22 exact commands in `.factory/claims.json`: PASS individually.
-- `npm test`: PASS (10 Rust, 11 Vitest, 30 Playwright).
-- `npm run check`: PASS (TypeScript, Rust format, strict Clippy).
-- `npm run build`: PASS; `dist/site` produced.
-- `CI=true npm run build:desktop -- --bundles deb,rpm`: PASS after the
-  documented Ubuntu Tauri prerequisites were installed.
-- Extracted DEB executable: stayed running for the eight-second Xvfb smoke
-  window; no application error.
-- First-read and one-click demo gates: PASS on desktop and 390 px mobile.
-- Live end-to-end sample review, invalid input, cancel, CSV, recovery, keyboard,
-  axe, reduced motion, 200% text, privacy, headers, caching, and offline reload:
-  PASS.
-- Live deployment and candidate site build: byte-for-byte match.
-- Lighthouse: 92 performance, 100 accessibility, 100 best practices, 100 SEO;
-  LCP 1.2 s and CLS 0.
-- License API allowance: 30 successful requests; request 31 returned 429 with
-  `Retry-After: 3`.
+## Finding closure and regression coverage
 
-## Release blocker
+- Removed the credential preflight that prevented every package build.
+- Kept conditional Authenticode and Apple signing/notarization checks for a
+  future run with owner credentials.
+- Added `DESKTOP_RELEASE_VERIFIED.json`. CI writes it only after all four build
+  jobs succeed; it records source commit, matrix state, checksum scheme, and
+  truthful per-platform signature state.
+- `latest.json` contains canonical v0.1.15 URLs for two DMGs, MSI/EXE, AppImage,
+  and DEB. `SHA256SUMS` covers all package assets and the release marker.
+- The browser requires the full matrix, `latest.json`, `SHA256SUMS`, and the
+  completed release marker before showing any download.
+- Both one-line installers require the completed release marker and verify the
+  selected package against `SHA256SUMS` before opening or installing it.
+- `tests/model.test.ts` prevents restoration of the signing deadlock and checks
+  the conditional-signing/release-verification contract.
+- `tests/app.spec.ts` proves a complete unsigned release is usable with a clear
+  warning and an incomplete release exposes no package.
+- `tests/installer.test.ts` and `tests/install-windows.ps1` prove incomplete or
+  checksum-mismatched releases never reach installation.
 
-- Public GitHub releases API: `[]`.
-- Public `v0.1.14` release API: 404.
-- Live download dialog: “Trusted downloads are not published yet”; zero links.
-- Live Linux installer: exit 1; no files written.
-- GitHub Actions release run `33273116306`: failed at `validate-signing`; all
-  package and publication jobs skipped.
+## Clean-clone verification
 
-## Required next step
+A fresh local clone of repair commit `c9e1d6e` was used.
 
-Supply the owner-held signing credentials named by the release workflow, cut a
-release tag for the approved source, and publish the complete Linux, Windows,
-macOS arm64, and macOS x64 matrix with `SHA256SUMS`, `latest.json`, and
-`DESKTOP_SIGNATURES_VERIFIED.json`. Then verify a real download and checksum on
-at least one platform and confirm the live detected-platform action resolves to
-that release.
+- `npm ci`: passed; 66 packages installed and zero audit vulnerabilities.
+- Every exact command in `.factory/claims.json`: 22 of 22 passed separately.
+- Claim registration audit: 22 IDs, each with exactly one matching test tag.
+- `npm test`: passed — 10 Rust tests, 11 Vitest tests, 30 Playwright tests.
+- `npm run check`: passed — TypeScript, Rust format, and strict Clippy.
+- `npm run build`: passed and produced `dist/site`.
+- `actionlint 1.7.12 .github/workflows/release.yml`: passed.
+- Initial JavaScript: 42,810 bytes raw / 15,000 bytes gzip total.
+- CSS: 18,563 bytes raw / 5,094 bytes gzip.
+- Hero WebP: 29,922 bytes.
 
-No product code was modified during verification.
+## Native and release verification
+
+- `CI=true npm run build:desktop -- --bundles deb,rpm`: passed after installing
+  the same Ubuntu prerequisites declared in the workflow.
+- Local DEB metadata: `proof-pile`, version `0.1.15`, architecture `amd64`.
+- Local executable stayed running for the full eight-second Xvfb smoke window.
+- GitHub Actions passed prepare, both macOS architectures, Windows, Linux,
+  checksum publication, and independent public-release verification.
+- The public release contains 11 assets: two DMGs, two app archives, MSI, EXE,
+  AppImage, DEB, RPM, `latest.json`, `SHA256SUMS`, and the release marker.
+- A fresh invocation of the live `install.sh` installed the 78,576,120-byte
+  AppImage. Its SHA-256 matched the published value:
+  `d57111a8df898743e02327b73dc693aa596a758b960cb3488b0de62ffaadbd07`.
+- The downloaded public DEB reported `proof-pile 0.1.15 amd64`; its extracted
+  executable stayed running for the full eight-second Xvfb smoke window.
+
+## Live product verification
+
+- `/opt/fleet/lib/verify-url.sh` passed both `/` and `/demo`: correct title,
+  `lang=en`, one h1/main, complete image alternatives, labeled buttons, and no
+  console or page errors.
+- `/`, `/demo`, `/app`, `/privacy`, and `/terms` return 200. The tested unknown
+  route returns the designed HTTP 404.
+- Desktop keyboard skip navigation works. The one-click demo opens three sample
+  groups and its persistent isolation banner.
+- Playwright axe found zero serious or critical issues on all five routes.
+- At 390 px there is no horizontal overflow, checked targets are at least 44
+  px, reduced-motion makes the card transition effectively instant, and axe
+  reports zero serious or critical issues.
+- Demo decision interactions made no off-origin request. The license endpoint
+  accepts only the product origin, returns JSON with `Cache-Control: no-store`,
+  and rejected the invalid test token.
+- Offline reload returned 200 with all three demo groups. The active worker uses
+  cache `proof-pile-v12`, proving the deployed update replaced v11.
+- CSP, HSTS, `nosniff`, strict-origin referrer policy, and denied camera,
+  microphone, and geolocation permissions are live.
+- The deployed HTML and primary JavaScript SHA-256 values match `dist/site`.
+- A fresh desktop browser shows four v0.1.15 download links and the unsigned
+  first-launch warning with zero console errors.
+- Lighthouse mobile: performance 100, accessibility 100, best practices 100,
+  SEO 100; FCP 0.9 s, LCP 1.1 s, TBT 10 ms, CLS 0, 137 KiB transfer.
+- Sociobot checkout returns its expected hosted-checkout 303 response.
+
+## Known gaps and operator action
+
+The macOS and Windows packages are unsigned because the repository has no owner
+certificates. This does not block the work order's unsigned desktop delivery,
+but those operating systems will show a first-launch warning.
+
+To remove that warning, add the Apple notarization and Windows Authenticode
+secrets already named in `.github/workflows/release.yml`, increment the version,
+and tag the source. The same workflow will sign, verify, and publish a
+`DESKTOP_SIGNATURES_VERIFIED.json` marker automatically.
