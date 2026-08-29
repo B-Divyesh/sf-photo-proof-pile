@@ -2,28 +2,28 @@
 
 Review photo copies, quarantine extras, and keep a reversible decision log.
 
-Proof Pile is for people whose photo libraries span several drives. The Tauri desktop app reads selected folders locally, groups likely copies, and keeps the evidence beside every decision. It never offers permanent deletion.
+Proof Pile is for people whose photo libraries span several drives. The desktop app reads only folders you choose, groups likely copies, and keeps evidence beside each decision.
 
-Try the isolated sample at <https://photo-proof-pile.sociobot.in/demo>. The sample needs no account and writes only to a `demo:` session-storage key. Use **Reset demo** for a clean state.
+Try the isolated sample at <https://photo-proof-pile.sociobot.in/demo> or <https://photo-proof-pile.sociobot.in/?demo=1>. The sample needs no account. Its choices stay only in this browser tab and never mix with a real review. Use **Reset demo** for a clean state.
 
 ## What it does
 
-- Groups exact byte matches, visually similar images, and images captured in the same minute.
-- Shows every path, image dimensions, byte size, capture date, camera, short hash, and matching-drive count.
+- Groups exact copies, photos that look alike, and photos taken at the same time.
+- Shows each file location, image size, file size, capture date, camera, file identifier, and copies on other drives.
 - Builds a reviewed plan before moving any file to a quarantine folder.
-- Keeps quarantine recovery records after restart. Restore a decision CSV on the same computer after selecting its quarantine folder.
-- Exports every decision and move as CSV.
+- Keeps quarantine recovery records after restart. Restore verified decision-log records after selecting their quarantine folder.
+- Exports every decision and move in a decision log (CSV).
 - Keeps the review desk available offline after its first visit.
 
-The app does not upload photos, recognize faces, host a cloud gallery, or permanently delete files. A matching backup is not proof that the backup can be restored. Test important backups before cleanup.
+Copies on other drives are not tested backups. Open important backups before cleanup.
 
 ## Price and license
 
-The free desktop app scans up to 1,000 image files at a time. A US$29 one-time license removes that scan limit. Saved reviews, CSV export, and every safety feature stay free.
+The free desktop app scans up to 1,000 image files at a time. A US$29 one-time license removes that scan limit. The license changes only the scan limit: quarantine, restore, and decision-log recovery remain available without one.
 
-Buy through the [Sociobot hosted checkout](https://api.sociobot.in/api/v1/products/photo-proof-pile/checkout). Sociobot and Dodo handle payment and refunds as merchant of record.
+Buy through the [Sociobot checkout](https://api.sociobot.in/api/v1/products/photo-proof-pile/checkout). Contact Sociobot for refunds.
 
-The app stores a returned license under `sb_license:photo-proof-pile` and checks it with the Sociobot API at most once each day. Photo data is never part of that request. Buyers can paste a license into the app when moving to another device.
+The app stores a returned license under `sb_license:photo-proof-pile` and checks it with the Sociobot API at most once each day. The request contains only the license token.
 
 ## Install
 
@@ -56,19 +56,19 @@ npm run build           # static site at dist/site
 npm run build:desktop   # native package for the current platform
 ```
 
-The exact static deployment command is `npm run build:site`. It writes `dist/site/index.html`.
+The exact static deployment command is `npm run build:site`. It writes `dist/site`.
 
 ## How matching works
 
-The Rust core walks only the folders a user selects. It computes SHA-256 for exact matches and a 64-bit difference hash for visual matches. It also reads EXIF capture time and camera fields. Similarity groups exclude files already covered by a stronger exact match.
+The local scanner reads only folders you select. It compares file bytes for exact copies and image content for photos that look alike. It also reads the capture time and camera stored inside each photo. Files in an exact-copy group do not appear again in another match group.
 
-Moving a file preserves its bytes and embedded EXIF metadata. If a move crosses drives, the app copies the file first and removes the source only after a successful copy. A name collision receives a numbered file name instead of overwriting either copy.
+Moving a file preserves its bytes and embedded photo information. If a move crosses drives, the app copies the file first and removes the source only after a successful copy. A name collision receives a numbered file name instead of overwriting either copy.
 
 ## Project map
 
 - `src/` — TypeScript interface, demo data, license flow, and decision log.
 - `src-tauri/` — local scanner, matching logic, quarantine, restore, and desktop packaging.
-- `public/` — PWA shell, original art, sample images, and installer scripts.
+- `public/` — offline web files, original art, sample images, and installer scripts.
 - `tests/` — model and Playwright tests.
 - `.factory/` — product brief, visual thesis, claims, demo contract, and handoff.
 

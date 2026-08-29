@@ -878,6 +878,10 @@ mod tests {
             read_exif(&root.join("moment-a.jpg")).0.as_deref(),
             Some("2026-08-28T12:34:56Z")
         );
+        assert_eq!(
+            read_exif(&root.join("moment-a.jpg")).1,
+            "\"Lens\" \"Camera\""
+        );
         let first = inspect_photo(0, 0, &root.join("moment-a.jpg")).unwrap();
         let second = inspect_photo(1, 0, &root.join("moment-b.jpg")).unwrap();
         assert_ne!(first.visual_hash ^ second.visual_hash, 0);
@@ -890,7 +894,51 @@ mod tests {
         assert!(kinds.contains("Exact bytes"));
         assert!(kinds.contains("Looks alike"));
         assert!(kinds.contains("Same moment"), "groups: {kinds:?}");
+        let all_members: Vec<_> = report
+            .groups
+            .iter()
+            .flat_map(|group| group.files.iter().map(|file| file.path.clone()))
+            .collect();
+        let unique: HashSet<_> = all_members.iter().collect();
+        assert_eq!(
+            all_members.len(),
+            unique.len(),
+            "a file may not appear in two match groups"
+        );
         let _ = fs::remove_dir_all(root);
+    }
+
+    // @claim:scan-scope
+    #[test]
+    fn claim_scan_scope_only_reads_selected_folders_without_changing_sources() {
+        let selected = temp_dir("selected-root");
+        let outside = temp_dir("unselected-root");
+        let selected_photo = selected.join("inside.png");
+        let outside_photo = outside.join("outside.png");
+        sample(&selected_photo, [40, 90, 120]);
+        fs::copy(&selected_photo, selected.join("inside-copy.png")).unwrap();
+        fs::copy(&selected_photo, &outside_photo).unwrap();
+        let selected_bytes = fs::read(&selected_photo).unwrap();
+        let selected_modified = fs::metadata(&selected_photo).unwrap().modified().unwrap();
+        let report = scan(std::slice::from_ref(&selected), 100).unwrap();
+        let reported: Vec<_> = report
+            .groups
+            .iter()
+            .flat_map(|group| group.files.iter())
+            .collect();
+        assert!(reported
+            .iter()
+            .all(|file| file.path.starts_with(selected.to_string_lossy().as_ref())));
+        assert!(reported
+            .iter()
+            .all(|file| !file.path.contains("outside.png")));
+        assert_eq!(fs::read(&selected_photo).unwrap(), selected_bytes);
+        assert_eq!(
+            fs::metadata(&selected_photo).unwrap().modified().unwrap(),
+            selected_modified
+        );
+        let _ = fs::remove_dir_all(selected);
+        let _ = fs::remove_dir_all(outside);
     }
 
     // @claim:cross-drive-safety
@@ -900,12 +948,16 @@ mod tests {
         let destination_dir = temp_dir("copy-destination");
         let source = source_dir.join("memory.jpg");
         let destination = destination_dir.join("memory.jpg");
-        fs::write(&source, b"only copy").unwrap();
+        sample(&source, [12, 56, 128]);
+        add_capture_exif(&source);
+        let source_hash = sha256_file(&source).unwrap();
+        let source_exif = read_exif(&source);
         let stamp = FileTime::from_unix_time(1_700_000_000, 0);
         set_file_times(&source, stamp, stamp).unwrap();
         copy_then_remove(&source, &destination).unwrap();
         assert!(!source.exists());
-        assert_eq!(fs::read(&destination).unwrap(), b"only copy");
+        assert_eq!(sha256_file(&destination).unwrap(), source_hash);
+        assert_eq!(read_exif(&destination), source_exif);
         assert_eq!(
             FileTime::from_last_modification_time(&fs::metadata(&destination).unwrap())
                 .unix_seconds(),
@@ -921,6 +973,30 @@ mod tests {
         assert!(records[0].destination.ends_with("memory (3).jpg"));
         let _ = fs::remove_dir_all(source_dir);
         let _ = fs::remove_dir_all(destination_dir);
+    }
+
+    // @claim:native-local-privacy
+    #[test]
+    fn claim_native_local_privacy_runs_scan_and_quarantine_without_network_clients() {
+        let source_dir = temp_dir("private-source");
+        let quarantine = temp_dir("private-quarantine");
+        let source = source_dir.join("private.png");
+        sample(&source, [18, 64, 90]);
+        fs::copy(&source, source_dir.join("private-copy.png")).unwrap();
+        let report = scan(std::slice::from_ref(&source_dir), 100).unwrap();
+        assert_eq!(report.scanned, 2);
+        let records = execute_quarantine(
+            vec![source.to_string_lossy().to_string()],
+            quarantine.to_string_lossy().to_string(),
+        )
+        .unwrap();
+        assert_eq!(records.len(), 1);
+        assert!(records[0]
+            .destination
+            .starts_with(quarantine.to_string_lossy().as_ref()));
+        assert!(!source.exists());
+        let _ = fs::remove_dir_all(source_dir);
+        let _ = fs::remove_dir_all(quarantine);
     }
 
     // @claim:free-scan-limit

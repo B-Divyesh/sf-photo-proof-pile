@@ -6,7 +6,7 @@ declare global { interface Window { __TAURI_INTERNALS__?: unknown } }
 const app = document.querySelector<HTMLDivElement>("#app")!;
 const isDesktop = Boolean(window.__TAURI_INTERNALS__);
 const PRODUCT = "photo-proof-pile";
-const VERSION = "0.1.3";
+const VERSION = "0.1.4";
 const LICENSE_KEY = `sb_license:${PRODUCT}`;
 const DEMO_KEY = "demo:photo-proof-pile:session";
 const REAL_KEY = "proof-pile:session";
@@ -17,6 +17,7 @@ let notice = "";
 let demo = false;
 let licenseActive = Boolean(localStorage.getItem(LICENSE_KEY));
 let licenseNotice = "";
+const scrollPositions = new Map<string, number>();
 
 const escapeHtml = (value: unknown) => String(value).replace(/[&<>'"]/g, character => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", "'": "&#39;", '"': "&quot;" })[character]!);
 const safeThumbnail = (value?: string) => value?.startsWith("data:image/webp;base64,") || value?.startsWith("/samples/") ? value : "/favicon.svg";
@@ -33,7 +34,7 @@ function header() {
 }
 
 function footer() {
-  return `<footer><p>Proof before photo cleanup.</p><nav aria-label="Footer navigation"><a class="route-link" href="/privacy">Privacy</a><a class="route-link" href="/terms">Terms</a><a href="https://sociobot.in" rel="external" aria-label="Built by Param Factory (external site)">Built by Param Factory ↗</a></nav><p class="fine">v${VERSION} · Generated hero imagery.</p></footer>`;
+  return `<footer><p>Review duplicate photos before moving extra copies.</p><nav aria-label="Footer navigation"><a class="route-link" href="/privacy">Privacy</a><a class="route-link" href="/terms">Terms</a><a href="https://sociobot.in" rel="external" aria-label="Built by Param Factory (external site)">Built by Param Factory ↗</a></nav><p class="fine">v${VERSION} · Generated hero imagery.</p></footer>`;
 }
 
 function shell(content: string) {
@@ -48,12 +49,12 @@ function landing() {
     : `<button class="download-link" id="download-app" type="button">Download for ${platformName()}</button>`;
   shell(`<main id="main" tabindex="-1">
     <section class="hero">
-      <div class="hero-copy"><p class="eyebrow">A safer photo cleanup desk</p><h1 tabindex="-1">Review photo copies before you remove them</h1><p class="lede">For people with photos across several drives who fear removing the only meaningful copy.</p><div class="hero-action"><a class="button primary route-link" href="/demo">Try it with sample data ${icon("arrow")}</a><span>Opens three ready-to-review groups.</span></div>${downloadControl}<ul class="fact-list"><li>${icon("shield")} Photos stay on this device</li><li>${icon("check")} Works without an account</li><li>${icon("check")} Free for 1,000 files; US$29 once for full libraries</li></ul></div>
-      <figure class="hero-art"><img src="/hero-proof-table.webp" width="900" height="600" fetchpriority="high" decoding="async" alt="Overlapping photo plates connect to a protected original on an archival work table."><figcaption>Copies line up. Evidence stays attached.</figcaption></figure>
+      <div class="hero-copy"><p class="eyebrow">Local duplicate-photo review</p><h1 tabindex="-1">Review photo copies before you remove them</h1><p class="lede">For people with photos across several drives who fear removing the only meaningful copy.</p><div class="hero-action"><a class="button primary route-link" href="/demo">Try it with sample data ${icon("arrow")}</a><span>Opens three ready-to-review groups.</span></div>${downloadControl}<ul class="fact-list"><li>${icon("shield")} Photos stay on this device</li><li>${icon("check")} Works without an account</li><li>${icon("check")} Free for 1,000 files; US$29 once for full libraries</li></ul></div>
+      <figure class="hero-art"><img src="/hero-proof-table.webp" width="900" height="600" fetchpriority="high" decoding="async" alt="Overlapping photo plates connect to a protected original on an archival work table."><figcaption>Each group keeps its file locations, dates, sizes, and match details.</figcaption></figure>
     </section>
-    <section class="preview-section" aria-labelledby="preview-title"><div><p class="eyebrow">The review desk</p><h2 id="preview-title">See why files match</h2><p>Compare paths, dimensions, dates, hashes, and backup counts before making a plan.</p></div>${previewGraphic()}</section>
-    <section id="how" class="steps" aria-labelledby="how-title"><p class="eyebrow">Three controlled steps</p><h2 id="how-title">How photo cleanup works</h2><ol><li><span>01</span><h3>Scan your folders</h3><p>Choose photo folders on each connected drive. The desktop app reads them in place.</p><figure><img src="/walkthrough/01-groups.webp" width="720" height="746" loading="lazy" decoding="async" alt="Three matching photo groups in the Proof Pile review desk."><figcaption>Start with groups, not a delete list.</figcaption></figure></li><li><span>02</span><h3>Review the evidence</h3><p>Keep one copy and mark extras. Every path and difference remains visible.</p><figure><img src="/walkthrough/02-evidence.webp" width="720" height="623" loading="lazy" decoding="async" alt="Two similar photos with their paths, camera details, and hashes."><figcaption>Compare each copy and its metadata.</figcaption></figure></li><li><span>03</span><h3>Quarantine, then verify</h3><p>Move extras to a folder you choose. Restore them from the decision log.</p><figure><img src="/walkthrough/03-quarantine.webp" width="720" height="747" loading="lazy" decoding="async" alt="A quarantine plan with two sample files marked for a reversible move."><figcaption>Move reviewed files, then restore if needed.</figcaption></figure></li></ol></section>
-    <section class="boundaries" aria-labelledby="boundaries-title"><div><p class="eyebrow">Clear limits</p><h2 id="boundaries-title">Your photos are not uploaded</h2><p>Proof Pile has no face recognition, cloud gallery, or permanent-delete command. Backup counts show matching files, not tested restores.</p></div><div class="warning-note"><strong>Keep a tested backup.</strong><p>A matching copy can still live on a failing drive. Open important backups before cleanup.</p></div></section>
+    <section class="preview-section" aria-labelledby="preview-title"><div><p class="eyebrow">The review desk</p><h2 id="preview-title">See why files match</h2><p>Compare file locations, image sizes, dates, and copies on other drives before making a plan.</p></div>${previewGraphic()}</section>
+    <section id="how" class="steps" aria-labelledby="how-title"><h2 id="how-title">How photo cleanup works</h2><ol><li><span>01</span><h3>Scan your folders</h3><p>Choose photo folders on each connected drive. The app reads files where they are.</p><figure><img src="/walkthrough/01-groups.webp" width="720" height="746" loading="lazy" decoding="async" alt="Three matching photo groups in the Proof Pile review desk."><figcaption>Start with groups, not a delete list.</figcaption></figure></li><li><span>02</span><h3>Review the evidence</h3><p>Keep one copy and mark extras. Every path and difference remains visible.</p><figure><img src="/walkthrough/02-evidence.webp" width="720" height="623" loading="lazy" decoding="async" alt="Two similar photos with their paths, camera details, and file identifiers."><figcaption>Compare each copy and its metadata.</figcaption></figure></li><li><span>03</span><h3>Quarantine, then verify</h3><p>Move extras to a folder you choose. Restore them from the decision log.</p><figure><img src="/walkthrough/03-quarantine.webp" width="720" height="747" loading="lazy" decoding="async" alt="A quarantine plan with two sample files marked for a reversible move."><figcaption>Move reviewed files, then restore if needed.</figcaption></figure></li></ol></section>
+    <section class="boundaries" aria-labelledby="boundaries-title"><div><p class="eyebrow">Privacy and limits</p><h2 id="boundaries-title">Your photos are not uploaded</h2><p>Copies on other drives are matching files, not tested backups.</p></div><div class="warning-note"><strong>Keep a tested backup.</strong><p>A matching copy can still live on a failing drive. Open important backups before cleanup.</p></div></section>
     ${pricing()}
   </main>`);
   bindLanding();
@@ -64,7 +65,7 @@ function previewGraphic() {
 }
 
 function pricing() {
-  return `<section class="pricing" aria-labelledby="price-title"><div><p class="eyebrow">Desktop license</p><h2 id="price-title">Review a full library</h2><p>The free app scans 1,000 files at a time. A license removes that scan limit.</p>${licenseNotice ? `<p class="license-notice" role="status">${escapeHtml(licenseNotice)}</p>` : ""}</div><div class="price-actions"><p class="price"><strong>US$29</strong> one-time purchase</p><a class="button primary" id="buy-license" href="https://api.sociobot.in/api/v1/products/${PRODUCT}/checkout">Buy the desktop license</a><button class="button quiet" id="restore-license" type="button">Enter a license</button><p>Sociobot and Dodo handle payment and refunds as merchant of record.</p></div></section>`;
+  return `<section class="pricing" aria-labelledby="price-title"><div><p class="eyebrow">Desktop license</p><h2 id="price-title">Review a full library</h2><p>The free app scans 1,000 files at a time. A license removes that scan limit.</p>${licenseNotice ? `<p class="license-notice" role="status">${escapeHtml(licenseNotice)}</p>` : ""}</div><div class="price-actions"><p class="price"><strong>US$29</strong> one-time purchase</p><a class="button primary" id="buy-license" rel="external" href="https://api.sociobot.in/api/v1/products/${PRODUCT}/checkout">Buy via Sociobot checkout ↗</a><button class="button quiet" id="restore-license" type="button">Restore a purchase</button><p>Sociobot checkout takes payment. Contact Sociobot for refunds.</p></div></section>`;
 }
 
 function bindLanding() {
@@ -124,7 +125,7 @@ function renderDesk() {
   const title = demo ? "Review a sample photo pile" : groups.length ? "Review your photo pile" : "Choose folders to scan";
   shell(`<main id="main" class="desk-page" tabindex="-1">
     ${demo ? `<aside class="demo-banner" aria-label="Demo mode"><strong>Demo — sample data, nothing is saved</strong><div><button id="reset-demo" type="button">Reset demo</button><button id="start-real" type="button">Start for real</button></div></aside>` : ""}
-    <div class="desk-heading"><div><p class="eyebrow">${demo ? "Sample review" : "Local review"}</p><h1 tabindex="-1">${title}</h1><p>${groups.length ? `${groups.length} groups need a decision.` : "Add two or more folders. Proof Pile will compare image files in place."}</p></div><div class="desk-tools"><button class="button quiet" id="scan-folders" type="button">${isDesktop ? "Choose photo folders" : "Get the desktop app"}</button><button class="button quiet" id="import-csv" type="button">Import decision log</button>${groups.length ? `<button class="button quiet" id="export-csv" type="button">Export CSV</button>` : ""}</div></div>
+    <div class="desk-heading"><div><p class="eyebrow">${demo ? "Sample review" : "Local review"}</p><h1 tabindex="-1">${title}</h1><p>${groups.length ? `${groups.length} groups need a decision.` : "Add two or more folders. Proof Pile will compare image files where they are."}</p></div><div class="desk-tools"><button class="button quiet" id="scan-folders" type="button">${isDesktop ? "Choose photo folders" : "Show desktop downloads"}</button><button class="button quiet" id="import-csv" type="button">Import decision log</button>${groups.length ? `<button class="button quiet" id="export-csv" type="button">Export decision log</button>` : ""}</div></div>
     ${notice ? `<div class="notice" role="status">${escapeHtml(notice)}</div>` : ""}
     ${groups.length && group ? deskContent(group, plan.files, plan.bytes) : emptyState()}
   </main>`);
@@ -143,13 +144,13 @@ function deskContent(group: PhotoGroup, planFiles: number, planBytes: number) {
       <div class="file-list" aria-label="Copy evidence">${group.files.map(fileRow).join("")}</div>
       <div class="group-actions"><button class="button quiet" id="keep-best" type="button">Keep largest copy</button><button class="button quiet" id="mark-extras" type="button">Mark exact extras</button></div>
     </section>
-    <aside class="plan-rail" aria-labelledby="plan-title"><p class="eyebrow">Reversible plan</p><h2 id="plan-title">Quarantine plan</h2><div class="plan-number"><strong>${planFiles}</strong><span>files marked</span></div><p>${formatBytes(planBytes)} would move. Originals stay unchanged until you run the plan.</p><label for="quarantine-folder">Quarantine folder</label><input id="quarantine-folder" value="${demo ? "/Sample drive/Proof Pile Quarantine" : ""}" readonly placeholder="Choose a folder"><button class="button primary" id="run-plan" type="button" ${planFiles ? "" : "disabled"}>Review and run plan</button><p class="safety-copy">Nothing is permanently deleted. Test a backup before freeing drive space.</p>${moves.length ? `<button class="button quiet" id="restore-last" type="button">Restore last move</button>` : ""}</aside>
+    <aside class="plan-rail" aria-labelledby="plan-title"><p class="eyebrow">Reversible plan</p><h2 id="plan-title">Quarantine plan</h2><div class="plan-number"><strong>${planFiles}</strong><span>files marked</span></div><p>${formatBytes(planBytes)} would move. Originals stay unchanged until you run the plan.</p><label for="quarantine-folder">Quarantine folder</label><input id="quarantine-folder" value="${demo ? "/Sample drive/Proof Pile Quarantine" : ""}" readonly placeholder="Choose a folder"><button class="button primary" id="run-plan" type="button" ${planFiles ? "" : "disabled"}>${planFiles ? `Move ${planFiles} file${planFiles === 1 ? "" : "s"} to quarantine` : "Choose files to quarantine"}</button><p class="safety-copy">Files move only to the quarantine folder. Test a backup before freeing drive space.</p>${moves.length ? `<button class="button quiet" id="restore-last" type="button">Restore last move</button>` : ""}</aside>
   </div>`;
 }
 
 function fileRow(file: PhotoGroup["files"][number]) {
   const date = file.capturedAt ? new Date(file.capturedAt).toLocaleString([], { dateStyle: "medium", timeStyle: "short" }) : "No capture date";
-  return `<article class="file-row ${file.decision}"><div class="file-path"><strong title="${escapeHtml(file.path)}">${escapeHtml(file.name)}</strong><span>${escapeHtml(file.path)}</span></div><dl><div><dt>Dimensions</dt><dd>${file.width} × ${file.height}</dd></div><div><dt>Size</dt><dd>${formatBytes(file.size)}</dd></div><div><dt>Captured</dt><dd>${escapeHtml(date)}</dd></div><div><dt>Camera</dt><dd>${escapeHtml(file.camera || "Not recorded")}</dd></div><div><dt>Hash</dt><dd><code>${escapeHtml(file.hash)}</code></dd></div><div><dt>Other drives</dt><dd>${file.backupCount}</dd></div></dl><fieldset><legend>Decision for ${escapeHtml(file.name)}</legend>${decisionButton(file.id, "keep", "Keep")}${decisionButton(file.id, "quarantine", "Quarantine")}${decisionButton(file.id, "review", "Review")}</fieldset></article>`;
+  return `<article class="file-row ${file.decision}"><div class="file-path"><strong title="${escapeHtml(file.path)}">${escapeHtml(file.name)}</strong><span>${escapeHtml(file.path)}</span></div><dl><div><dt>Dimensions</dt><dd>${file.width} × ${file.height}</dd></div><div><dt>Size</dt><dd>${formatBytes(file.size)}</dd></div><div><dt>Captured</dt><dd>${escapeHtml(date)}</dd></div><div><dt>Camera</dt><dd>${escapeHtml(file.camera || "Not recorded")}</dd></div><div><dt>File identifier</dt><dd><code>${escapeHtml(file.hash)}</code></dd></div><div><dt>Other-drive copies</dt><dd>${file.backupCount}</dd></div></dl><fieldset><legend>Decision for ${escapeHtml(file.name)}</legend>${decisionButton(file.id, "keep", "Keep")}${decisionButton(file.id, "quarantine", "Quarantine")}${decisionButton(file.id, "review", "Mark for review")}</fieldset></article>`;
 }
 
 function decisionButton(id: string, value: string, label: string) {
@@ -339,25 +340,54 @@ function readCsvFile() {
 function plainError(error: unknown) { return String(error).replace(/^Error:\s*/, ""); }
 
 function legalPage(kind: "privacy" | "terms") {
-  const privacy = `<main id="main" class="prose-page" tabindex="-1"><p class="eyebrow">Policy</p><h1 tabindex="-1">Privacy without photo uploads</h1><p>Last updated 28 August 2026.</p><h2>Your photos stay local</h2><p>The desktop app reads selected folders on your device. It does not upload photos, thumbnails, paths, hashes, or decision logs.</p><h2>Data stored on your device</h2><p>The app stores review choices and recovery records, your license token, and cached license status. Demo choices use a separate session-only key.</p><h2>License checks</h2><p>License verification sends the license token to the Sociobot billing API. It does not send photo data.</p><h2>Website requests</h2><p>The download page may request release details from GitHub. We do not run advertising or tracking scripts.</p><h2>Remove your data</h2><p>Reset the demo or clear this site's storage. Desktop quarantine files remain where you chose to place them.</p><p>Questions: <a href="mailto:privacy@sociobot.in">privacy@sociobot.in</a></p></main>`;
-  const terms = `<main id="main" class="prose-page" tabindex="-1"><p class="eyebrow">Terms</p><h1 tabindex="-1">Terms for careful photo cleanup</h1><p>Last updated 29 August 2026.</p><h2>Use and responsibility</h2><p>Proof Pile helps you review and move files. You remain responsible for your files and backups.</p><h2>No permanent deletion</h2><p>The app moves chosen files to a quarantine folder. Do not empty that folder until you test important backups.</p><h2>License</h2><p>The free tier scans up to 1,000 files at once. A US$29 one-time license removes that scan limit.</p><h2>Payments and refunds</h2><p>Sociobot and Dodo handle checkout as merchant of record. A refunded license stops working.</p><h2>Warranty</h2><p>The software is provided as is. Keep verified backups before changing a photo library.</p><p>Questions: <a href="mailto:support@sociobot.in">support@sociobot.in</a></p></main>`;
+  const privacy = `<main id="main" class="prose-page" tabindex="-1"><p class="eyebrow">Policy</p><h1 tabindex="-1">Privacy without photo uploads</h1><p>Last updated 29 August 2026.</p><h2>Your photos stay local</h2><p>The desktop app reads selected folders on your device. It does not upload photos, thumbnails, paths, file identifiers, or decision logs.</p><h2>Data stored on your device</h2><p>The app stores review choices and recovery records, your license token, and cached license status. Demo choices stay only in this browser tab.</p><h2>License checks</h2><p>License verification sends only the license token to the Sociobot billing API.</p><h2>Website requests</h2><p>The download page may request release details from GitHub. We do not run advertising or tracking scripts.</p><h2>Remove your data</h2><p>Reset the demo or clear this site's storage. Desktop quarantine files remain where you chose to place them.</p><p>Questions: <a href="mailto:privacy@sociobot.in">privacy@sociobot.in</a></p></main>`;
+  const terms = `<main id="main" class="prose-page" tabindex="-1"><p class="eyebrow">Terms</p><h1 tabindex="-1">Terms for careful photo cleanup</h1><p>Last updated 29 August 2026.</p><h2>Use and responsibility</h2><p>Proof Pile helps you review and move files. You remain responsible for your files and backups.</p><h2>Quarantine folders</h2><p>The app moves chosen files to a quarantine folder. Do not empty that folder until you test important backups.</p><h2>License</h2><p>The free tier scans up to 1,000 files at once. A US$29 one-time license removes that scan limit.</p><h2>Payments and refunds</h2><p>Sociobot checkout takes payment. Contact Sociobot for refunds.</p><h2>Warranty</h2><p>The software is provided as is. Keep verified backups before changing a photo library.</p><p>Questions: <a href="mailto:support@sociobot.in">support@sociobot.in</a></p></main>`;
   shell(kind === "privacy" ? privacy : terms);
 }
 
 function notFound() { shell(`<main id="main" class="not-found" tabindex="-1"><p class="giant">404</p><h1 tabindex="-1">This frame is not in the pile</h1><p>The page may have moved. Your photos have not.</p><a class="button primary route-link" href="/">Return home</a></main>`); }
 
-function navigate(path: string, replace = false) { (replace ? history.replaceState : history.pushState).call(history, {}, "", path); route(); }
+function scrollKey() { return `${location.pathname}${location.search}`; }
+function scrollStorageKey() { return `proof-pile:scroll:${scrollKey()}`; }
+function saveScroll() {
+  scrollPositions.set(scrollKey(), scrollY);
+  sessionStorage.setItem(scrollStorageKey(), String(scrollY));
+  history.replaceState({ ...(history.state ?? {}), scrollY }, "", location.href);
+}
 
-function route() {
+function navigate(path: string, replace = false) {
+  saveScroll();
+  if (replace) history.replaceState({ scrollY: 0 }, "", path);
+  else history.pushState({ scrollY: 0 }, "", path);
+  route(false);
+}
+
+function route(restoreScroll = false) {
   notice = "";
   const path = location.pathname.replace(/\/$/, "") || "/";
-  if (path === "/") landing(); else if (path === "/demo") enterDemo(); else if (path === "/app") appRoute(); else if (path === "/privacy") legalPage("privacy"); else if (path === "/terms") legalPage("terms"); else notFound();
-  const titles: Record<string, string> = { "/": "Proof Pile — Review photo copies before cleanup", "/demo": "Demo — Proof Pile", "/app": "Review — Proof Pile", "/privacy": "Privacy — Proof Pile", "/terms": "Terms — Proof Pile" };
-  document.title = titles[path] ?? "Page not found — Proof Pile";
-  document.querySelector<HTMLLinkElement>('link[rel="canonical"]')?.setAttribute("href", `https://photo-proof-pile.sociobot.in${path}`);
+  const directDemo = path === "/" && new URLSearchParams(location.search).get("demo") === "1";
+  if (directDemo || path === "/demo") enterDemo(); else if (path === "/") landing(); else if (path === "/app") appRoute(); else if (path === "/privacy") legalPage("privacy"); else if (path === "/terms") legalPage("terms"); else notFound();
+  const meta: Record<string, { title: string; description: string }> = {
+    "/": { title: "Proof Pile — Review photo copies before cleanup", description: "Review duplicate photo evidence, quarantine extra copies, and keep a local decision log you can reverse." },
+    "/demo": { title: "Demo — Proof Pile", description: "Try a separate sample review with realistic duplicate-photo evidence. Nothing is saved to your real review." },
+    "/app": { title: "Review — Proof Pile", description: "Choose photo folders, compare likely copies, and make a reversible quarantine plan." },
+    "/privacy": { title: "Privacy — Proof Pile", description: "Learn what Proof Pile stores locally and what the optional license check sends to Sociobot." },
+    "/terms": { title: "Terms — Proof Pile", description: "Read Proof Pile terms, license limits, payment information, and file-care responsibilities." }
+  };
+  const currentMeta = directDemo ? meta["/demo"] : meta[path] ?? { title: "Page not found — Proof Pile", description: "This Proof Pile page is not available. Return home to review duplicate photos." };
+  document.title = currentMeta.title;
+  document.querySelector<HTMLLinkElement>('link[rel="canonical"]')?.setAttribute("href", `https://photo-proof-pile.sociobot.in${directDemo ? "/demo" : path}`);
+  document.querySelector<HTMLMetaElement>('meta[name="description"]')?.setAttribute("content", currentMeta.description);
+  document.querySelector<HTMLMetaElement>('meta[property="og:title"]')?.setAttribute("content", currentMeta.title);
+  document.querySelector<HTMLMetaElement>('meta[property="og:description"]')?.setAttribute("content", currentMeta.description);
+  document.querySelector<HTMLMetaElement>('meta[name="twitter:title"]')?.setAttribute("content", currentMeta.title);
+  document.querySelector<HTMLMetaElement>('meta[name="twitter:description"]')?.setAttribute("content", currentMeta.description);
   document.querySelector<HTMLElement>("h1")?.focus({ preventScroll: true });
   document.querySelector(".route-status")!.textContent = document.querySelector("h1")?.textContent ?? "Page changed";
-  scrollTo({ top: 0, behavior: matchMedia("(prefers-reduced-motion: reduce)").matches ? "instant" : "smooth" });
+  const top = restoreScroll ? Number(scrollPositions.get(scrollKey()) ?? sessionStorage.getItem(scrollStorageKey()) ?? history.state?.scrollY ?? 0) : 0;
+  requestAnimationFrame(() => {
+    scrollTo(0, top);
+  });
 }
 
 function bindRoutes() { document.querySelectorAll<HTMLAnchorElement>("a.route-link").forEach(link => link.addEventListener("click", event => { if (link.origin !== location.origin) return; event.preventDefault(); navigate(link.pathname); })); }
@@ -410,7 +440,15 @@ async function showDownloads() {
   } catch { document.querySelector("#release-state")!.textContent = "Downloads are being published. Use the releases page to check again."; }
 }
 
-addEventListener("popstate", route);
+addEventListener("popstate", () => route(true));
+addEventListener("pageshow", event => { if (event.persisted) route(true); });
+if ("scrollRestoration" in history) history.scrollRestoration = "manual";
+document.addEventListener("click", event => {
+  const link = (event.target as Element | null)?.closest<HTMLAnchorElement>("a.route-link");
+  if (!link || event.defaultPrevented || link.origin !== location.origin || event.button !== 0 || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return;
+  event.preventDefault();
+  navigate(link.pathname);
+});
 document.querySelector<HTMLAnchorElement>(".skip-link")?.addEventListener("click", event => { event.preventDefault(); document.querySelector<HTMLElement>("main")?.focus(); });
 if ("serviceWorker" in navigator && !isDesktop) addEventListener("load", () => navigator.serviceWorker.register("/sw.js").catch(() => undefined));
-verifySavedLicense().finally(route);
+verifySavedLicense().finally(() => route(sessionStorage.getItem(scrollStorageKey()) !== null));

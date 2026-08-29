@@ -30,33 +30,72 @@ async function installTauriMock(page: import("@playwright/test").Page) {
   });
 }
 
-test("@claim:demo-isolated opens and resets a separate sample review", async ({ page }) => {
-  await page.goto("/");
-  await page.getByRole("link", { name: /Try it with sample data/ }).click();
-  await expect(page).toHaveURL(/\/demo$/);
+test("@claim:demo-isolated keeps real storage untouched and discards only the sample session", async ({ page }) => {
+  const realReview = JSON.stringify({ groups: [{ id: "real", files: [] }], moves: [{ id: "real-move" }] });
+  await page.addInitScript(value => localStorage.setItem("proof-pile:session", value), realReview);
+  await page.goto("/?demo=1");
+  await expect(page).toHaveURL(/\?demo=1$/);
   await expect(page.getByText("Demo — sample data, nothing is saved")).toBeVisible();
   await expect(page.getByRole("option")).toHaveCount(3);
+  expect(await page.evaluate(() => sessionStorage.getItem("demo:photo-proof-pile:session"))).toBeNull();
   await page.getByRole("button", { name: "Mark exact extras" }).click();
   await expect(page.locator(".plan-number strong")).toHaveText("2");
+  expect(await page.evaluate(() => sessionStorage.getItem("demo:photo-proof-pile:session"))).toContain("lake-import");
+  expect(await page.evaluate(() => localStorage.getItem("proof-pile:session"))).toBe(realReview);
   await page.getByRole("button", { name: "Reset demo" }).click();
   await expect(page.locator(".plan-number strong")).toHaveText("0");
+  expect(await page.evaluate(() => sessionStorage.getItem("demo:photo-proof-pile:session"))).toBeNull();
+  await page.getByRole("button", { name: "Start for real" }).click();
+  await expect(page).toHaveURL(/\/app$/);
+  expect(await page.evaluate(() => sessionStorage.getItem("demo:photo-proof-pile:session"))).toBeNull();
+  expect(await page.evaluate(() => localStorage.getItem("proof-pile:session"))).toBe(realReview);
 });
 
-test("@claim:match-evidence shows all three evidence group types", async ({ page }) => {
+test("@claim:match-evidence shows every sample file with its complete evidence", async ({ page }) => {
   await page.goto("/demo");
   const options = page.getByRole("option");
+  const expected = [
+    [
+      ["IMG_4812.jpg", "/Photos/2024/Lake/IMG_4812.jpg", "4032 × 3024", "4.8 MB", "2024", "Phone wide camera", "8ac71e52…92ef", "2"],
+      ["IMG_4812 (1).jpg", "/Phone imports/July/IMG_4812 (1).jpg", "4032 × 3024", "4.8 MB", "2024", "Phone wide camera", "8ac71e52…92ef", "1"],
+      ["IMG_4812.jpg", "/Old drive/DCIM/104APPLE/IMG_4812.jpg", "4032 × 3024", "4.8 MB", "2024", "Phone wide camera", "8ac71e52…92ef", "0"]
+    ],
+    [
+      ["DSC_2081.jpg", "/Photos/Family/Birthday/DSC_2081.jpg", "4032 × 3024", "4.8 MB", "2023", "Phone wide camera", "4319ce77…ba21", "1"],
+      ["DSC_2082.jpg", "/Photos/Family/Birthday/DSC_2082.jpg", "4032 × 3024", "4.7 MB", "2023", "Phone wide camera", "38d201a4…903c", "1"],
+      ["DSC_2083.jpg", "/Camera card/DCIM/DSC_2083.jpg", "4032 × 3024", "4.6 MB", "2023", "Phone wide camera", "eb02b142…4d61", "0"]
+    ],
+    [
+      ["Milo-park.jpg", "/Photos/Pets/Milo-park.jpg", "6000 × 4000", "8.9 MB", "2024", "Phone wide camera", "a3f1e922…871d", "2"],
+      ["Milo-park.jpg", "/Downloads/Milo-park.jpg", "1600 × 1067", "612 KB", "No capture date", "Phone wide camera", "29ad7730…b6cc", "1"]
+    ]
+  ];
   await expect(options.nth(0)).toContainText("Exact bytes");
   await expect(options.nth(1)).toContainText("Same moment");
   await expect(options.nth(2)).toContainText("Looks alike");
-  await expect(page.getByText("Dimensions", { exact: true }).first()).toBeVisible();
-  await expect(page.getByText("Camera", { exact: true }).first()).toBeVisible();
-  await expect(page.getByText("Other drives", { exact: true }).first()).toBeVisible();
+  for (const group of [0, 1, 2]) {
+    await options.nth(group).click();
+    const rows = page.locator(".file-row");
+    const expectedRows = [3, 3, 2][group];
+    await expect(rows).toHaveCount(expectedRows);
+    for (let index = 0; index < expectedRows; index += 1) {
+      const row = rows.nth(index);
+      await expect(row.locator(".file-path span")).toContainText("/");
+      await expect(row.getByText("Dimensions", { exact: true })).toBeVisible();
+      await expect(row.getByText("Size", { exact: true })).toBeVisible();
+      await expect(row.getByText("Captured", { exact: true })).toBeVisible();
+      await expect(row.getByText("Camera", { exact: true })).toBeVisible();
+      await expect(row.getByText("File identifier", { exact: true })).toBeVisible();
+      await expect(row.getByText("Other-drive copies", { exact: true })).toBeVisible();
+      for (const value of expected[group][index]) await expect(row).toContainText(value);
+    }
+  }
 });
 
 test("@claim:csv-export downloads one decision row per sample file", async ({ page }) => {
   await page.goto("/demo");
   const downloadPromise = page.waitForEvent("download");
-  await page.getByRole("button", { name: "Export CSV" }).click();
+  await page.getByRole("button", { name: "Export decision log" }).click();
   const download = await downloadPromise;
   const stream = await download.createReadStream();
   const chunks: Buffer[] = [];
@@ -71,10 +110,10 @@ test("@claim:reversible-plan persists recovery records, exports them, and import
   await page.goto("/demo");
   await page.getByRole("button", { name: "Mark exact extras" }).click();
   page.once("dialog", dialog => dialog.accept());
-  await page.getByRole("button", { name: "Review and run plan" }).click();
+  await page.getByRole("button", { name: "Move 2 files to quarantine" }).click();
   await expect(page.getByText(/2 sample files moved/)).toBeVisible();
   const downloadPromise = page.waitForEvent("download");
-  await page.getByRole("button", { name: "Export CSV" }).click();
+  await page.getByRole("button", { name: "Export decision log" }).click();
   const download = await downloadPromise;
   const stream = await download.createReadStream();
   const chunks: Buffer[] = [];
@@ -96,7 +135,7 @@ test("@claim:reversible-plan persists recovery records, exports them, and import
   await expect(page.getByText(/restored in the demo/)).toBeVisible();
 });
 
-test("native quarantine keeps and restores recovery records from separate batches", async ({ page }) => {
+test("@claim:free-safety-tools keeps quarantine, restore, and decision-log recovery available without a license", async ({ page }) => {
   await installTauriMock(page);
   await page.goto("/demo");
   await page.getByRole("button", { name: "Mark exact extras" }).click();
@@ -104,7 +143,7 @@ test("native quarantine keeps and restores recovery records from separate batche
   await page.goto("/app");
 
   page.once("dialog", dialog => dialog.accept());
-  await page.getByRole("button", { name: "Review and run plan" }).click();
+  await page.getByRole("button", { name: "Move 2 files to quarantine" }).click();
   await expect(page.getByText("2 files moved to quarantine. The decision log is ready to export.")).toBeVisible();
 
   while (await page.locator('.file-row.quarantine button[data-decision="review"]').count()) {
@@ -113,7 +152,7 @@ test("native quarantine keeps and restores recovery records from separate batche
   await page.getByRole("option").nth(1).click();
   await page.locator(".file-row").nth(1).getByRole("button", { name: "Quarantine" }).click();
   page.once("dialog", dialog => dialog.accept());
-  await page.getByRole("button", { name: "Review and run plan" }).click();
+  await page.getByRole("button", { name: "Move 1 file to quarantine" }).click();
   await expect(page.getByText("1 file moved to quarantine. The decision log is ready to export.")).toBeVisible();
 
   expect(await page.evaluate(() => JSON.parse(localStorage.getItem("proof-pile:session")!).moves)).toHaveLength(3);
@@ -175,8 +214,30 @@ test("@claim:local-privacy sends no sample photo data off origin", async ({ page
   await page.goto("/demo");
   await page.getByRole("button", { name: "Mark exact extras" }).click();
   page.once("dialog", dialog => dialog.accept());
-  await page.getByRole("button", { name: "Review and run plan" }).click();
+  await page.getByRole("button", { name: "Move 2 files to quarantine" }).click();
   expect(offOrigin).toEqual([]);
+});
+
+test("@claim:license-request-privacy sends only the license token to Sociobot", async ({ page }) => {
+  const requests: { url: string; method: string; body: string | null }[] = [];
+  await page.addInitScript(() => {
+    localStorage.setItem("proof-pile:session", JSON.stringify({
+      groups: [{ files: [{ path: "/Photos/private/Milo.jpg", hash: "secret-photo-hash", thumbnail: "base64-photo" }] }],
+      moves: [{ source: "/Photos/private/Milo.jpg", destination: "/Quarantine/Milo.jpg", sha256: "secret-move-hash" }]
+    }));
+  });
+  await page.route("https://api.sociobot.in/**", async route => {
+    const request = route.request();
+    requests.push({ url: request.url(), method: request.method(), body: request.postData() });
+    await route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify({ valid: true, reason: "ok" }) });
+  });
+  await page.goto("/?license=only-this-token");
+  await expect.poll(() => requests.length).toBe(1);
+  expect(requests[0]).toEqual({
+    url: "https://api.sociobot.in/api/v1/products/photo-proof-pile/verify?license=only-this-token",
+    method: "GET",
+    body: null
+  });
 });
 
 test("@claim:no-account starts a review without sign-in", async ({ page }) => {
@@ -193,7 +254,7 @@ test("@claim:paid-license verifies and caches a restored license", async ({ page
     return route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify({ valid: true, reason: "ok", expires_at: null }) });
   });
   await page.goto("/");
-  await page.getByRole("button", { name: "Enter a license" }).click();
+  await page.getByRole("button", { name: "Restore a purchase" }).click();
   await page.getByLabel("License token").fill("test-license-token");
   await page.getByRole("button", { name: "Verify license" }).click();
   await expect(page.getByText("License verified. Full-library scans are active.")).toBeVisible();
@@ -228,7 +289,7 @@ test("@claim:paid-checkout shows the price, opens hosted checkout, and stores a 
   });
   await page.goto("/");
   await expect(page.getByText("US$29", { exact: true }).first()).toBeVisible();
-  await page.getByRole("link", { name: "Buy the desktop license" }).click();
+  await page.getByRole("link", { name: "Buy via Sociobot checkout ↗" }).click();
   await expect(page).toHaveURL("https://api.sociobot.in/api/v1/products/photo-proof-pile/checkout");
   expect(checkoutRequests).toBe(1);
 
@@ -344,13 +405,24 @@ test("download picker offers both published macOS architectures", async ({ page 
   await expect(page.getByRole("link", { name: "Download for macOS (Intel)" })).toHaveAttribute("href", "https://example.test/intel.dmg");
 });
 
-test("routes load without console errors and back restores the page", async ({ page }) => {
+test("routes load without console errors and Back restores the previous scroll position", async ({ page }) => {
   const errors: string[] = [];
   page.on("pageerror", error => errors.push(error.message));
   page.on("console", message => { if (message.type() === "error") errors.push(message.text()); });
   await page.goto("/");
+  await page.evaluate(() => scrollTo(0, 900));
+  await expect.poll(() => page.evaluate(() => scrollY)).toBeGreaterThan(500);
+  await page.evaluate(() => (document.querySelector('header a[href="/privacy"]') as HTMLAnchorElement).click());
+  await expect(page).toHaveTitle("Privacy — Proof Pile");
+  await expect.poll(() => page.evaluate(() => sessionStorage.getItem("proof-pile:scroll:/"))).not.toBeNull();
+  await expect(page.locator('meta[name="description"]')).toHaveAttribute("content", /stores locally/);
+  await expect(page.locator('meta[property="og:title"]')).toHaveAttribute("content", "Privacy — Proof Pile");
+  await page.goBack();
+  await expect(page.getByRole("heading", { level: 1 })).toContainText("Review photo copies");
+  await expect.poll(() => page.evaluate(() => scrollY)).toBeGreaterThan(500);
   await page.getByRole("link", { name: /Try it with sample data/ }).click();
   await expect(page).toHaveTitle("Demo — Proof Pile");
+  await expect(page.locator('meta[name="twitter:title"]')).toHaveAttribute("content", "Demo — Proof Pile");
   await page.getByRole("link", { name: "Privacy", exact: true }).first().click();
   await expect(page).toHaveTitle("Privacy — Proof Pile");
   await page.goBack();

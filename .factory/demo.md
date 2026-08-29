@@ -2,7 +2,7 @@
 
 ## Entry point
 
-Open `https://photo-proof-pile.sociobot.in/demo` or run `npm run dev` and open `http://127.0.0.1:5173/demo`.
+Open `https://photo-proof-pile.sociobot.in/demo` or `https://photo-proof-pile.sociobot.in/?demo=1`. Locally, run `npm run dev` and open `http://127.0.0.1:5173/demo`.
 
 ## Sample data
 
@@ -12,7 +12,7 @@ The demo starts with eight photo records across three evidence groups:
 - three birthday burst photos captured seconds apart;
 - an original dog photo and a smaller message copy.
 
-The sample contains realistic paths, sizes, dimensions, capture dates, cameras, hashes, and backup counts. Its illustrations ship in `public/samples/`.
+The sample contains realistic paths, sizes, dimensions, capture dates, cameras, file identifiers, and copies-on-other-drive counts. Its illustrations ship in `public/samples/`.
 
 ## Isolation and reset
 
