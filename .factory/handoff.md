@@ -1,64 +1,39 @@
-# Proof Pile verification 6 handoff
+# Proof Pile review 2 handoff
 
-## Result: PASS
+## Result: FAIL
 
-Candidate `d8665cbbbff21ffeaa41413a0647f7bc23129c2f` was independently
-verified against <https://photo-proof-pile.sociobot.in> on 29 August 2026 UTC.
-The first-read/demo gates, all 19 claim commands, full test/check suite, exact
-web and desktop builds, end-to-end recovery workflow, privacy, accessibility,
-mobile, offline, performance, billing throttling, release assets, and live
-deployment identity pass. No product code was changed.
+This reviewer made no product-code changes. The evidence-backed first-read
+report is `.factory/review-2.md`.
 
-The full evidence-backed report is `.factory/verification-6.md`.
+## What was checked
 
-## Defects by severity
+- Fresh live browser contexts at 390 × 844 and 1440 × 900.
+- One-click `/demo` and `?demo=1` behavior, real/demo storage separation,
+  Reset, Start for real, and the complete demo request log.
+- Every one of the 19 exact `.factory/claims.json` commands after `npm ci`.
+- `npm test`, `npm run check`, and `npm run build` (`dist/site` produced).
+- Route metadata, deep links, Back focus behavior, links, 404, response
+  headers, and live axe scans across five routes at phone and desktop widths.
+- Every prior review/polish/handoff finding was rechecked live and in code.
 
-- S1 / release blocking: none.
-- S2 / major: none.
-- S3 / minor: `public/404.html:39` displays stale footer version `v0.1.4`;
-  the candidate, normal routes, and published release are `v0.1.5`.
-- Operator action: release packages remain intentionally unsigned. macOS
-  notarization and Windows Authenticode require owner-held signing material.
+## Remaining work
 
-## Verification summary
-
-- Mandatory first-read passes at desktop and 390 px, with a visible one-click
-  “Try it with sample data” action.
-- All 19 commands in `.factory/claims.json` pass after `npm ci`.
-- `npm audit --audit-level=high`: 0 vulnerabilities.
-- `npm test`: 9 Rust, 8 Vitest, and 24 Playwright tests pass.
-- `npm run check`: TypeScript, Rust format, and strict Clippy pass.
-- `npm run build`: `dist/site` produced; initial JS 13.11 kB gzip, CSS 5.08
-  kB gzip, hero 29,922 bytes.
-- `CI=true npm run build:desktop`: DEB, RPM, and AppImage produced after
-  installing the release workflow's system prerequisites.
-- Live full demo: 22 same-origin requests, zero off-origin requests, zero
-  console/page/request errors; normal, cancellation, invalid CSV, import,
-  restore, reset, exit, and repeated-plan paths pass.
-- Axe: zero violations on all routes in light and dark modes and on the 390 px
-  demo. Keyboard decision focus, visible focus, 44 px targets, 200% text,
-  reduced motion, and offline reload pass.
-- Billing: 30 successful verification requests per observed burst; requests
-  31–45 returned 429 and all included `Retry-After`.
-- Lighthouse mobile runs: Performance 98/99/97; Accessibility, Best Practices,
-  and SEO 100/100/100 each; LCP 1.12–1.35 s, median TBT 157 ms, CLS 0.
-- Deployment: all 27 deployable candidate files match live byte-for-byte.
-- Release `v0.1.5`: 11 assets; all nine packaged artifacts pass published
-  SHA-256 checks. The live installer verifies the AppImage, whose SHA-256 is
-  `26098423aeee79d5472fc0d6cf0ced1c30c2f1ef738167b0505d4fb1e5ab713a`;
-  the installed app passed a 15-second Xvfb smoke run.
+1. Sign/notarize the Windows and macOS production packages. This is recurring
+   blocking finding `F-1-34` / `F-2-2` and needs owner-held credentials.
+2. Change the static 404 footer from `v0.1.4` to the current `v0.1.5` (or use
+   a shared version source); add a test. This is blocking `F-2-1`.
+3. Extend `@claim:paid-license` to prove no verification before 24 hours and
+   exactly one verification after the boundary. This is blocking `F-2-3`.
+4. Resolve the minor copy/claim findings F-2-4 through F-2-6 in the report.
 
 ## Reproduce
 
 ```sh
 npm ci
-npm audit --audit-level=high
 npm test
 npm run check
 npm run build
-CI=true npm run build:desktop
 ```
 
-Ignored runtime logs, screenshots, request traces, Lighthouse JSON, header
-captures, checksum output, and comparison results are in
-`.factory/evidence/verification-6/`.
+Then run each command listed in `.factory/claims.json` and inspect the live
+site at <https://photo-proof-pile.sociobot.in>.
