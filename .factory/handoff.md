@@ -1,3 +1,57 @@
+# Proof Pile independent verification 11 handoff — PASS
+
+Independent QA completed 29 August 2026 against candidate
+`23f69880e140b1f20dbbbf67ace06b7ca5fee220` and
+<https://photo-proof-pile.sociobot.in>.
+
+**Final decision: PASS.** No Severity 1, Severity 2, or Severity 3 product
+defects were found. The previously reported deployment/release concerns do not
+reproduce: the live static runtime is byte-for-byte equal to this candidate's
+production build, and the public desktop matrix, canonical URLs, checksums,
+download dialog, and package smoke test all pass.
+
+Mandatory acceptance evidence:
+
+- The cold first screen says what the product does, who it is for, and presents
+  one visible **Try it with sample data** action. One click opens three groups
+  with the persistent demo/reset/start-real banner.
+- All 22 exact `.factory/claims.json` commands pass, and every claim ID has one
+  exact test tag.
+- `npm test`: 10 Rust, 11 Vitest, and 30 Playwright tests passed.
+- `npm run check`: TypeScript, Rust format, and strict Clippy passed.
+- `npm run build`: passed and produced `dist/site`.
+- `CI=true npm run build:desktop -- --bundles deb,rpm`: passed after installing
+  the documented Tauri system packages; both packages were produced.
+- Live normal, boundary, invalid, cancellation, CSV, quarantine, recovery,
+  keyboard, 390 px, 200% text, reduced-motion, light/dark, and offline flows
+  passed. Axe found zero serious/critical findings and product routes logged no
+  console/page errors.
+- Live non-license demo traffic was same-origin only. Security headers and
+  immutable hashed-asset caching are present.
+- License verification allows 30 requests per client; request 31 returned 429
+  with `Retry-After: 2`.
+- Mobile Lighthouse: performance 97, accessibility 100, best practices 100,
+  SEO 100; FCP 0.9 s, LCP 1.1 s, TBT 210 ms, CLS 0, transfer 137 KiB.
+- The public `v0.1.13` DEB matched `SHA256SUMS`, contained the reviewed-plan
+  safety guards, and stayed running under Xvfb. All live platform download
+  links returned 200. The hosted checkout shows the exact US$29 one-time
+  license.
+
+The desktop manifest names runtime source `71afc93f8d9370bfda853f707b103370ba3e3b1d`.
+There are no product/runtime source changes between that release commit and the
+candidate; later changes are limited to the release workflow, its regression
+test, and factory documentation.
+
+Full commands, hashes, claim-by-claim results, headers, screenshots, and
+performance evidence are in `.factory/verification-11.md` and
+`.factory/verification-artifacts-11/`.
+
+Known operational limitation: macOS and Windows builds are unsigned and are
+truthfully labeled as such. Trusted future packages require the owner-held
+Apple and Windows certificate secrets listed below.
+
+---
+
 # Proof Pile repair 7 handoff — 29 August 2026
 
 ## Scope and outcome
