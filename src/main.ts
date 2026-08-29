@@ -478,21 +478,25 @@ async function verifySavedLicense() {
 
 async function showDownloads() {
   const existing = document.querySelector("dialog"); if (existing) existing.remove();
-  const dialog = document.createElement("dialog"); dialog.innerHTML = `<div class="download-dialog"><button class="dialog-close" aria-label="Close download window">×</button><p class="eyebrow">Desktop app</p><h2>Choose your download</h2><p id="release-state">Checking the latest release…</p><div id="release-links"></div><a href="https://github.com/B-Divyesh/sf-photo-proof-pile/releases" rel="external">Open all releases ↗</a><p class="fine">Current builds are unsigned. Your system may ask you to confirm the first launch.</p></div>`; document.body.append(dialog); dialog.showModal(); dialog.querySelector(".dialog-close")?.addEventListener("click", () => dialog.close()); dialog.addEventListener("close", () => dialog.remove());
+  const dialog = document.createElement("dialog"); dialog.innerHTML = `<div class="download-dialog"><button class="dialog-close" aria-label="Close download window">×</button><p class="eyebrow">Desktop app</p><h2>Choose your download</h2><p id="release-state">Checking the latest release…</p><div id="release-links"></div><a href="https://github.com/B-Divyesh/sf-photo-proof-pile/releases" rel="external">Open all releases ↗</a><p class="fine" id="signature-state">Checking package signatures…</p></div>`; document.body.append(dialog); dialog.showModal(); dialog.querySelector(".dialog-close")?.addEventListener("click", () => dialog.close()); dialog.addEventListener("close", () => dialog.remove());
   try {
     const releaseKey = `proof-pile:release:v${VERSION}`;
     let release = JSON.parse(localStorage.getItem(releaseKey) || "null"); if (!release || Date.now() - release.savedAt > 3_600_000) { const response = await fetch("https://api.github.com/repos/B-Divyesh/sf-photo-proof-pile/releases/latest"); if (!response.ok) throw new Error(); release = { data: await response.json(), savedAt: Date.now() }; localStorage.setItem(releaseKey, JSON.stringify(release)); }
     const assets = release.data.assets as { name: string; browser_download_url: string }[];
+    const signaturesVerified = assets.some(item => item.name === "DESKTOP_SIGNATURES_VERIFIED.json");
     const macArm = assets.find(item => /\.(dmg)$/i.test(item.name) && /(aarch64|arm64)/i.test(item.name));
     const macIntel = assets.find(item => /\.(dmg)$/i.test(item.name) && /(x86_64|x64|intel)/i.test(item.name));
     const picks = [["Windows", /\.(msi|exe)$/i], ["Linux", /\.(AppImage|deb)$/i]] as const;
     document.querySelector("#release-state")!.textContent = `${release.data.tag_name} is ready.`;
+    document.querySelector("#signature-state")!.textContent = signaturesVerified
+      ? "Windows is Authenticode signed. macOS is signed and notarized."
+      : "Current builds are unsigned. Your system may ask you to confirm the first launch.";
     document.querySelector("#release-links")!.innerHTML = [
       macArm ? `<a class="button quiet" href="${escapeHtml(macArm.browser_download_url)}">Download for macOS (Apple silicon)</a>` : "",
       macIntel ? `<a class="button quiet" href="${escapeHtml(macIntel.browser_download_url)}">Download for macOS (Intel)</a>` : "",
       ...picks.map(([label, regex]) => { const asset = assets.find(item => regex.test(item.name)); return asset ? `<a class="button quiet" href="${escapeHtml(asset.browser_download_url)}">Download for ${label}</a>` : ""; })
     ].join("");
-  } catch { document.querySelector("#release-state")!.textContent = "Downloads are being published. Use the releases page to check again."; }
+  } catch { document.querySelector("#release-state")!.textContent = "Downloads are being published. Use the releases page to check again."; document.querySelector("#signature-state")!.textContent = "Signature status is not available."; }
 }
 
 addEventListener("popstate", () => route(true));

@@ -52,13 +52,25 @@ describe("review model", () => {
     const version = JSON.parse(readFileSync(new URL("../package.json", import.meta.url), "utf8")).version;
     const notFound = readFileSync(new URL("../public/404.html", import.meta.url), "utf8");
     const index = readFileSync(new URL("../index.html", import.meta.url), "utf8");
+    const sitemap = readFileSync(new URL("../public/sitemap.xml", import.meta.url), "utf8");
     const tauri = JSON.parse(readFileSync(new URL("../src-tauri/tauri.conf.json", import.meta.url), "utf8"));
     const main = readFileSync(new URL("../src/main.ts", import.meta.url), "utf8");
     expect(notFound).toContain(`<p>v${version}</p>`);
     expect(notFound).toContain("<h1>This page was not found</h1>");
+    expect(notFound).toContain('href="/#how"');
     expect(notFound).not.toContain("Generated hero imagery");
     expect(index).not.toContain("without permanent deletion");
+    for (const route of ["/demo", "/app", "/privacy", "/terms"]) expect(sitemap).toContain(`photo-proof-pile.sociobot.in${route}`);
     expect(tauri.version).toBe(version);
     expect(main).toContain(`const VERSION = "${version}"`);
+  });
+
+  it("blocks release publication until trusted desktop signatures can be verified", () => {
+    const workflow = readFileSync(new URL("../.github/workflows/release.yml", import.meta.url), "utf8");
+    expect(workflow).toContain("needs: validate-signing");
+    expect(workflow).toContain("Get-AuthenticodeSignature");
+    expect(workflow).toContain("xcrun stapler validate");
+    expect(workflow).toContain("DESKTOP_SIGNATURES_VERIFIED.json");
+    expect(workflow).not.toContain("Build unsigned package");
   });
 });

@@ -177,10 +177,11 @@ jobs:
         run: |
           version=$(node -p "require('./package.json').version")
           cd release-assets
+          printf '%s\n' '{"macos":"signed-and-notarized","windows":"authenticode-signed"}' > DESKTOP_SIGNATURES_VERIFIED.json
           : > SHA256SUMS
           while IFS= read -r -d '' asset; do sha256sum "$asset" | sed 's#  \./#  #' >> SHA256SUMS; done < <(find . -maxdepth 1 -type f ! -name SHA256SUMS ! -name latest.json -print0 | sort -z)
           gh api "repos/${GITHUB_REPOSITORY}/releases/tags/v${version}" > release.json
-          jq --arg commit "$GITHUB_SHA" '{version: .tag_name, commit: $commit, platforms: {macos: [.assets[] | select(.name | test("\\.dmg$")) | {name, url: .browser_download_url}], windows: [.assets[] | select(.name | test("\\.(msi|exe)$")) | {name, url: .browser_download_url}], linux: [.assets[] | select(.name | test("\\.(AppImage|deb)$")) | {name, url: .browser_download_url}]}}' release.json > latest.json
+          jq --arg commit "$GITHUB_SHA" '{version: .tag_name, commit: $commit, signatures: {macos: "signed-and-notarized", windows: "authenticode-signed"}, platforms: {macos: [.assets[] | select(.name | test("\\.dmg$")) | {name, url: .browser_download_url}], windows: [.assets[] | select(.name | test("\\.(msi|exe)$")) | {name, url: .browser_download_url}], linux: [.assets[] | select(.name | test("\\.(AppImage|deb)$")) | {name, url: .browser_download_url}]}}' release.json > latest.json
           rm release.json
       - uses: softprops/action-gh-release@v2
         with:
@@ -188,6 +189,7 @@ jobs:
           files: |
             release-assets/SHA256SUMS
             release-assets/latest.json
+            release-assets/DESKTOP_SIGNATURES_VERIFIED.json
           fail_on_unmatched_files: true
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
