@@ -78,7 +78,7 @@ A fresh local clone of repair commit `c9e1d6e` was used.
 - Local executable stayed running for the full eight-second Xvfb smoke window.
 - GitHub Actions passed prepare, both macOS architectures, Windows, Linux,
   checksum publication, and independent public-release verification.
-- The public release contains 11 assets: two DMGs, two app archives, MSI, EXE,
+- The public release contains 12 assets: two DMGs, two app archives, MSI, EXE,
   AppImage, DEB, RPM, `latest.json`, `SHA256SUMS`, and the release marker.
 - A fresh invocation of the live `install.sh` installed the 78,576,120-byte
   AppImage. Its SHA-256 matched the published value:
