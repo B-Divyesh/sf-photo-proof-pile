@@ -34,8 +34,8 @@ Repair commits: `3cc76fd`, `c19ecd6`; this handoff is committed on `main`.
 ## Verification evidence
 
 - All 20 claim commands passed individually from clean clone
-  `/tmp/tmp.jrYRO83hU6/repo` at commit `3cc76fd`.
-- Full clean-clone `npm test`: 10 Rust, 9 Vitest, 28 Playwright tests passed.
+  `/tmp/tmp.k6Wb7qPPOy/repo` at commit `f066733`.
+- Full clean-clone `npm test`: 10 Rust, 10 Vitest, 28 Playwright tests passed.
 - `npm run check`: TypeScript, Rust formatting, and Clippy passed.
 - `npm run build`: `dist/site` produced; JS 14.90 kB gzip, CSS 5.09 kB gzip.
 - Local Lighthouse mobile: 100 performance, 100 accessibility, 100 best

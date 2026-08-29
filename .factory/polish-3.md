@@ -77,8 +77,8 @@ Evidence screenshots and machine reports are under
 
 ## Verification
 
-- Clean clone of `3cc76fd`: all 20 exact `.factory/claims.json` commands passed.
-- Clean clone full suite: 10 Rust, 9 Vitest, and 28 Playwright tests passed.
+- Clean clone of `f066733`: all 20 exact `.factory/claims.json` commands passed.
+- Clean clone full suite: 10 Rust, 10 Vitest, and 28 Playwright tests passed.
 - `npm run build` and `npm run check` passed; production output is `dist/site`.
 - Initial JavaScript is 14.90 kB gzip total; CSS is 5.09 kB gzip.
 - Local Lighthouse mobile: 100 performance, 100 accessibility, 100 best practices, 100 SEO; LCP 1.6 s, CLS 0, 138 KiB.
