@@ -9,7 +9,19 @@ permissions:
   contents: write
 
 jobs:
+  prepare-release:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Create release before matrix uploads
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          version=$(node -p "require('./package.json').version")
+          gh release view "v${version}" >/dev/null 2>&1 || gh release create "v${version}" --title "Proof Pile v${version}" --notes "Local duplicate-photo review with reversible quarantine. Builds are unsigned."
+
   build:
+    needs: prepare-release
     strategy:
       fail-fast: false
       matrix:
