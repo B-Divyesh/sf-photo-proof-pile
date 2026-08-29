@@ -15,7 +15,9 @@ async function installTauriMock(page: import("@playwright/test").Page) {
             id: `batch-${batch}-${index}`,
             source,
             destination: `/Mock quarantine/${source.split("/").pop()}`,
-            movedAt: `2026-08-29T00:0${batch}:00.000Z`
+            movedAt: `2026-08-29T00:0${batch}:00.000Z`,
+            sha256: "a".repeat(64),
+            quarantineRoot: "/Mock quarantine"
           }));
         }
         if (command === "restore_quarantined") {
@@ -86,9 +88,11 @@ test("@claim:reversible-plan persists recovery records, exports them, and import
   const fileChooser = page.waitForEvent("filechooser");
   await page.getByRole("button", { name: "Import decision log" }).click();
   await (await fileChooser).setFiles({ name: "proof-pile-decisions.csv", mimeType: "text/csv", buffer: Buffer.from(csv) });
-  await expect(page.getByText(/2 recovery records imported/)).toBeVisible();
+  await expect(page.getByText(/2 verified recovery records imported/)).toBeVisible();
   await expect(page.getByRole("button", { name: "Restore last move" })).toBeVisible();
   await page.getByRole("button", { name: "Restore last move" }).click();
+  await expect(page.getByRole("dialog")).toContainText("From quarantine");
+  await page.getByRole("button", { name: "Restore this file" }).click();
   await expect(page.getByText(/restored in the demo/)).toBeVisible();
 });
 
@@ -115,8 +119,16 @@ test("native quarantine keeps and restores recovery records from separate batche
   expect(await page.evaluate(() => JSON.parse(localStorage.getItem("proof-pile:session")!).moves)).toHaveLength(3);
   await page.reload();
   await page.getByRole("button", { name: "Restore last move" }).click();
+  const dialog = page.getByRole("dialog");
+  await expect(dialog).toContainText("/Mock quarantine/DSC_2082.jpg");
+  await expect(dialog).toContainText("/Photos/Family/Birthday/DSC_2082.jpg");
+  await page.getByRole("button", { name: "Cancel" }).click();
+  expect(await page.evaluate(() => (window as unknown as { __PROOF_PILE_TAURI_TEST__: { restored: string[] } }).__PROOF_PILE_TAURI_TEST__.restored)).toHaveLength(0);
+  await page.getByRole("button", { name: "Restore last move" }).click();
+  await page.getByRole("button", { name: "Restore this file" }).click();
   await expect.poll(() => page.evaluate(() => JSON.parse(localStorage.getItem("proof-pile:session")!).moves.filter((move: { restoredAt?: string }) => move.restoredAt).length)).toBe(1);
   await page.getByRole("button", { name: "Restore last move" }).click();
+  await page.getByRole("button", { name: "Restore this file" }).click();
   await expect.poll(() => page.evaluate(() => JSON.parse(localStorage.getItem("proof-pile:session")!).moves.filter((move: { restoredAt?: string }) => move.restoredAt).length)).toBe(2);
   const restored = await page.evaluate(() => (window as unknown as { __PROOF_PILE_TAURI_TEST__: { restored: string[] } }).__PROOF_PILE_TAURI_TEST__.restored);
   expect(restored).toHaveLength(2);
@@ -129,6 +141,30 @@ test("never allows a plan that quarantines a group's only kept copy", async ({ p
   await page.getByRole("button", { name: "Quarantine", exact: true }).first().click();
   await expect(page.getByText("Keep one copy in this group before marking another copy for quarantine.")).toBeVisible();
   await expect(page.locator(".plan-number strong")).toHaveText("0");
+});
+
+test("hostile decision CSV cannot become an authoritative desktop recovery record", async ({ page }) => {
+  await page.addInitScript(() => {
+    const calls: string[] = [];
+    (window as unknown as { __RESTORE_TEST_CALLS__: string[] }).__RESTORE_TEST_CALLS__ = calls;
+    (window as unknown as { __TAURI_INTERNALS__: unknown }).__TAURI_INTERNALS__ = {
+      invoke: async (command: string, args: unknown) => {
+        calls.push(command);
+        if (command === "plugin:dialog|open") {
+          const title = (args as { options?: { title?: string } }).options?.title ?? "";
+          return title.includes("quarantine folder") ? "/safe/quarantine" : "/tmp/hostile.csv";
+        }
+        if (command === "read_decision_log") return `"path","quarantine_path","quarantine_sha256","restored_at"\n"/tmp/new-location/important.txt","/tmp/unrelated/important.txt","${"a".repeat(64)}",""`;
+        if (command === "validate_recovery_records") throw new Error("A recovery path is outside the selected quarantine folder.");
+        throw new Error(`Unexpected native command: ${command}`);
+      }
+    };
+  });
+  await page.goto("/app");
+  await page.getByRole("button", { name: "Import decision log" }).click();
+  await expect(page.getByText(/outside the selected quarantine folder/)).toBeVisible();
+  await expect(page.getByRole("button", { name: "Restore last move" })).toHaveCount(0);
+  expect(await page.evaluate(() => (window as unknown as { __RESTORE_TEST_CALLS__: string[] }).__RESTORE_TEST_CALLS__)).toContain("validate_recovery_records");
 });
 
 test("@claim:local-privacy sends no sample photo data off origin", async ({ page }) => {
@@ -243,6 +279,22 @@ test("the phone layout keeps actions usable", async ({ page }) => {
     const box = await link.boundingBox();
     expect(box?.width).toBeGreaterThanOrEqual(44);
     expect(box?.height).toBeGreaterThanOrEqual(44);
+  }
+});
+
+test("Android and iPhone visitors see truthful desktop availability", async ({ browser }) => {
+  const phones = [
+    { userAgent: "Mozilla/5.0 (Linux; Android 14; Pixel 7) AppleWebKit/537.36 Mobile Safari/537.36", wrongLabel: "Download for Linux" },
+    { userAgent: "Mozilla/5.0 (iPhone; CPU iPhone OS 15_0 like Mac OS X) AppleWebKit/605.1.15 Mobile/15E148 Safari/604.1", wrongLabel: "Download for macOS" }
+  ];
+  for (const phone of phones) {
+    const context = await browser.newContext({ userAgent: phone.userAgent, viewport: { width: 390, height: 844 } });
+    const page = await context.newPage();
+    await page.goto("/");
+    await expect(page.getByText("The desktop app requires macOS, Windows, or Linux.")).toBeVisible();
+    await expect(page.getByText(phone.wrongLabel)).toHaveCount(0);
+    await expect(page.getByRole("button", { name: /Download for/ })).toHaveCount(0);
+    await context.close();
   }
 });
 

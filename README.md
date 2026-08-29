@@ -11,7 +11,7 @@ Try the isolated sample at <https://photo-proof-pile.sociobot.in/demo>. The samp
 - Groups exact byte matches, visually similar images, and images captured in the same minute.
 - Shows every path, image dimensions, byte size, capture date, camera, short hash, and matching-drive count.
 - Builds a reviewed plan before moving any file to a quarantine folder.
-- Keeps quarantine recovery records after restart. Import the decision CSV to recover those records on another device.
+- Keeps quarantine recovery records after restart. Restore a decision CSV on the same computer after selecting its quarantine folder.
 - Exports every decision and move as CSV.
 - Keeps the review desk available offline after its first visit.
 

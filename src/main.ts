@@ -6,7 +6,7 @@ declare global { interface Window { __TAURI_INTERNALS__?: unknown } }
 const app = document.querySelector<HTMLDivElement>("#app")!;
 const isDesktop = Boolean(window.__TAURI_INTERNALS__);
 const PRODUCT = "photo-proof-pile";
-const VERSION = "0.1.1";
+const VERSION = "0.1.2";
 const LICENSE_KEY = `sb_license:${PRODUCT}`;
 const DEMO_KEY = "demo:photo-proof-pile:session";
 const REAL_KEY = "proof-pile:session";
@@ -43,9 +43,12 @@ function shell(content: string) {
 
 function landing() {
   demo = false;
+  const downloadControl = isMobileDevice()
+    ? `<p class="mobile-download-note">The desktop app requires macOS, Windows, or Linux.</p>`
+    : `<button class="download-link" id="download-app" type="button">Download for ${platformName()}</button>`;
   shell(`<main id="main" tabindex="-1">
     <section class="hero">
-      <div class="hero-copy"><p class="eyebrow">A safer photo cleanup desk</p><h1 tabindex="-1">Review photo copies before you remove them</h1><p class="lede">For people with photos across several drives who fear removing the only meaningful copy.</p><div class="hero-action"><a class="button primary route-link" href="/demo">Try it with sample data ${icon("arrow")}</a><span>Opens three ready-to-review groups.</span></div><button class="download-link" id="download-app" type="button">Download for ${platformName()}</button><ul class="fact-list"><li>${icon("shield")} Photos stay on this device</li><li>${icon("check")} Works without an account</li><li>${icon("check")} Free for 1,000 files; US$29 once for full libraries</li></ul></div>
+      <div class="hero-copy"><p class="eyebrow">A safer photo cleanup desk</p><h1 tabindex="-1">Review photo copies before you remove them</h1><p class="lede">For people with photos across several drives who fear removing the only meaningful copy.</p><div class="hero-action"><a class="button primary route-link" href="/demo">Try it with sample data ${icon("arrow")}</a><span>Opens three ready-to-review groups.</span></div>${downloadControl}<ul class="fact-list"><li>${icon("shield")} Photos stay on this device</li><li>${icon("check")} Works without an account</li><li>${icon("check")} Free for 1,000 files; US$29 once for full libraries</li></ul></div>
       <figure class="hero-art"><img src="/hero-proof-table.webp" width="900" height="600" fetchpriority="high" decoding="async" alt="Overlapping photo plates connect to a protected original on an archival work table."><figcaption>Copies line up. Evidence stays attached.</figcaption></figure>
     </section>
     <section class="preview-section" aria-labelledby="preview-title"><div><p class="eyebrow">The review desk</p><h2 id="preview-title">See why files match</h2><p>Compare paths, dimensions, dates, hashes, and backup counts before making a plan.</p></div>${previewGraphic()}</section>
@@ -75,6 +78,10 @@ function platformName() {
   if (platform.includes("win")) return "Windows";
   if (platform.includes("linux")) return "Linux";
   return "your computer";
+}
+
+function isMobileDevice() {
+  return /android|iphone|ipad|ipod|mobile/i.test(navigator.userAgent);
 }
 
 function enterDemo() {
@@ -222,7 +229,7 @@ async function runPlan() {
   if (!confirm(`Move ${selected.length} files to quarantine? You can restore them from the decision log.`)) return;
   if (demo) {
     const stamp = new Date().toISOString();
-    moves.push(...selected.map((file, i) => ({ id: `demo-${i}`, source: file.path, destination: `/Sample drive/Proof Pile Quarantine/${file.name}`, movedAt: stamp })));
+    moves.push(...selected.map((file, i) => ({ id: `demo-${i}`, source: file.path, destination: `/Sample drive/Proof Pile Quarantine/${file.name}`, movedAt: stamp, sha256: "d".repeat(64), quarantineRoot: "/Sample drive/Proof Pile Quarantine" })));
     persist(); notice = `${selected.length} sample files moved to the demo quarantine. No files on your device changed.`; renderDesk(); return;
   }
   try {
@@ -238,9 +245,20 @@ async function runPlan() {
 
 async function restoreLast() {
   const move = [...moves].reverse().find(item => !item.restoredAt); if (!move) return;
+  if (!(await confirmRestore(move))) return;
   if (demo) { move.restoredAt = new Date().toISOString(); persist(); notice = `${move.source.split("/").pop()} restored in the demo.`; renderDesk(); return; }
   try { const { invoke } = await import("@tauri-apps/api/core"); await invoke("restore_quarantined", { record: move }); move.restoredAt = new Date().toISOString(); persist(); notice = `${move.source.split("/").pop()} restored.`; renderDesk(); }
   catch (error) { notice = `The file was not restored. ${plainError(error)} Check both folders and try again.`; renderDesk(); }
+}
+
+function confirmRestore(move: MoveRecord) {
+  return new Promise<boolean>(resolve => {
+    const dialog = document.createElement("dialog");
+    dialog.innerHTML = `<form method="dialog" class="restore-dialog"><p class="eyebrow">Confirm recovery</p><h2>Restore this file?</h2><p>The quarantined file will move back to its original path.</p><dl><div><dt>From quarantine</dt><dd><code>${escapeHtml(move.destination)}</code></dd></div><div><dt>To original path</dt><dd><code>${escapeHtml(move.source)}</code></dd></div></dl><div class="dialog-actions"><button class="button quiet" value="cancel" autofocus>Cancel</button><button class="button primary" value="restore">Restore this file</button></div></form>`;
+    document.body.append(dialog);
+    dialog.addEventListener("close", () => { const approved = dialog.returnValue === "restore"; dialog.remove(); resolve(approved); }, { once: true });
+    dialog.showModal();
+  });
 }
 
 async function scanFolders() {
@@ -283,11 +301,24 @@ async function importCsv() {
     } else contents = await readCsvFile();
     const imported = movesFromDecisionCsv(contents);
     if (!imported.length) throw new Error("No quarantine records were found in this decision log.");
+    let verified = imported;
+    if (demo) {
+      const demoRoot = "/Sample drive/Proof Pile Quarantine";
+      if (imported.some(move => !move.destination.startsWith(`${demoRoot}/`))) throw new Error("A recovery path is outside the sample quarantine folder.");
+      verified = imported.map(move => ({ ...move, quarantineRoot: demoRoot }));
+    } else {
+      if (!isDesktop) throw new Error("Open this decision log in the desktop app to verify its files.");
+      const { open } = await import("@tauri-apps/plugin-dialog");
+      const quarantineRoot = await open({ directory: true, multiple: false, title: "Choose the quarantine folder for this log" });
+      if (!quarantineRoot || Array.isArray(quarantineRoot)) return;
+      const { invoke } = await import("@tauri-apps/api/core");
+      verified = await invoke<MoveRecord[]>("validate_recovery_records", { records: imported, quarantineDir: quarantineRoot });
+    }
     const known = new Set(moves.map(move => `${move.source}\u0000${move.destination}`));
-    const added = imported.filter(move => !known.has(`${move.source}\u0000${move.destination}`));
+    const added = verified.filter(move => !known.has(`${move.source}\u0000${move.destination}`));
     moves.push(...added);
     persist();
-    notice = added.length ? `${added.length} recovery record${added.length === 1 ? "" : "s"} imported from the decision log.` : "Those recovery records are already loaded.";
+    notice = added.length ? `${added.length} verified recovery record${added.length === 1 ? "" : "s"} imported from the decision log.` : "Those recovery records are already loaded.";
     renderDesk();
   } catch (error) { notice = `The decision log was not imported. ${plainError(error)} Choose a Proof Pile CSV and try again.`; renderDesk(); }
 }

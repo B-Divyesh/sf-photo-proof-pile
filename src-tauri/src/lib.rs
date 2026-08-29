@@ -79,6 +79,8 @@ pub struct MoveRecord {
     pub destination: String,
     pub moved_at: String,
     pub restored_at: Option<String>,
+    pub sha256: String,
+    pub quarantine_root: String,
 }
 
 #[cfg_attr(feature = "desktop", tauri::command)]
@@ -477,6 +479,9 @@ fn execute_quarantine(
     let destination = PathBuf::from(quarantine_dir);
     fs::create_dir_all(&destination)
         .map_err(|error| format!("The quarantine folder could not be created: {error}"))?;
+    let destination = destination
+        .canonicalize()
+        .map_err(|error| format!("The quarantine folder could not be verified: {error}"))?;
     let mut records: Vec<MoveRecord> = Vec::new();
     for source_text in paths {
         let source = PathBuf::from(&source_text);
@@ -486,6 +491,10 @@ fn execute_quarantine(
                 source.display()
             ));
         }
+        if !source.is_absolute() {
+            return Err("A photo path was not absolute. Scan the folder again.".into());
+        }
+        let sha256 = sha256_file(&source)?;
         let target = unique_destination(&destination, source.file_name().unwrap_or_default());
         if let Err(error) = move_file(&source, &target) {
             for prior in records.iter().rev() {
@@ -499,25 +508,97 @@ fn execute_quarantine(
             destination: target.to_string_lossy().to_string(),
             moved_at: now_epoch().to_string(),
             restored_at: None,
+            sha256,
+            quarantine_root: destination.to_string_lossy().to_string(),
         });
     }
     Ok(records)
 }
 
 #[cfg_attr(feature = "desktop", tauri::command)]
+fn validate_recovery_records(
+    records: Vec<MoveRecord>,
+    quarantine_dir: String,
+) -> Result<Vec<MoveRecord>, String> {
+    if records.is_empty() {
+        return Err("The decision log has no recovery records.".into());
+    }
+    records
+        .into_iter()
+        .map(|mut record| {
+            let (quarantined, root) = verify_recovery_record(&record, &quarantine_dir)?;
+            record.destination = quarantined.to_string_lossy().to_string();
+            record.quarantine_root = root.to_string_lossy().to_string();
+            Ok(record)
+        })
+        .collect()
+}
+
+#[cfg_attr(feature = "desktop", tauri::command)]
 fn restore_quarantined(record: MoveRecord) -> Result<(), String> {
-    let source = PathBuf::from(record.source);
-    let quarantined = PathBuf::from(record.destination);
+    let (quarantined, _) = verify_recovery_record(&record, &record.quarantine_root)?;
+    let source = PathBuf::from(&record.source);
     if source.exists() {
         return Err("The original path already contains a file. Move it before restoring.".into());
-    }
-    if !quarantined.is_file() {
-        return Err("The quarantined file is missing.".into());
     }
     if let Some(parent) = source.parent() {
         fs::create_dir_all(parent).map_err(|error| error.to_string())?;
     }
     move_file(&quarantined, &source)
+}
+
+fn verify_recovery_record(
+    record: &MoveRecord,
+    quarantine_dir: &str,
+) -> Result<(PathBuf, PathBuf), String> {
+    let source = Path::new(&record.source);
+    if !source.is_absolute() {
+        return Err("The original path in this recovery record is not absolute.".into());
+    }
+    if record.sha256.len() != 64 || !record.sha256.bytes().all(|byte| byte.is_ascii_hexdigit()) {
+        return Err("This recovery record has no valid file hash.".into());
+    }
+    let root = PathBuf::from(quarantine_dir)
+        .canonicalize()
+        .map_err(|_| "Choose the quarantine folder that contains these files.".to_string())?;
+    if !root.is_dir() {
+        return Err("The selected quarantine path is not a folder.".into());
+    }
+    let quarantined = PathBuf::from(&record.destination)
+        .canonicalize()
+        .map_err(|_| "A quarantined file is missing from the selected folder.".to_string())?;
+    if !quarantined.is_file() || !quarantined.starts_with(&root) {
+        return Err("A recovery path is outside the selected quarantine folder.".into());
+    }
+    let parent = quarantined
+        .parent()
+        .and_then(|path| path.canonicalize().ok())
+        .ok_or_else(|| "The quarantined file folder could not be verified.".to_string())?;
+    if parent != root {
+        return Err("A recovery path is outside the selected quarantine folder.".into());
+    }
+    let actual_hash = sha256_file(&quarantined)?;
+    if !actual_hash.eq_ignore_ascii_case(&record.sha256) {
+        return Err("A quarantined file does not match the hash in the decision log.".into());
+    }
+    Ok((quarantined, root))
+}
+
+fn sha256_file(path: &Path) -> Result<String, String> {
+    let mut file = fs::File::open(path)
+        .map_err(|error| format!("{} could not be read: {error}", path.display()))?;
+    let mut hasher = Sha256::new();
+    let mut buffer = [0_u8; 64 * 1024];
+    loop {
+        let read = file
+            .read(&mut buffer)
+            .map_err(|error| format!("{} could not be read: {error}", path.display()))?;
+        if read == 0 {
+            break;
+        }
+        hasher.update(&buffer[..read]);
+    }
+    Ok(format!("{:x}", hasher.finalize()))
 }
 
 #[cfg_attr(feature = "desktop", tauri::command)]
@@ -608,6 +689,7 @@ pub fn run() {
         .invoke_handler(tauri::generate_handler![
             scan_directories,
             execute_quarantine,
+            validate_recovery_records,
             restore_quarantined,
             write_decision_log,
             read_decision_log
@@ -714,6 +796,70 @@ mod tests {
         assert_eq!(fs::read(source).unwrap(), b"only copy");
         let _ = fs::remove_dir_all(source_dir);
         let _ = fs::remove_dir_all(quarantine);
+    }
+
+    #[test]
+    fn imported_recovery_requires_containment_and_matching_hash() {
+        let source_dir = temp_dir("restore-target");
+        let quarantine = temp_dir("restore-quarantine");
+        let outside = temp_dir("restore-outside");
+        let quarantined = quarantine.join("memory.jpg");
+        let unrelated = outside.join("important.txt");
+        let target = source_dir.join("important.txt");
+        fs::write(&quarantined, b"expected photo bytes").unwrap();
+        fs::write(&unrelated, b"unrelated bytes").unwrap();
+
+        let hostile = MoveRecord {
+            id: "import-1".into(),
+            source: target.to_string_lossy().to_string(),
+            destination: unrelated.to_string_lossy().to_string(),
+            moved_at: "Imported from decision log".into(),
+            restored_at: None,
+            sha256: sha256_file(&unrelated).unwrap(),
+            quarantine_root: String::new(),
+        };
+        let error =
+            validate_recovery_records(vec![hostile], quarantine.to_string_lossy().to_string())
+                .unwrap_err();
+        assert!(error.contains("outside the selected quarantine folder"));
+        assert!(unrelated.exists());
+        assert!(!target.exists());
+
+        let candidate = MoveRecord {
+            id: "import-2".into(),
+            source: target.to_string_lossy().to_string(),
+            destination: quarantined.to_string_lossy().to_string(),
+            moved_at: "Imported from decision log".into(),
+            restored_at: None,
+            sha256: "0".repeat(64),
+            quarantine_root: String::new(),
+        };
+        let error = validate_recovery_records(
+            vec![candidate.clone()],
+            quarantine.to_string_lossy().to_string(),
+        )
+        .unwrap_err();
+        assert!(error.contains("does not match the hash"));
+        assert!(quarantined.exists());
+
+        let valid = MoveRecord {
+            sha256: sha256_file(&quarantined).unwrap(),
+            ..candidate
+        };
+        let mut validated =
+            validate_recovery_records(vec![valid], quarantine.to_string_lossy().to_string())
+                .unwrap();
+        assert_eq!(validated.len(), 1);
+        assert_eq!(
+            validated[0].quarantine_root,
+            quarantine.canonicalize().unwrap().to_string_lossy()
+        );
+        restore_quarantined(validated.remove(0)).unwrap();
+        assert_eq!(fs::read(&target).unwrap(), b"expected photo bytes");
+
+        let _ = fs::remove_dir_all(source_dir);
+        let _ = fs::remove_dir_all(quarantine);
+        let _ = fs::remove_dir_all(outside);
     }
 
     // @claim:native-matching

@@ -10,6 +10,7 @@ Audited 29 August 2026. Counts treat hyphenated terms and prices as one word. No
 | Try it with sample data | 6 | None |
 | Opens three ready-to-review groups. | 4 | None |
 | Download for your computer | 4 | None |
+| The desktop app requires macOS, Windows, or Linux. | 8 | None |
 | Photos stay on this device | 5 | None |
 | Works without an account | 4 | None |
 | Free for 1,000 files; US$29 once for full libraries | 9 | None |

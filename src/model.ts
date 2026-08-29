@@ -32,6 +32,8 @@ export interface MoveRecord {
   destination: string;
   movedAt: string;
   restoredAt?: string;
+  sha256: string;
+  quarantineRoot: string;
 }
 
 /** Decisions and move records are saved together so recovery survives restart. */
@@ -100,32 +102,36 @@ export function countPlan(groups: PhotoGroup[]) {
 
 export function decisionCsv(groups: PhotoGroup[], moves: MoveRecord[] = []) {
   const moveBySource = new Map(moves.map(move => [move.source, move]));
-  const rows = [["group_id", "match", "decision", "path", "bytes", "dimensions", "captured_at", "sha256", "backup_copies", "quarantine_path", "restored_at"]];
+  const rows = [["group_id", "match", "decision", "path", "bytes", "dimensions", "captured_at", "sha256", "backup_copies", "quarantine_path", "quarantine_sha256", "restored_at"]];
   for (const group of groups) for (const file of group.files) {
     const move = moveBySource.get(file.path);
-    rows.push([group.id, group.kind, file.decision, file.path, String(file.size), `${file.width}x${file.height}`, file.capturedAt ?? "", file.hash, String(file.backupCount), move?.destination ?? "", move?.restoredAt ?? ""]);
+    rows.push([group.id, group.kind, file.decision, file.path, String(file.size), `${file.width}x${file.height}`, file.capturedAt ?? "", file.hash, String(file.backupCount), move?.destination ?? "", move?.sha256 ?? "", move?.restoredAt ?? ""]);
   }
   return rows.map(row => row.map(csvCell).join(",")).join("\n");
 }
 
 const csvCell = (value: string) => `"${value.replaceAll('"', '""')}"`;
 
-/** Read portable recovery records from a Proof Pile decision CSV. */
+/** Read untrusted recovery candidates. The native layer must bind them to a selected quarantine folder. */
 export function movesFromDecisionCsv(contents: string): MoveRecord[] {
   const [header, ...rows] = parseCsv(contents);
   if (!header) throw new Error("The decision log is empty.");
   const columns = new Map(header.map((name, index) => [name, index]));
   const sourceIndex = columns.get("path");
   const destinationIndex = columns.get("quarantine_path");
+  const hashIndex = columns.get("quarantine_sha256");
   const restoredIndex = columns.get("restored_at");
   if (sourceIndex === undefined || destinationIndex === undefined) throw new Error("This CSV is not a Proof Pile decision log.");
+  if (hashIndex === undefined) throw new Error("This decision log cannot verify quarantined files. Export a new log before importing it.");
   const known = new Set<string>();
   return rows.flatMap((row, index) => {
     const source = row[sourceIndex]?.trim();
     const destination = row[destinationIndex]?.trim();
+    const sha256 = row[hashIndex]?.trim().toLowerCase();
     if (!source || !destination || known.has(`${source}\u0000${destination}`)) return [];
+    if (!/^[a-f0-9]{64}$/.test(sha256)) throw new Error(`Recovery row ${index + 2} has no valid file hash.`);
     known.add(`${source}\u0000${destination}`);
-    return [{ id: `import-${index + 1}`, source, destination, movedAt: "Imported from decision log", restoredAt: row[restoredIndex ?? -1]?.trim() || undefined }];
+    return [{ id: `import-${index + 1}`, source, destination, movedAt: "Imported from decision log", restoredAt: row[restoredIndex ?? -1]?.trim() || undefined, sha256, quarantineRoot: "" }];
   });
 }
 

@@ -1,4 +1,4 @@
-const CACHE = "proof-pile-v5";
+const CACHE = "proof-pile-v6";
 const SHELL = ["/demo", "/privacy", "/terms", "/manifest.webmanifest", "/favicon.svg", "/hero-proof-table.webp", "/samples/lake-a.svg", "/samples/birthday.svg", "/samples/dog.svg"];
 self.addEventListener("install", event => event.waitUntil((async () => {
   const cache = await caches.open(CACHE);

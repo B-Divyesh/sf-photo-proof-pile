@@ -22,10 +22,10 @@
   },
   {
     "id": "reversible-plan",
-    "claim": "Keeps quarantine recovery records after restart and can recover them from the decision CSV.",
+    "claim": "Keeps recovery records after restart and restores verified decision CSV records on the same computer.",
     "where": "landing page, review plan, and README",
     "test": "npm run test:e2e -- --grep @claim:reversible-plan",
-    "sandbox": "fresh browser context at /demo; quarantine exact extras, reload, export the record, clear demo storage, import the CSV, and restore a move"
+    "sandbox": "fresh browser context at /demo; quarantine exact extras, reload, export hashes, clear demo storage, import the CSV, confirm both paths, and restore a move"
   },
   {
     "id": "local-privacy",
