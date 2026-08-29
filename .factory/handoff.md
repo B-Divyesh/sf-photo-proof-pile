@@ -1,53 +1,91 @@
-# Verification 10 handoff — 29 August 2026
+# Proof Pile repair 7 handoff — 29 August 2026
 
-## Result: FAIL
+## Scope and outcome
 
-Independent verification of candidate
-`29b889667794c36baaeceab0828c6de7dcde2756` against
-<https://photo-proof-pile.sociobot.in> is complete. Product source was not
-changed. Full evidence is in `.factory/verification-10.md`.
+This repair addresses every release-blocking finding in
+`.factory/verification-10.md` for candidate
+`29b889667794c36baaeceab0828c6de7dcde2756`.
 
-## Release blocker
+- The release workflow no longer stops before packaging when owner-held Apple
+  or Windows certificates are absent. It builds honest unsigned packages in
+  that case and still signs, notarizes, and verifies packages automatically
+  when the full credential set exists.
+- A release remains a draft until all four platform builds, the package matrix,
+  `SHA256SUMS`, and the immutable `latest.json` commit identity pass. A final
+  job downloads the published assets and verifies every checksum again.
+- The desktop, Tauri, Cargo, site, and 404 identities are synchronized at
+  `v0.1.12`; the service-worker cache is advanced to `proof-pile-v9`.
+- The privacy statement about advertising/tracking and the conditional
+  unsigned-package statement are now listed in `.factory/claims.json`. Each
+  has one exact tagged browser regression.
+- Existing reviewed-plan native safety, demo behavior, visual design, and the
+  researched product scope are unchanged.
 
-The static website matches the candidate build, but every live desktop download
-still points to `v0.1.10`. That release identifies commit
-`444b4d151296c6f75045a3a1e5f077e267bdffcb`; the candidate is `29b8896`.
-The published native command accepts a path list and lacks the candidate's
-reviewed-plan, distinct-kept-copy, and readable-kept-copy checks.
+The live release and deployment evidence is appended after the tagged workflow
+and production deployment complete.
 
-GitHub has tag `v0.1.11` at `21c4c0c`, but no release for it. Workflow run
-33263273062 failed at the required signing-credential gate, so every build and
-checksum job was skipped. A fresh downloaded `v0.1.10` DEB passed its checksum
-but confirmed package version `0.1.10`.
+## Regression coverage added
 
-Two public statements are also absent from `.factory/claims.json`: no
-advertising/tracking scripts, and current builds being unsigned. The supplied
-claims contract makes that a release-blocking manifest gap.
+- `@claim:no-ad-tracking` visits `/`, `/demo`, and `/privacy`, checks loaded
+  scripts, records all requests, and verifies that none leave the site origin.
+- `@claim:unsigned-builds` supplies a release with macOS, Windows, and Linux
+  packages but no verified-signatures marker, then checks the exact unsigned
+  warning shown to the visitor.
+- The release workflow unit regression checks the no-certificate package path,
+  retained Authenticode/notarization verification paths, and absence of the
+  old mandatory signing dependency.
+- Existing immutable-tag and reviewed-plan tests continue to bind a release to
+  its exact source and prevent moves of unreviewed or only-copy files.
 
-## Verification summary
+## Local verification
 
-- All 20 listed claim commands passed after `npm ci`.
-- `npm test` passed: 10 Rust, 11 Vitest, 28 Playwright tests.
-- `npm run check` and `npm run build` passed.
-- Candidate DEB/RPM packaging passed after installing the documented Tauri
-  Linux prerequisites. The clean-extracted `0.1.11` DEB stayed running under
-  virtual X. Full default packaging compiled and made DEB/RPM but this
-  no-FUSE verifier stopped in AppImage `linuxdeploy`.
-- The live first-read/demo gate passed. Normal quarantine/export/reload/restore
-  and invalid-decision, malformed-CSV, and invalid-license recovery passed.
-- Desktop/390 px, keyboard, focus, 200% text, reduced motion, and light/dark axe
-  checks passed with zero serious/critical violations.
-- Live demo traffic was same-origin only. Security headers and immutable hashed
-  asset caching are present. Service-worker update and offline reload passed.
-- License API allowance observed: 30 successful requests; request 31 returned
-  429 with `Retry-After: 4`.
-- Mobile Lighthouse: 99 performance, 100 accessibility, 100 best practices,
-  100 SEO; LCP 1.20 s, TBT 140 ms, CLS 0.
+Run from `/work/repo`:
 
-## Operator action required
+```sh
+npm ci
+npm test
+npm run check
+npm run build
+CI=true npm run build:desktop -- --bundles deb,rpm
+```
 
-Add the macOS notarization and Windows Authenticode repository secrets named in
-`.github/workflows/release.yml`, rerun the `v0.1.11` release (or publish a
-successor containing the same native gate), and verify the resulting manifest,
-checksums, signatures, and installed package. Also list and tag-test the two
-missing claims, or remove/reword them.
+Observed results in the clean repair workspace:
+
+- `npm ci`: 66 packages installed; zero audit vulnerabilities.
+- `npm test`: 10 Rust, 11 Vitest, and 30 Playwright tests passed.
+- Every one of the 22 exact commands in `.factory/claims.json` passed when run
+  separately. Every claim ID occurs in exactly one test tag.
+- `npm run check`: TypeScript, Rust format, and strict Clippy passed.
+- `npm run build`: `dist/site` produced; initial JavaScript is 14,967 bytes
+  gzip and CSS is 5,092 bytes gzip. The hero WebP is 29,922 bytes.
+- `actionlint 1.7.12`: `.github/workflows/release.yml` passed.
+- `CI=true npm run build:desktop -- --bundles deb,rpm`: produced DEB and RPM.
+  The DEB is package `proof-pile`, version `0.1.12`, architecture `amd64`,
+  SHA-256 `60c0b6ee0eb352560d540836ceb9ee6b3a4427d8dcb53c0cd7a9bcf059c93157`.
+- The DEB was extracted into a clean temporary consumer directory. Its shipped
+  binary stayed running under Xvfb through the intentional eight-second
+  timeout; only expected headless EGL warnings were emitted.
+- `/opt/fleet/lib/verify-url.sh` passed local `/` and `/demo`: HTTP 200, correct
+  titles and `lang=en`, one h1, one main landmark, complete image alt text,
+  labeled buttons, and no console or page errors.
+- Mobile Lighthouse on the production build: performance 100, accessibility
+  100, best practices 100, SEO 100; FCP 0.9 s, LCP 1.7 s, TBT 20 ms, CLS 0,
+  transfer 141,230 bytes.
+
+## Release policy and operator action
+
+The repository currently exposes no signing secrets. Release `v0.1.12` is
+therefore expected to be unsigned and must not publish
+`DESKTOP_SIGNATURES_VERIFIED.json`. The site labels this state and does not
+claim trusted signatures. To produce trusted packages later, add the Apple
+secrets `APPLE_CERTIFICATE`, `APPLE_CERTIFICATE_PASSWORD`,
+`APPLE_SIGNING_IDENTITY`, `APPLE_ID`, `APPLE_PASSWORD`, `APPLE_TEAM_ID`, and the
+Windows secrets `WINDOWS_CERT_PFX`, `WINDOWS_CERTIFICATE_PASSWORD`; the same
+workflow then verifies Authenticode, Gatekeeper, and notarization before it
+publishes the signature marker.
+
+## Known gaps
+
+- Trusted Apple and Windows signatures cannot be created without owner-held
+  certificates. This does not prevent publication of the reviewed safety fix;
+  unsigned status is explicit in the README and download dialog.

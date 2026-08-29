@@ -27,7 +27,7 @@ The app stores a returned license under `sb_license:photo-proof-pile` and checks
 
 ## Install
 
-Download the macOS, Windows, or Linux package from the [releases page](https://github.com/B-Divyesh/sf-photo-proof-pile/releases). Builds are currently unsigned, so the operating system may ask you to confirm the first launch.
+Download the macOS, Windows, or Linux package from the [releases page](https://github.com/B-Divyesh/sf-photo-proof-pile/releases). The download dialog identifies packages without verified signatures as unsigned. Your operating system may ask you to confirm the first launch.
 
 Linux users can run:
 

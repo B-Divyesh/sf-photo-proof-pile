@@ -296,6 +296,19 @@ test("@claim:local-privacy sends no sample photo data off origin", async ({ page
   expect(offOrigin).toEqual([]);
 });
 
+test("@claim:no-ad-tracking loads no advertising or tracking scripts", async ({ page }) => {
+  const offOrigin: string[] = [];
+  page.on("request", request => {
+    if (new URL(request.url()).origin !== "http://127.0.0.1:4173") offOrigin.push(request.url());
+  });
+  for (const path of ["/", "/demo", "/privacy"]) {
+    await page.goto(path);
+    await expect(page.locator('script[src^="http"]')).toHaveCount(0);
+  }
+  await expect(page.getByText("We do not run advertising or tracking scripts.")).toBeVisible();
+  expect(offOrigin).toEqual([]);
+});
+
 test("@claim:license-request-privacy sends only the license token to Sociobot", async ({ page }) => {
   const requests: { url: string; method: string; body: string | null }[] = [];
   await page.addInitScript(() => {
@@ -523,6 +536,22 @@ test("download picker offers both published macOS architectures", async ({ page 
   await expect(page.getByRole("link", { name: "Download for macOS (Apple silicon)" })).toHaveAttribute("href", "https://example.test/arm.dmg");
   await expect(page.getByRole("link", { name: "Download for macOS (Intel)" })).toHaveAttribute("href", "https://example.test/intel.dmg");
   await expect(page.getByText("Windows is Authenticode signed. macOS is signed and notarized.")).toBeVisible();
+});
+
+test("@claim:unsigned-builds labels packages without verified signatures", async ({ page }) => {
+  await page.route("https://api.github.com/repos/B-Divyesh/sf-photo-proof-pile/releases/latest", route => route.fulfill({
+    status: 200,
+    contentType: "application/json",
+    body: JSON.stringify({ tag_name: "v0.1.12", assets: [
+      { name: "Proof.Pile_0.1.12_aarch64.dmg", browser_download_url: "https://example.test/app.dmg" },
+      { name: "Proof.Pile_0.1.12_x64_en-US.msi", browser_download_url: "https://example.test/app.msi" },
+      { name: "Proof.Pile_0.1.12_amd64.deb", browser_download_url: "https://example.test/app.deb" }
+    ] })
+  }));
+  await page.goto("/");
+  await page.getByRole("button", { name: /Download for/ }).click();
+  await expect(page.getByText("v0.1.12 is ready.")).toBeVisible();
+  await expect(page.getByText("Current builds are unsigned. Your system may ask you to confirm the first launch.")).toBeVisible();
 });
 
 test("routes load without console errors and Back restores the previous scroll position", async ({ page }) => {

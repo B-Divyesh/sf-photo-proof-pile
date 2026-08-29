@@ -42,6 +42,13 @@
     "sandbox": "intercept every request during the complete demo review and assert every request is same-origin"
   },
   {
+    "id": "no-ad-tracking",
+    "claim": "The website does not run advertising or tracking scripts.",
+    "where": "privacy page",
+    "test": "npm run test:e2e -- --grep @claim:no-ad-tracking",
+    "sandbox": "fresh browser context; visit the landing, demo, and privacy routes, inspect loaded scripts, and assert every request is same-origin"
+  },
+  {
     "id": "native-local-privacy",
     "claim": "Native scanning and quarantine operate on local files without a network client.",
     "where": "privacy page and README",
@@ -138,5 +145,12 @@
     "where": "README",
     "test": "npm run test:unit -- --testNamePattern @claim:windows-installer-checksum",
     "sandbox": "inspect the shipped PowerShell installer contract; assert mismatch removal happens before msiexec can start"
+  },
+  {
+    "id": "unsigned-builds",
+    "claim": "When a desktop release has no verified-signatures marker, the download dialog identifies its packages as unsigned.",
+    "where": "README and download dialog",
+    "test": "npm run test:e2e -- --grep @claim:unsigned-builds",
+    "sandbox": "mock a release with real platform packages and no verified-signatures marker; assert the download dialog labels those packages unsigned"
   }
 ]
