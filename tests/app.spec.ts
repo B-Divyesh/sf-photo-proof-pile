@@ -412,6 +412,20 @@ test("the phone layout keeps actions usable", async ({ page }) => {
   }
 });
 
+test("review decision controls meet the 44px target baseline on desktop and phone", async ({ page }) => {
+  for (const viewport of [{ width: 1440, height: 900 }, { width: 390, height: 844 }]) {
+    await page.setViewportSize(viewport);
+    await page.goto("/demo");
+    const decisions = page.locator(".file-row").first().getByRole("button");
+    await expect(decisions).toHaveCount(3);
+    for (const decision of await decisions.all()) {
+      const box = await decision.boundingBox();
+      expect(box?.width).toBeGreaterThanOrEqual(44);
+      expect(box?.height).toBeGreaterThanOrEqual(44);
+    }
+  }
+});
+
 test("Android and iPhone visitors see truthful desktop availability", async ({ browser }) => {
   const phones = [
     { userAgent: "Mozilla/5.0 (Linux; Android 14; Pixel 7) AppleWebKit/537.36 Mobile Safari/537.36", wrongLabel: "Download for Linux" },

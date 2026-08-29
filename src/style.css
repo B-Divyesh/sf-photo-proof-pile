@@ -180,7 +180,7 @@ footer .fine { text-align: right; }
 .file-row dd { margin: 3px 0 0; overflow: hidden; text-overflow: ellipsis; font-size: .76rem; font-variant-numeric: tabular-nums; white-space: nowrap; }
 .file-row fieldset { display: flex; gap: 8px; padding: 0; border: 0; }
 .file-row legend { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0,0,0,0); }
-.file-row fieldset button { min-height: 36px; padding: 5px 9px; border: 1px solid var(--line); background: var(--surface); cursor: pointer; font-size: .7rem; }
+.file-row fieldset button { min-height: 44px; padding: 5px 9px; border: 1px solid var(--line); background: var(--surface); cursor: pointer; font-size: .7rem; }
 .file-row fieldset button[aria-pressed="true"] { border-color: var(--ink); background: var(--ink); color: var(--canvas); }
 .file-row fieldset:disabled button { cursor: not-allowed; opacity: .62; }
 .group-actions { display: flex; gap: 12px; margin-top: 20px; }
@@ -266,7 +266,6 @@ dialog input { width: 100%; min-height: 48px; padding: 10px; border: 1px solid v
   .file-row dl { grid-template-columns: repeat(2, minmax(100px, 1fr)); }
   .file-row dl div:last-child { grid-column: 1 / -1; }
   .file-row fieldset { flex-wrap: wrap; }
-  .file-row fieldset button { min-height: 44px; }
   .plan-rail { grid-template-columns: 1fr; }
   .plan-rail .eyebrow, .plan-rail h2, .plan-number, .plan-rail .safety-copy { grid-column: 1; grid-row: auto; justify-self: start; }
   .group-actions { flex-direction: column; }
