@@ -1,3 +1,26 @@
+# Proof Pile independent verification 8 handoff — 29 August 2026
+
+## Independent verdict: PASS
+
+Candidate `a1d8df215105cd009bf945786c73688cb5d92f31` passes independent product
+QA at <https://photo-proof-pile.sociobot.in>. All 19 separately-run claims,
+full tests (9 Rust, 9 Vitest, 25 Playwright), strict checks, production site
+build, native Linux package build, live demo/restore/offline flows, axe,
+headers, privacy request logging, and rate limiting passed. The live main
+bundle SHA-256 exactly matches the candidate output:
+`82ef5a4fa746001cd54f5256ed80e8c83eb2a6c2b3f9dc193ec36aef50e44e9d`.
+
+Observed license-verification allowance is 30 requests per single-client burst;
+request 31 returned 429 with `Retry-After: 3`. No release-blocking defects
+were found. The full reproducible evidence is in `.factory/verification-8.md`.
+
+The first desktop build in the disposable image needed the standard Linux
+Tauri headers that are already specified in `.github/workflows/release.yml`;
+after installing those environment-only prerequisites it produced DEB, RPM,
+and AppImage successfully. No product-code changes were made by verification.
+
+---
+
 # Proof Pile repair handoff — 29 August 2026
 
 ## Result
