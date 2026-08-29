@@ -51,10 +51,13 @@ describe("review model", () => {
   it("keeps the static 404 release identity in sync with the product version", () => {
     const version = JSON.parse(readFileSync(new URL("../package.json", import.meta.url), "utf8")).version;
     const notFound = readFileSync(new URL("../public/404.html", import.meta.url), "utf8");
+    const index = readFileSync(new URL("../index.html", import.meta.url), "utf8");
     const tauri = JSON.parse(readFileSync(new URL("../src-tauri/tauri.conf.json", import.meta.url), "utf8"));
     const main = readFileSync(new URL("../src/main.ts", import.meta.url), "utf8");
     expect(notFound).toContain(`<p>v${version}</p>`);
+    expect(notFound).toContain("<h1>This page was not found</h1>");
     expect(notFound).not.toContain("Generated hero imagery");
+    expect(index).not.toContain("without permanent deletion");
     expect(tauri.version).toBe(version);
     expect(main).toContain(`const VERSION = "${version}"`);
   });

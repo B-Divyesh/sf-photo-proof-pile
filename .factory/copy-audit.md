@@ -37,7 +37,7 @@ No sentence exceeds 22 words. No banned marketing word appears.
 | For refunds, email support@sociobot.in. | 4 | Claim: paid-checkout |
 | Restore a purchase | 3 | None |
 | Review duplicate photos before moving extra copies. | 7 | None |
-| v0.1.6 | 1 | Release identity |
+| v0.1.7 | 1 | Release identity |
 
 ## Terminology
 

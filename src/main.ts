@@ -6,7 +6,7 @@ declare global { interface Window { __TAURI_INTERNALS__?: unknown } }
 const app = document.querySelector<HTMLDivElement>("#app")!;
 const isDesktop = Boolean(window.__TAURI_INTERNALS__);
 const PRODUCT = "photo-proof-pile";
-const VERSION = "0.1.6";
+const VERSION = "0.1.7";
 const LICENSE_KEY = `sb_license:${PRODUCT}`;
 const DEMO_KEY = "demo:photo-proof-pile:session";
 const REAL_KEY = "proof-pile:session";
@@ -391,7 +391,7 @@ function legalPage(kind: "privacy" | "terms") {
   shell(kind === "privacy" ? privacy : terms);
 }
 
-function notFound() { shell(`<main id="main" class="not-found" tabindex="-1"><p class="giant">404</p><h1 tabindex="-1">This frame is not in the pile</h1><p>The page may have moved. Your photos have not.</p><a class="button primary route-link" href="/">Return home</a></main>`); }
+function notFound() { shell(`<main id="main" class="not-found" tabindex="-1"><p class="giant">404</p><h1 tabindex="-1">This page was not found</h1><p>Check the address or return to the photo review.</p><a class="button primary route-link" href="/">Return home</a></main>`); }
 
 function scrollKey() { return `${location.pathname}${location.search}`; }
 function scrollStorageKey() { return `proof-pile:scroll:${scrollKey()}`; }

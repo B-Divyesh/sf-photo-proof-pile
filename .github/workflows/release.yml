@@ -18,13 +18,13 @@ jobs:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           version=$(node -p "require('./package.json').version")
-          gh release view "v${version}" >/dev/null 2>&1 || gh release create "v${version}" --title "Proof Pile v${version}" --notes "Local duplicate-photo review with reversible quarantine. Builds are unsigned."
+          gh release view "v${version}" >/dev/null 2>&1 || gh release create "v${version}" --title "Proof Pile v${version}" --notes "Desktop packages for local duplicate-photo review."
 
   build:
     needs: prepare-release
     env:
       HAS_APPLE_CERTIFICATE: ${{ secrets.APPLE_CERTIFICATE != '' }}
-      HAS_WINDOWS_CERTIFICATE: ${{ secrets.WINDOWS_CERTIFICATE != '' }}
+      HAS_WINDOWS_CERTIFICATE: ${{ secrets.WINDOWS_CERT_PFX != '' }}
     strategy:
       fail-fast: false
       matrix:
@@ -59,11 +59,11 @@ jobs:
         if: matrix.platform == 'windows-latest' && env.HAS_WINDOWS_CERTIFICATE == 'true'
         shell: pwsh
         env:
-          WINDOWS_CERTIFICATE: ${{ secrets.WINDOWS_CERTIFICATE }}
+          WINDOWS_CERT_PFX: ${{ secrets.WINDOWS_CERT_PFX }}
           WINDOWS_CERTIFICATE_PASSWORD: ${{ secrets.WINDOWS_CERTIFICATE_PASSWORD }}
         run: |
           $certificatePath = Join-Path $env:RUNNER_TEMP "proof-pile-signing.pfx"
-          [IO.File]::WriteAllBytes($certificatePath, [Convert]::FromBase64String($env:WINDOWS_CERTIFICATE))
+          [IO.File]::WriteAllBytes($certificatePath, [Convert]::FromBase64String($env:WINDOWS_CERT_PFX))
           $password = ConvertTo-SecureString $env:WINDOWS_CERTIFICATE_PASSWORD -AsPlainText -Force
           $certificate = Import-PfxCertificate -FilePath $certificatePath -CertStoreLocation Cert:\CurrentUser\My -Password $password
           $config = @{ bundle = @{ windows = @{ certificateThumbprint = $certificate.Thumbprint; digestAlgorithm = "sha256"; timestampUrl = "http://timestamp.digicert.com" } } } | ConvertTo-Json -Compress -Depth 4
@@ -86,7 +86,7 @@ jobs:
         with:
           tagName: v__VERSION__
           releaseName: Proof Pile v__VERSION__
-          releaseBody: Local duplicate-photo review with reversible quarantine. Builds are unsigned.
+          releaseBody: Signed and notarized desktop packages for local duplicate-photo review.
           releaseDraft: false
           prerelease: false
           args: ${{ matrix.args }}
@@ -118,9 +118,8 @@ jobs:
         if: matrix.platform == 'windows-latest' && env.HAS_WINDOWS_CERTIFICATE == 'true'
         shell: pwsh
         env:
-          WINDOWS_CERTIFICATE: ${{ secrets.WINDOWS_CERTIFICATE }}
         run: |
-          $packages = Get-ChildItem -Path src-tauri/target -Recurse -Include *.msi,*.exe
+          $packages = Get-ChildItem -Path src-tauri/target -Recurse -File | Where-Object { $_.FullName -match '[\\/]bundle[\\/](msi|nsis)[\\/]' -and $_.Extension -in '.msi', '.exe' }
           if (-not $packages) { throw "No Windows packages were built." }
           foreach ($package in $packages) {
             $signature = Get-AuthenticodeSignature $package.FullName
@@ -131,10 +130,13 @@ jobs:
         env:
           APPLE_CERTIFICATE: ${{ secrets.APPLE_CERTIFICATE }}
         run: |
-          find src-tauri/target -path '*.app' -type d -prune -print0 | while IFS= read -r -d '' app; do
+          count=0
+          while IFS= read -r -d '' app; do
+            count=$((count + 1))
             codesign --verify --deep --strict "$app"
             spctl --assess --type execute --verbose "$app"
-          done
+          done < <(find src-tauri/target -path '*.app' -type d -prune -print0)
+          test "$count" -gt 0
 
   checksums:
     needs: build
