@@ -22,7 +22,7 @@ No sentence exceeds 22 words. No banned marketing word appears.
 | Choose photo folders on each connected drive. | 7 | None |
 | The app reads files where they are. | 7 | Claim: scan-scope |
 | Keep one copy and mark extras. | 6 | None |
-| Move extras to a folder you choose. | 7 | None |
+| Move extras to a folder you choose. | 7 | Claim: review-before-move |
 | Restore them from the decision log. | 6 | Claim: reversible-plan |
 | Your photos are not uploaded | 5 | Claim: local-privacy, native-local-privacy |
 | Copies on other drives are matching files, not tested backups. | 10 | None |
@@ -51,4 +51,6 @@ No sentence exceeds 22 words. No banned marketing word appears.
 | Similar-image group | Looks alike |
 | The isolated trial state | demo |
 
-Catalog description: “Review duplicate photos, quarantine extra copies, and keep a reversible decision log.” It starts with a verb and contains 85 characters.
+The move confirmation says “Move 2 files to /Sample drive/Proof Pile Quarantine?” (9 words) in the demo. The destination changes to the chosen desktop folder. This is covered by `review-before-move`.
+
+Catalog description: “Review photo copies, quarantine extras, and keep a reversible decision log.” It starts with a verb and contains 75 characters.

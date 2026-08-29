@@ -31,7 +31,7 @@ const icon = (name: "stack" | "check" | "arrow" | "shield") => ({
 })[name];
 
 function header() {
-  return `<header class="site-header"><a class="wordmark route-link" href="/" aria-label="Proof Pile home"><span class="registration-mark">PP</span><span>Proof Pile</span></a><nav aria-label="Main navigation"><a class="route-link" href="/demo">Demo</a><a href="/#how">How it works</a><a class="route-link" href="/privacy">Privacy</a></nav></header>`;
+  return `<header class="site-header"><a class="wordmark route-link" href="/" aria-label="Proof Pile home"><span class="registration-mark">PP</span><span>Proof Pile</span></a><nav aria-label="Main navigation"><a class="route-link" href="/demo">Demo</a><a class="route-link" href="/#how">How it works</a><a class="route-link" href="/privacy">Privacy</a></nav></header>`;
 }
 
 function footer() {
@@ -54,7 +54,7 @@ function landing() {
       <figure class="hero-art"><img src="/hero-proof-table.webp" width="900" height="600" fetchpriority="high" decoding="async" alt="Overlapping photo plates connect to a protected original on an archival work table."><figcaption>Each group keeps its file locations, dates, sizes, and match details.</figcaption></figure>
     </section>
     <section class="preview-section" aria-labelledby="preview-title"><div><p class="eyebrow">The review desk</p><h2 id="preview-title">See why files match</h2><p>Compare file locations, image sizes, dates, and copies on other drives before making a plan.</p></div>${previewGraphic()}</section>
-    <section id="how" class="steps" aria-labelledby="how-title"><h2 id="how-title">How photo cleanup works</h2><ol><li><span>01</span><h3>Scan your folders</h3><p>Choose photo folders on each connected drive. The app reads files where they are.</p><figure><img src="/walkthrough/01-groups.webp" width="720" height="746" loading="lazy" decoding="async" alt="Three matching photo groups in the Proof Pile review desk."><figcaption>Start with groups, not a delete list.</figcaption></figure></li><li><span>02</span><h3>Review the evidence</h3><p>Keep one copy and mark extras. Every path and difference remains visible.</p><figure><img src="/walkthrough/02-evidence.webp" width="720" height="623" loading="lazy" decoding="async" alt="Two similar photos with their paths, camera details, and file identifiers."><figcaption>Compare each copy and its metadata.</figcaption></figure></li><li><span>03</span><h3>Quarantine, then verify</h3><p>Move extras to a folder you choose. Restore them from the decision log.</p><figure><img src="/walkthrough/03-quarantine.webp" width="720" height="747" loading="lazy" decoding="async" alt="A quarantine plan with two sample files marked for a reversible move."><figcaption>Move reviewed files, then restore if needed.</figcaption></figure></li></ol></section>
+    <section id="how" class="steps" aria-labelledby="how-title"><h2 id="how-title" tabindex="-1">How photo cleanup works</h2><ol><li><span>01</span><h3>Scan your folders</h3><p>Choose photo folders on each connected drive. The app reads files where they are.</p><figure><img src="/walkthrough/01-groups.webp" width="720" height="746" loading="lazy" decoding="async" alt="Three matching photo groups in the Proof Pile review desk."><figcaption>Start with groups, not a delete list.</figcaption></figure></li><li><span>02</span><h3>Review the evidence</h3><p>Keep one copy and mark extras. Every path and difference remains visible.</p><figure><img src="/walkthrough/02-evidence.webp" width="720" height="623" loading="lazy" decoding="async" alt="Two similar photos with their paths, camera details, and file identifiers."><figcaption>Compare each copy and its metadata.</figcaption></figure></li><li><span>03</span><h3>Quarantine, then verify</h3><p>Move extras to a folder you choose. Restore them from the decision log.</p><figure><img src="/walkthrough/03-quarantine.webp" width="720" height="747" loading="lazy" decoding="async" alt="A quarantine plan with two sample files marked for a reversible move."><figcaption>Move reviewed files, then restore if needed.</figcaption></figure></li></ol></section>
     <section class="boundaries" aria-labelledby="boundaries-title"><div><p class="eyebrow">Privacy and limits</p><h2 id="boundaries-title">Your photos are not uploaded</h2><p>Copies on other drives are matching files, not tested backups.</p></div><div class="warning-note"><strong>Keep a tested backup.</strong><p>A matching copy can still live on a failing drive. Open important backups before cleanup.</p></div></section>
     ${pricing()}
   </main>`);
@@ -252,11 +252,12 @@ async function runPlan() {
   const selected = pendingQuarantineFiles(groups, moves);
   if (!selected.length) return;
   if (!planHasKeptCopy()) { notice = "Keep one copy in every group before running the quarantine plan."; renderDesk(); return; }
-  if (!confirm(`Move ${selected.length} files to quarantine? You can restore them from the decision log.`)) return;
   planRunning = true;
   if (demo) {
+    const destination = "/Sample drive/Proof Pile Quarantine";
+    if (!confirm(`Move ${selected.length} files to ${destination}? You can restore them from the decision log.`)) { planRunning = false; return; }
     const stamp = new Date().toISOString();
-    addCompletedMoves(selected.map((file, i) => ({ id: `demo-${stamp}-${i}`, source: file.path, destination: `/Sample drive/Proof Pile Quarantine/${file.name}`, movedAt: stamp, sha256: "d".repeat(64), quarantineRoot: "/Sample drive/Proof Pile Quarantine" })), selected);
+    addCompletedMoves(selected.map((file, i) => ({ id: `demo-${stamp}-${i}`, source: file.path, destination: `${destination}/${file.name}`, movedAt: stamp, sha256: "d".repeat(64), quarantineRoot: destination })), selected);
     planRunning = false;
     persist(); notice = `${selected.length} sample files moved to the demo quarantine. No files on your device changed.`; renderDesk(); return;
   }
@@ -264,8 +265,13 @@ async function runPlan() {
     const { open } = await import("@tauri-apps/plugin-dialog");
     const destination = await open({ directory: true, multiple: false, title: "Choose a quarantine folder" });
     if (!destination || Array.isArray(destination)) return;
+    if (!confirm(`Move ${selected.length} files to ${destination}? You can restore them from the decision log.`)) return;
+    const reviewedPlan = selected.map(file => {
+      const group = groups.find(candidate => candidate.files.some(item => item.id === file.id));
+      return { path: file.path, decision: file.decision, keptCopyPath: group?.files.find(item => item.decision === "keep")?.path ?? "" };
+    });
     const { invoke } = await import("@tauri-apps/api/core");
-    const completed = await invoke<MoveRecord[]>("execute_quarantine", { paths: selected.map(file => file.path), quarantineDir: destination });
+    const completed = await invoke<MoveRecord[]>("execute_quarantine", { plan: reviewedPlan, quarantineDir: destination });
     const added = addCompletedMoves(completed, selected);
     persist(); notice = `${added} file${added === 1 ? "" : "s"} moved to quarantine. The decision log is ready to export.`; renderDesk();
   } catch (error) { notice = `The plan did not run. ${plainError(error)} Choose a writable quarantine folder and try again.`; renderDesk(); }
@@ -393,7 +399,7 @@ function legalPage(kind: "privacy" | "terms") {
 
 function notFound() { shell(`<main id="main" class="not-found" tabindex="-1"><p class="giant">404</p><h1 tabindex="-1">This page was not found</h1><p>Check the address or return to the photo review.</p><a class="button primary route-link" href="/">Return home</a></main>`); }
 
-function scrollKey() { return `${location.pathname}${location.search}`; }
+function scrollKey() { return `${location.pathname}${location.search}${location.hash}`; }
 function scrollStorageKey() { return `proof-pile:scroll:${scrollKey()}`; }
 function saveScroll() {
   scrollPositions.set(scrollKey(), scrollY);
@@ -416,7 +422,7 @@ function route(restoreScroll = false) {
   const meta: Record<string, { title: string; description: string }> = {
     "/": { title: "Proof Pile — Review photo copies before cleanup", description: "Review duplicate photo evidence, quarantine extra copies, and keep a local decision log you can reverse." },
     "/demo": { title: "Demo — Proof Pile", description: "Try a separate sample review with realistic duplicate-photo evidence. Nothing is saved to your real review." },
-    "/app": { title: "Review — Proof Pile", description: "Choose photo folders, compare likely copies, and make a reversible quarantine plan." },
+    "/app": { title: "Proof Pile — Review photo copies", description: "Choose photo folders, compare likely copies, and make a reversible quarantine plan." },
     "/privacy": { title: "Privacy — Proof Pile", description: "Learn what Proof Pile stores locally and what the optional license check sends to Sociobot." },
     "/terms": { title: "Terms — Proof Pile", description: "Read Proof Pile terms, license limits, payment information, and file-care responsibilities." }
   };
@@ -428,15 +434,18 @@ function route(restoreScroll = false) {
   document.querySelector<HTMLMetaElement>('meta[property="og:description"]')?.setAttribute("content", currentMeta.description);
   document.querySelector<HTMLMetaElement>('meta[name="twitter:title"]')?.setAttribute("content", currentMeta.title);
   document.querySelector<HTMLMetaElement>('meta[name="twitter:description"]')?.setAttribute("content", currentMeta.description);
-  document.querySelector<HTMLElement>("h1")?.focus({ preventScroll: true });
-  document.querySelector(".route-status")!.textContent = document.querySelector("h1")?.textContent ?? "Page changed";
+  const hashTarget = location.hash === "#how" ? document.querySelector<HTMLElement>("#how-title") : null;
+  const focusTarget = hashTarget ?? document.querySelector<HTMLElement>("h1");
+  document.querySelector(".route-status")!.textContent = focusTarget?.textContent ?? "Page changed";
   const top = restoreScroll ? Number(scrollPositions.get(scrollKey()) ?? sessionStorage.getItem(scrollStorageKey()) ?? history.state?.scrollY ?? 0) : 0;
   requestAnimationFrame(() => {
-    scrollTo(0, top);
+    focusTarget?.focus({ preventScroll: true });
+    if (hashTarget && !restoreScroll) hashTarget.scrollIntoView({ block: "start" });
+    else scrollTo(0, top);
   });
 }
 
-function bindRoutes() { document.querySelectorAll<HTMLAnchorElement>("a.route-link").forEach(link => link.addEventListener("click", event => { if (link.origin !== location.origin) return; event.preventDefault(); navigate(link.pathname); })); }
+function bindRoutes() { document.querySelectorAll<HTMLAnchorElement>("a.route-link").forEach(link => link.addEventListener("click", event => { if (link.origin !== location.origin) return; event.preventDefault(); navigate(`${link.pathname}${link.search}${link.hash}`); })); }
 
 function showLicenseDialog() {
   const dialog = document.createElement("dialog");
@@ -493,7 +502,7 @@ document.addEventListener("click", event => {
   const link = (event.target as Element | null)?.closest<HTMLAnchorElement>("a.route-link");
   if (!link || event.defaultPrevented || link.origin !== location.origin || event.button !== 0 || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return;
   event.preventDefault();
-  navigate(link.pathname);
+  navigate(`${link.pathname}${link.search}${link.hash}`);
 });
 document.querySelector<HTMLAnchorElement>(".skip-link")?.addEventListener("click", event => { event.preventDefault(); document.querySelector<HTMLElement>("main")?.focus(); });
 if ("serviceWorker" in navigator && !isDesktop) addEventListener("load", () => navigator.serviceWorker.register("/sw.js").catch(() => undefined));

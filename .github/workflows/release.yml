@@ -9,7 +9,25 @@ permissions:
   contents: write
 
 jobs:
+  validate-signing:
+    runs-on: ubuntu-latest
+    env:
+      HAS_APPLE_CERTIFICATE: ${{ secrets.APPLE_CERTIFICATE != '' && secrets.APPLE_CERTIFICATE_PASSWORD != '' && secrets.APPLE_SIGNING_IDENTITY != '' && secrets.APPLE_ID != '' && secrets.APPLE_PASSWORD != '' && secrets.APPLE_TEAM_ID != '' }}
+      HAS_WINDOWS_CERTIFICATE: ${{ secrets.WINDOWS_CERT_PFX != '' && secrets.WINDOWS_CERTIFICATE_PASSWORD != '' }}
+    steps:
+      - name: Require trusted desktop signing credentials
+        run: |
+          if [ "$HAS_APPLE_CERTIFICATE" != "true" ]; then
+            echo "macOS signing and notarization secrets are required; no release was created." >&2
+            exit 1
+          fi
+          if [ "$HAS_WINDOWS_CERTIFICATE" != "true" ]; then
+            echo "Windows Authenticode secrets are required; no release was created." >&2
+            exit 1
+          fi
+
   prepare-release:
+    needs: validate-signing
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -22,9 +40,6 @@ jobs:
 
   build:
     needs: prepare-release
-    env:
-      HAS_APPLE_CERTIFICATE: ${{ secrets.APPLE_CERTIFICATE != '' }}
-      HAS_WINDOWS_CERTIFICATE: ${{ secrets.WINDOWS_CERT_PFX != '' }}
     strategy:
       fail-fast: false
       matrix:
@@ -56,7 +71,7 @@ jobs:
         run: sudo apt-get update && sudo apt-get install -y libwebkit2gtk-4.1-dev libappindicator3-dev librsvg2-dev patchelf
       - run: npm ci
       - name: Import Windows signing certificate
-        if: matrix.platform == 'windows-latest' && env.HAS_WINDOWS_CERTIFICATE == 'true'
+        if: matrix.platform == 'windows-latest'
         shell: pwsh
         env:
           WINDOWS_CERT_PFX: ${{ secrets.WINDOWS_CERT_PFX }}
@@ -73,7 +88,7 @@ jobs:
         shell: pwsh
         run: ./tests/install-windows.ps1
       - name: Build signed macOS package
-        if: startsWith(matrix.platform, 'macos') && env.HAS_APPLE_CERTIFICATE == 'true'
+        if: startsWith(matrix.platform, 'macos')
         uses: tauri-apps/tauri-action@v0
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -91,7 +106,7 @@ jobs:
           prerelease: false
           args: ${{ matrix.args }}
       - name: Build signed Windows package
-        if: matrix.platform == 'windows-latest' && env.HAS_WINDOWS_CERTIFICATE == 'true'
+        if: matrix.platform == 'windows-latest'
         uses: tauri-apps/tauri-action@v0
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -102,20 +117,20 @@ jobs:
           releaseDraft: false
           prerelease: false
           args: ${{ matrix.args }}
-      - name: Build unsigned package
-        if: matrix.platform == 'ubuntu-latest' || (startsWith(matrix.platform, 'macos') && env.HAS_APPLE_CERTIFICATE != 'true') || (matrix.platform == 'windows-latest' && env.HAS_WINDOWS_CERTIFICATE != 'true')
+      - name: Build Linux package
+        if: matrix.platform == 'ubuntu-latest'
         uses: tauri-apps/tauri-action@v0
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           tagName: v__VERSION__
           releaseName: Proof Pile v__VERSION__
-          releaseBody: Local duplicate-photo review with reversible quarantine. Builds are unsigned.
+          releaseBody: Local duplicate-photo review with reversible quarantine.
           releaseDraft: false
           prerelease: false
           args: ${{ matrix.args }}
       - name: Verify Windows package signature
-        if: matrix.platform == 'windows-latest' && env.HAS_WINDOWS_CERTIFICATE == 'true'
+        if: matrix.platform == 'windows-latest'
         shell: pwsh
         run: |
           $packages = Get-ChildItem -Path src-tauri/target -Recurse -File | Where-Object { $_.FullName -match '[\\/]bundle[\\/](msi|nsis)[\\/]' -and $_.Extension -in '.msi', '.exe' }
@@ -125,17 +140,22 @@ jobs:
             if ($signature.Status -ne "Valid") { throw "$($package.Name) has no valid Authenticode signature." }
           }
       - name: Verify macOS package signature and notarization
-        if: startsWith(matrix.platform, 'macos') && env.HAS_APPLE_CERTIFICATE == 'true'
-        env:
-          APPLE_CERTIFICATE: ${{ secrets.APPLE_CERTIFICATE }}
+        if: startsWith(matrix.platform, 'macos')
         run: |
-          count=0
+          app_count=0
           while IFS= read -r -d '' app; do
-            count=$((count + 1))
+            app_count=$((app_count + 1))
             codesign --verify --deep --strict "$app"
             spctl --assess --type execute --verbose "$app"
           done < <(find src-tauri/target -path '*.app' -type d -prune -print0)
-          test "$count" -gt 0
+          test "$app_count" -gt 0
+          dmg_count=0
+          while IFS= read -r -d '' dmg; do
+            dmg_count=$((dmg_count + 1))
+            xcrun stapler validate "$dmg"
+            spctl --assess --type open --context context:primary-signature --verbose "$dmg"
+          done < <(find src-tauri/target -path '*/bundle/dmg/*.dmg' -type f -print0)
+          test "$dmg_count" -gt 0
 
   checksums:
     needs: build

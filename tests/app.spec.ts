@@ -4,19 +4,19 @@ import AxeBuilder from "@axe-core/playwright";
 async function installTauriMock(page: import("@playwright/test").Page) {
   await page.addInitScript(() => {
     const restored: string[] = [];
-    const quarantineCalls: string[][] = [];
+    const quarantineCalls: { path: string; decision: string; keptCopyPath: string }[][] = [];
     let batch = 0;
     (window as unknown as { __PROOF_PILE_TAURI_TEST__: unknown }).__PROOF_PILE_TAURI_TEST__ = { restored, quarantineCalls };
     (window as unknown as { __TAURI_INTERNALS__: unknown }).__TAURI_INTERNALS__ = {
-      invoke: async (command: string, args: { paths?: string[] }) => {
+      invoke: async (command: string, args: { plan?: { path: string; decision: string; keptCopyPath: string }[] }) => {
         if (command === "plugin:dialog|open") return "/Mock quarantine";
         if (command === "execute_quarantine") {
           batch += 1;
-          quarantineCalls.push([...(args.paths ?? [])]);
-          return (args.paths ?? []).map((source, index) => ({
+          quarantineCalls.push([...(args.plan ?? [])]);
+          return (args.plan ?? []).map((entry, index) => ({
             id: `batch-${batch}-${index}`,
-            source,
-            destination: `/Mock quarantine/${source.split("/").pop()}`,
+            source: entry.path,
+            destination: `/Mock quarantine/${entry.path.split("/").pop()}`,
             movedAt: `2026-08-29T00:0${batch}:00.000Z`,
             sha256: "a".repeat(64),
             quarantineRoot: "/Mock quarantine"
@@ -57,7 +57,7 @@ test("completed quarantine plans leave no pending work and repeat safely in demo
     const key = native ? "proof-pile:session" : "demo:photo-proof-pile:session";
     expect(await page.evaluate(({ storage, key }) => JSON.parse(window[storage as "localStorage" | "sessionStorage"].getItem(key)!).moves, { storage, key })).toHaveLength(2);
     if (native) {
-      expect(await page.evaluate(() => (window as unknown as { __PROOF_PILE_TAURI_TEST__: { quarantineCalls: string[][] } }).__PROOF_PILE_TAURI_TEST__.quarantineCalls)).toHaveLength(1);
+      expect(await page.evaluate(() => (window as unknown as { __PROOF_PILE_TAURI_TEST__: { quarantineCalls: unknown[][] } }).__PROOF_PILE_TAURI_TEST__.quarantineCalls)).toHaveLength(1);
     }
   }
 });
@@ -225,6 +225,39 @@ test("never allows a plan that quarantines a group's only kept copy", async ({ p
   await page.getByRole("button", { name: "Quarantine", exact: true }).first().click();
   await expect(page.getByText("Keep one copy in this group before marking another copy for quarantine.")).toBeVisible();
   await expect(page.locator(".plan-number strong")).toHaveText("0");
+});
+
+test("@claim:review-before-move requires reviewed choices and confirms the exact destination", async ({ page }) => {
+  await installTauriMock(page);
+  await page.goto("/demo");
+  await page.getByRole("button", { name: "Mark exact extras" }).click();
+  await page.evaluate(() => localStorage.setItem("proof-pile:session", sessionStorage.getItem("demo:photo-proof-pile:session")!));
+  await page.goto("/app");
+
+  await page.getByRole("button", { name: "Mark for review" }).nth(1).click();
+  await expect(page.getByRole("button", { name: "Move 1 file to quarantine" })).toBeVisible();
+  await page.getByRole("button", { name: "Quarantine", exact: true }).first().click();
+  await expect(page.getByText("Keep one copy in this group before marking another copy for quarantine.")).toBeVisible();
+  expect(await page.evaluate(() => (window as unknown as { __PROOF_PILE_TAURI_TEST__: { quarantineCalls: unknown[] } }).__PROOF_PILE_TAURI_TEST__.quarantineCalls)).toHaveLength(0);
+
+  await page.getByRole("button", { name: "Mark exact extras" }).click();
+  page.once("dialog", async dialog => {
+    expect(dialog.message()).toContain("Move 2 files to /Mock quarantine?");
+    await dialog.dismiss();
+  });
+  await page.getByRole("button", { name: "Move 2 files to quarantine" }).click();
+  expect(await page.evaluate(() => (window as unknown as { __PROOF_PILE_TAURI_TEST__: { quarantineCalls: unknown[] } }).__PROOF_PILE_TAURI_TEST__.quarantineCalls)).toHaveLength(0);
+
+  page.once("dialog", async dialog => {
+    expect(dialog.message()).toContain("Move 2 files to /Mock quarantine?");
+    await dialog.accept();
+  });
+  await page.getByRole("button", { name: "Move 2 files to quarantine" }).click();
+  await expect(page.getByText("2 files moved to quarantine. The decision log is ready to export.")).toBeVisible();
+  const calls = await page.evaluate(() => (window as unknown as { __PROOF_PILE_TAURI_TEST__: { quarantineCalls: { path: string; decision: string; keptCopyPath: string }[][] } }).__PROOF_PILE_TAURI_TEST__.quarantineCalls);
+  expect(calls).toHaveLength(1);
+  expect(calls[0]).toHaveLength(2);
+  expect(calls[0].every(entry => entry.decision === "quarantine" && entry.keptCopyPath.endsWith("IMG_4812.jpg"))).toBe(true);
 });
 
 test("hostile decision CSV cannot become an authoritative desktop recovery record", async ({ page }) => {
@@ -513,4 +546,24 @@ test("routes load without console errors and Back restores the previous scroll p
   await page.goBack();
   await expect(page.getByRole("heading", { level: 1 })).toContainText("sample photo pile");
   expect(errors).toEqual([]);
+});
+
+test("How it works keeps its hash and focuses the section from home and another route", async ({ page }) => {
+  for (const start of ["/", "/privacy"]) {
+    await page.goto(start);
+    await page.getByRole("link", { name: "How it works" }).click();
+    await expect(page).toHaveURL(/\/#how$/);
+    await expect(page.getByRole("heading", { name: "How photo cleanup works" })).toBeFocused();
+    await expect.poll(() => page.evaluate(() => document.querySelector("#how-title")?.getBoundingClientRect().top ?? 9999)).toBeLessThan(180);
+  }
+  await page.goto("/#how");
+  await expect(page.getByRole("heading", { name: "How photo cleanup works" })).toBeFocused();
+});
+
+test("the app route uses a product-first title and route metadata", async ({ page }) => {
+  await page.goto("/app");
+  await expect(page).toHaveTitle("Proof Pile — Review photo copies");
+  await expect(page.locator('link[rel="canonical"]')).toHaveAttribute("href", "https://photo-proof-pile.sociobot.in/app");
+  await expect(page.locator('meta[property="og:title"]')).toHaveAttribute("content", "Proof Pile — Review photo copies");
+  await expect(page.locator('meta[name="twitter:title"]')).toHaveAttribute("content", "Proof Pile — Review photo copies");
 });

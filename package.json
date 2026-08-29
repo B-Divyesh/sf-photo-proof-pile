@@ -15,6 +15,7 @@
     "test": "npm run check:rust && npm run test:unit && npm run test:e2e",
     "test:unit": "vitest run",
     "test:e2e": "playwright test",
+    "test:claim:review-before-move": "cargo test --manifest-path src-tauri/Cargo.toml --no-default-features claim_review_before_move && playwright test --grep @claim:review-before-move",
     "check:rust": "cargo test --manifest-path src-tauri/Cargo.toml --no-default-features"
   },
   "dependencies": {

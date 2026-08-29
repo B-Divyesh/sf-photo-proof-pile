@@ -28,6 +28,13 @@
     "sandbox": "fresh browser context at /demo; quarantine exact extras, reload, export, clear demo storage, import, and restore"
   },
   {
+    "id": "review-before-move",
+    "claim": "Only reviewed files marked for quarantine can move, and confirmation names the exact count and destination.",
+    "where": "README, review plan, and confirmation",
+    "test": "npm run test:claim:review-before-move",
+    "sandbox": "native core rejects unreviewed entries and entries without a kept copy; mocked desktop UI proves the disabled state, decision gate, exact confirmation, cancellation, and reviewed native payload"
+  },
+  {
     "id": "local-privacy",
     "claim": "The browser sample does not upload sample photo data.",
     "where": "demo and privacy page",

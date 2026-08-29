@@ -83,6 +83,14 @@ pub struct MoveRecord {
     pub quarantine_root: String,
 }
 
+#[derive(Clone, Debug, Deserialize)]
+#[serde(rename_all = "camelCase")]
+struct QuarantinePlanEntry {
+    path: String,
+    decision: String,
+    kept_copy_path: String,
+}
+
 #[cfg_attr(feature = "desktop", tauri::command)]
 fn scan_directories(paths: Vec<String>, licensed: bool) -> Result<ScanReport, String> {
     if paths.is_empty() {
@@ -473,9 +481,25 @@ fn to_copy(
 
 #[cfg_attr(feature = "desktop", tauri::command)]
 fn execute_quarantine(
-    paths: Vec<String>,
+    plan: Vec<QuarantinePlanEntry>,
     quarantine_dir: String,
 ) -> Result<Vec<MoveRecord>, String> {
+    if plan.is_empty() {
+        return Err("Review and mark at least one file before running the quarantine plan.".into());
+    }
+    for entry in &plan {
+        if entry.decision != "quarantine" {
+            return Err("Every file in the plan must be marked for quarantine.".into());
+        }
+        if entry.kept_copy_path.is_empty() || entry.kept_copy_path == entry.path {
+            return Err(
+                "Keep another copy in every group before running the quarantine plan.".into(),
+            );
+        }
+        if !Path::new(&entry.kept_copy_path).is_file() {
+            return Err("A kept copy is no longer readable. Review the group again.".into());
+        }
+    }
     let destination = PathBuf::from(quarantine_dir);
     fs::create_dir_all(&destination)
         .map_err(|error| format!("The quarantine folder could not be created: {error}"))?;
@@ -483,8 +507,8 @@ fn execute_quarantine(
         .canonicalize()
         .map_err(|error| format!("The quarantine folder could not be verified: {error}"))?;
     let mut records: Vec<MoveRecord> = Vec::new();
-    for source_text in paths {
-        let source = PathBuf::from(&source_text);
+    for entry in plan {
+        let source = PathBuf::from(&entry.path);
         if !source.is_file() {
             return Err(format!(
                 "{} is no longer a readable file.",
@@ -760,6 +784,17 @@ mod tests {
         fs::write(path, output).unwrap();
     }
 
+    fn reviewed_entry(path: &Path, kept_copy: &Path) -> QuarantinePlanEntry {
+        if !kept_copy.exists() {
+            fs::write(kept_copy, b"kept copy").unwrap();
+        }
+        QuarantinePlanEntry {
+            path: path.to_string_lossy().to_string(),
+            decision: "quarantine".into(),
+            kept_copy_path: kept_copy.to_string_lossy().to_string(),
+        }
+    }
+
     #[test]
     fn exact_files_become_one_group() {
         let root = temp_dir("scan");
@@ -787,7 +822,7 @@ mod tests {
         fs::write(&source, b"only copy").unwrap();
         fs::write(quarantine.join("memory.jpg"), b"existing").unwrap();
         let records = execute_quarantine(
-            vec![source.to_string_lossy().to_string()],
+            vec![reviewed_entry(&source, &source_dir.join("kept.jpg"))],
             quarantine.to_string_lossy().to_string(),
         )
         .unwrap();
@@ -966,7 +1001,7 @@ mod tests {
         fs::write(&source, b"second copy").unwrap();
         fs::write(destination_dir.join("memory (2).jpg"), b"occupied").unwrap();
         let records = execute_quarantine(
-            vec![source.to_string_lossy().to_string()],
+            vec![reviewed_entry(&source, &source_dir.join("kept.jpg"))],
             destination_dir.to_string_lossy().to_string(),
         )
         .unwrap();
@@ -986,7 +1021,7 @@ mod tests {
         let report = scan(std::slice::from_ref(&source_dir), 100).unwrap();
         assert_eq!(report.scanned, 2);
         let records = execute_quarantine(
-            vec![source.to_string_lossy().to_string()],
+            vec![reviewed_entry(&source, &source_dir.join("kept.png"))],
             quarantine.to_string_lossy().to_string(),
         )
         .unwrap();
@@ -995,6 +1030,51 @@ mod tests {
             .destination
             .starts_with(quarantine.to_string_lossy().as_ref()));
         assert!(!source.exists());
+        let _ = fs::remove_dir_all(source_dir);
+        let _ = fs::remove_dir_all(quarantine);
+    }
+
+    #[test]
+    fn claim_review_before_move_rejects_unreviewed_native_plans() {
+        let source_dir = temp_dir("reviewed-plan-source");
+        let quarantine = temp_dir("reviewed-plan-quarantine");
+        let source = source_dir.join("extra.jpg");
+        let kept = source_dir.join("kept.jpg");
+        fs::write(&source, b"extra copy").unwrap();
+        fs::write(&kept, b"kept copy").unwrap();
+
+        let unreviewed = QuarantinePlanEntry {
+            path: source.to_string_lossy().to_string(),
+            decision: "review".into(),
+            kept_copy_path: kept.to_string_lossy().to_string(),
+        };
+        assert!(
+            execute_quarantine(vec![unreviewed], quarantine.to_string_lossy().to_string())
+                .unwrap_err()
+                .contains("must be marked for quarantine")
+        );
+        assert!(source.exists());
+
+        let no_keeper = QuarantinePlanEntry {
+            path: source.to_string_lossy().to_string(),
+            decision: "quarantine".into(),
+            kept_copy_path: String::new(),
+        };
+        assert!(
+            execute_quarantine(vec![no_keeper], quarantine.to_string_lossy().to_string())
+                .unwrap_err()
+                .contains("Keep another copy")
+        );
+        assert!(source.exists());
+
+        let records = execute_quarantine(
+            vec![reviewed_entry(&source, &kept)],
+            quarantine.to_string_lossy().to_string(),
+        )
+        .unwrap();
+        assert_eq!(records.len(), 1);
+        assert!(!source.exists());
+        assert!(kept.exists());
         let _ = fs::remove_dir_all(source_dir);
         let _ = fs::remove_dir_all(quarantine);
     }
