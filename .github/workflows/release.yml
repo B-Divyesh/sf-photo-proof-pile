@@ -6,7 +6,7 @@ on:
   workflow_dispatch:
     inputs:
       tag:
-        description: Existing version tag to release (for example, v0.1.12)
+        description: Existing version tag to release (for example, v0.1.13)
         required: true
         type: string
 
@@ -19,6 +19,7 @@ jobs:
     outputs:
       tag: ${{ steps.identity.outputs.tag }}
       commit: ${{ steps.identity.outputs.commit }}
+      release_id: ${{ steps.release.outputs.release_id }}
     steps:
       - uses: actions/checkout@v4
         with:
@@ -47,13 +48,18 @@ jobs:
           echo "tag=$release_tag" >> "$GITHUB_OUTPUT"
           echo "commit=$release_commit" >> "$GITHUB_OUTPUT"
       - name: Create a draft release before matrix uploads
+        id: release
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          gh release view "${{ steps.identity.outputs.tag }}" >/dev/null 2>&1 || \
+          release_id=$(gh release view "${{ steps.identity.outputs.tag }}" --json databaseId --jq .databaseId 2>/dev/null || true)
+          if [ -z "$release_id" ]; then
             gh release create "${{ steps.identity.outputs.tag }}" --draft \
               --title "Proof Pile ${{ steps.identity.outputs.tag }}" \
               --notes "Desktop packages for local duplicate-photo review. Packages without a verified signature marker are unsigned."
+            release_id=$(gh release view "${{ steps.identity.outputs.tag }}" --json databaseId --jq .databaseId)
+          fi
+          echo "release_id=$release_id" >> "$GITHUB_OUTPUT"
 
   build:
     needs: prepare-release
@@ -200,6 +206,7 @@ jobs:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           RELEASE_TAG: ${{ needs.prepare-release.outputs.tag }}
           RELEASE_COMMIT: ${{ needs.prepare-release.outputs.commit }}
+          RELEASE_ID: ${{ needs.prepare-release.outputs.release_id }}
         run: |
           cd release-assets
           rm -f SHA256SUMS latest.json DESKTOP_SIGNATURES_VERIFIED.json
@@ -212,7 +219,7 @@ jobs:
           fi
           : > SHA256SUMS
           while IFS= read -r -d '' asset; do sha256sum "$asset" | sed 's#  \./#  #' >> SHA256SUMS; done < <(find . -maxdepth 1 -type f ! -name SHA256SUMS ! -name latest.json -print0 | sort -z)
-          gh api "repos/${GITHUB_REPOSITORY}/releases/tags/${RELEASE_TAG}" > release.json
+          gh api "repos/${GITHUB_REPOSITORY}/releases/${RELEASE_ID}" > release.json
           jq --arg commit "$RELEASE_COMMIT" --arg apple "$apple_status" --arg windows "$windows_status" \
             '{version: .tag_name, commit: $commit, signatures: {macos: $apple, windows: $windows}, platforms: {macos: [.assets[] | select(.name | test("\\.dmg$")) | {name, url: .browser_download_url}], windows: [.assets[] | select(.name | test("\\.(msi|exe)$")) | {name, url: .browser_download_url}], linux: [.assets[] | select(.name | test("\\.(AppImage|deb)$")) | {name, url: .browser_download_url}]}}' \
             release.json > latest.json

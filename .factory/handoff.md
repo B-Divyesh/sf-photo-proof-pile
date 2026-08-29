@@ -14,7 +14,7 @@ This repair addresses every release-blocking finding in
   `SHA256SUMS`, and the immutable `latest.json` commit identity pass. A final
   job downloads the published assets and verifies every checksum again.
 - The desktop, Tauri, Cargo, site, and 404 identities are synchronized at
-  `v0.1.12`; the service-worker cache is advanced to `proof-pile-v9`.
+  `v0.1.13`; the service-worker cache is advanced to `proof-pile-v10`.
 - The privacy statement about advertising/tracking and the conditional
   unsigned-package statement are now listed in `.factory/claims.json`. Each
   has one exact tagged browser regression.
@@ -60,11 +60,12 @@ Observed results in the clean repair workspace:
   gzip and CSS is 5,092 bytes gzip. The hero WebP is 29,922 bytes.
 - `actionlint 1.7.12`: `.github/workflows/release.yml` passed.
 - `CI=true npm run build:desktop -- --bundles deb,rpm`: produced DEB and RPM.
-  The DEB is package `proof-pile`, version `0.1.12`, architecture `amd64`,
-  SHA-256 `60c0b6ee0eb352560d540836ceb9ee6b3a4427d8dcb53c0cd7a9bcf059c93157`.
+  The DEB is package `proof-pile`, version `0.1.13`, architecture `amd64`,
+  SHA-256 `83e97c2e40235405e2be294c7515f333749f389498c06fdd7435727387171929`.
 - The DEB was extracted into a clean temporary consumer directory. Its shipped
-  binary stayed running under Xvfb through the intentional eight-second
-  timeout; only expected headless EGL warnings were emitted.
+  binary contains both reviewed-plan guard messages and stayed running under
+  Xvfb through the intentional eight-second timeout; only expected headless EGL
+  warnings were emitted.
 - `/opt/fleet/lib/verify-url.sh` passed local `/` and `/demo`: HTTP 200, correct
   titles and `lang=en`, one h1, one main landmark, complete image alt text,
   labeled buttons, and no console or page errors.
@@ -74,7 +75,7 @@ Observed results in the clean repair workspace:
 
 ## Release policy and operator action
 
-The repository currently exposes no signing secrets. Release `v0.1.12` is
+The repository currently exposes no signing secrets. Release `v0.1.13` is
 therefore expected to be unsigned and must not publish
 `DESKTOP_SIGNATURES_VERIFIED.json`. The site labels this state and does not
 claim trusted signatures. To produce trusted packages later, add the Apple

@@ -85,6 +85,9 @@ describe("review model", () => {
     expect(workflow).toContain('git rev-parse "${release_tag}^{commit}"');
     expect(workflow).toContain('if [ "$release_commit" != "$(git rev-parse HEAD)" ]');
     expect(workflow).toContain('RELEASE_COMMIT: ${{ needs.prepare-release.outputs.commit }}');
+    expect(workflow).toContain('RELEASE_ID: ${{ needs.prepare-release.outputs.release_id }}');
+    expect(workflow).toContain('releases/${RELEASE_ID}');
+    expect(workflow).not.toContain('releases/tags/${RELEASE_TAG}');
     expect(workflow).toContain('jq --arg commit "$RELEASE_COMMIT"');
     expect(workflow).not.toContain('jq --arg commit "$GITHUB_SHA"');
   });

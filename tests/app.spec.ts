@@ -542,15 +542,15 @@ test("@claim:unsigned-builds labels packages without verified signatures", async
   await page.route("https://api.github.com/repos/B-Divyesh/sf-photo-proof-pile/releases/latest", route => route.fulfill({
     status: 200,
     contentType: "application/json",
-    body: JSON.stringify({ tag_name: "v0.1.12", assets: [
-      { name: "Proof.Pile_0.1.12_aarch64.dmg", browser_download_url: "https://example.test/app.dmg" },
-      { name: "Proof.Pile_0.1.12_x64_en-US.msi", browser_download_url: "https://example.test/app.msi" },
-      { name: "Proof.Pile_0.1.12_amd64.deb", browser_download_url: "https://example.test/app.deb" }
+    body: JSON.stringify({ tag_name: "v0.1.13", assets: [
+      { name: "Proof.Pile_0.1.13_aarch64.dmg", browser_download_url: "https://example.test/app.dmg" },
+      { name: "Proof.Pile_0.1.13_x64_en-US.msi", browser_download_url: "https://example.test/app.msi" },
+      { name: "Proof.Pile_0.1.13_amd64.deb", browser_download_url: "https://example.test/app.deb" }
     ] })
   }));
   await page.goto("/");
   await page.getByRole("button", { name: /Download for/ }).click();
-  await expect(page.getByText("v0.1.12 is ready.")).toBeVisible();
+  await expect(page.getByText("v0.1.13 is ready.")).toBeVisible();
   await expect(page.getByText("Current builds are unsigned. Your system may ask you to confirm the first launch.")).toBeVisible();
 });
 
