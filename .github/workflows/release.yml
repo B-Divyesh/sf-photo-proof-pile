@@ -22,6 +22,9 @@ jobs:
 
   build:
     needs: prepare-release
+    env:
+      HAS_APPLE_CERTIFICATE: ${{ secrets.APPLE_CERTIFICATE != '' }}
+      HAS_WINDOWS_CERTIFICATE: ${{ secrets.WINDOWS_CERTIFICATE != '' }}
     strategy:
       fail-fast: false
       matrix:
@@ -53,7 +56,7 @@ jobs:
         run: sudo apt-get update && sudo apt-get install -y libwebkit2gtk-4.1-dev libappindicator3-dev librsvg2-dev patchelf
       - run: npm ci
       - name: Import Windows signing certificate
-        if: matrix.platform == 'windows-latest' && env.WINDOWS_CERTIFICATE != ''
+        if: matrix.platform == 'windows-latest' && env.HAS_WINDOWS_CERTIFICATE == 'true'
         shell: pwsh
         env:
           WINDOWS_CERTIFICATE: ${{ secrets.WINDOWS_CERTIFICATE }}
@@ -69,7 +72,9 @@ jobs:
         if: matrix.platform == 'windows-latest'
         shell: pwsh
         run: ./tests/install-windows.ps1
-      - uses: tauri-apps/tauri-action@v0
+      - name: Build signed macOS package
+        if: startsWith(matrix.platform, 'macos') && env.HAS_APPLE_CERTIFICATE == 'true'
+        uses: tauri-apps/tauri-action@v0
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           APPLE_CERTIFICATE: ${{ secrets.APPLE_CERTIFICATE }}
@@ -85,8 +90,32 @@ jobs:
           releaseDraft: false
           prerelease: false
           args: ${{ matrix.args }}
+      - name: Build signed Windows package
+        if: matrix.platform == 'windows-latest' && env.HAS_WINDOWS_CERTIFICATE == 'true'
+        uses: tauri-apps/tauri-action@v0
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tagName: v__VERSION__
+          releaseName: Proof Pile v__VERSION__
+          releaseBody: Local duplicate-photo review with reversible quarantine.
+          releaseDraft: false
+          prerelease: false
+          args: ${{ matrix.args }}
+      - name: Build unsigned package
+        if: matrix.platform == 'ubuntu-latest' || (startsWith(matrix.platform, 'macos') && env.HAS_APPLE_CERTIFICATE != 'true') || (matrix.platform == 'windows-latest' && env.HAS_WINDOWS_CERTIFICATE != 'true')
+        uses: tauri-apps/tauri-action@v0
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tagName: v__VERSION__
+          releaseName: Proof Pile v__VERSION__
+          releaseBody: Local duplicate-photo review with reversible quarantine. Builds are unsigned.
+          releaseDraft: false
+          prerelease: false
+          args: ${{ matrix.args }}
       - name: Verify Windows package signature
-        if: matrix.platform == 'windows-latest' && env.WINDOWS_CERTIFICATE != ''
+        if: matrix.platform == 'windows-latest' && env.HAS_WINDOWS_CERTIFICATE == 'true'
         shell: pwsh
         env:
           WINDOWS_CERTIFICATE: ${{ secrets.WINDOWS_CERTIFICATE }}
@@ -98,7 +127,7 @@ jobs:
             if ($signature.Status -ne "Valid") { throw "$($package.Name) has no valid Authenticode signature." }
           }
       - name: Verify macOS package signature and notarization
-        if: startsWith(matrix.platform, 'macos') && env.APPLE_CERTIFICATE != ''
+        if: startsWith(matrix.platform, 'macos') && env.HAS_APPLE_CERTIFICATE == 'true'
         env:
           APPLE_CERTIFICATE: ${{ secrets.APPLE_CERTIFICATE }}
         run: |
