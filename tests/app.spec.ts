@@ -76,7 +76,9 @@ test("keyboard decisions move focus to the next file without restarting traversa
 });
 
 test("@claim:demo-isolated keeps real storage untouched and discards only the sample session", async ({ page }) => {
-  const realReview = JSON.stringify({ groups: [{ id: "real", files: [] }], moves: [{ id: "real-move" }] });
+  const realReview = JSON.stringify({ groups: [{ id: "real", kind: "Exact bytes", reason: "Saved real review", confidence: 100, files: [{ id: "real-file", name: "real.jpg", path: "/Real/real.jpg", width: 1, height: 1, size: 1, capturedAt: null, camera: null, hash: "real", backupCount: 0, decision: "keep", thumbnail: "/samples/lake-a.svg" }] }], moves: [] });
+  const errors: string[] = [];
+  page.on("pageerror", error => errors.push(error.message));
   await page.addInitScript(value => localStorage.setItem("proof-pile:session", value), realReview);
   await page.goto("/?demo=1");
   await expect(page).toHaveURL(/\?demo=1$/);
@@ -94,6 +96,7 @@ test("@claim:demo-isolated keeps real storage untouched and discards only the sa
   await expect(page).toHaveURL(/\/app$/);
   expect(await page.evaluate(() => sessionStorage.getItem("demo:photo-proof-pile:session"))).toBeNull();
   expect(await page.evaluate(() => localStorage.getItem("proof-pile:session"))).toBe(realReview);
+  expect(errors).toEqual([]);
 });
 
 test("@claim:match-evidence shows every sample file with its complete evidence", async ({ page }) => {

@@ -9,9 +9,11 @@ performance checks pass.
 
 Functional repair commit: `419957b`
 
-Release: `v0.1.8`
+Release commit: `674cd56`
 
-Static deployment: `14bbb7d7-1b38-4e0f-847f-fcad14fd9db4`
+Release: `v0.1.9`
+
+Static deployment: `6d66c8ed-c3ba-4183-83e4-406b1bfec09d`
 
 The complete finding map is `.factory/polish-2.md`.
 
@@ -44,6 +46,14 @@ Results on 29 August 2026:
   light/dark axe, privacy, routing, and claims.
 - All 19 exact `.factory/claims.json` commands passed from a fresh clone.
 - Build: `dist/site`; initial JS 13.12 kB gzip; CSS 5.10 kB gzip.
+- Release workflow run
+  <https://github.com/B-Divyesh/sf-photo-proof-pile/actions/runs/33249788298>
+  passed all four package builds and the checksum job.
+- Release <https://github.com/B-Divyesh/sf-photo-proof-pile/releases/tag/v0.1.9>
+  contains two macOS, two Windows, and two Linux install assets plus
+  `SHA256SUMS` and `latest.json`.
+- The published AppImage matched its `SHA256SUMS` entry. `latest.json` names
+  v0.1.9 and all three platforms.
 - Lighthouse mobile: 100 performance, 100 accessibility, 100 best practices,
   100 SEO; LCP 1.1 s; CLS 0; 137 KiB total transfer.
 - Cold production: `/`, `/demo`, `/?demo=1`, `/app`, `/privacy`, and `/terms`

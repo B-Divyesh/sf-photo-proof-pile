@@ -6,7 +6,7 @@ declare global { interface Window { __TAURI_INTERNALS__?: unknown } }
 const app = document.querySelector<HTMLDivElement>("#app")!;
 const isDesktop = Boolean(window.__TAURI_INTERNALS__);
 const PRODUCT = "photo-proof-pile";
-const VERSION = "0.1.8";
+const VERSION = "0.1.9";
 const LICENSE_KEY = `sb_license:${PRODUCT}`;
 const DEMO_KEY = "demo:photo-proof-pile:session";
 const REAL_KEY = "proof-pile:session";
@@ -143,7 +143,7 @@ function deskContent(group: PhotoGroup, planFiles: number, planBytes: number) {
     ? `${formatBytes(planBytes)} would move. Originals stay unchanged until you run the plan.`
     : "No files are waiting to move.";
   return `<div class="desk-layout">
-    <aside class="group-rail" aria-label="Photo groups"><div class="rail-heading"><h2>Groups</h2><span>${groups.length}</span></div><div role="listbox" aria-label="Duplicate groups">${groups.map((item, index) => `<button type="button" role="option" aria-selected="${index === activeGroup}" data-group="${index}"><span class="group-thumb"><img src="${safeThumbnail(item.files[0].thumbnail)}" alt=""></span><span><strong>${escapeHtml(item.kind)}</strong><small>${item.files.length} files · ${item.confidence}% match</small></span></button>`).join("")}</div><p class="key-hint">Use ↑ and ↓ to change groups.</p></aside>
+    <aside class="group-rail" aria-label="Photo groups"><div class="rail-heading"><h2>Groups</h2><span>${groups.length}</span></div><div role="listbox" aria-label="Duplicate groups">${groups.map((item, index) => `<button type="button" role="option" aria-selected="${index === activeGroup}" data-group="${index}"><span class="group-thumb"><img src="${safeThumbnail(item.files[0]?.thumbnail)}" alt=""></span><span><strong>${escapeHtml(item.kind)}</strong><small>${item.files.length} files · ${item.confidence}% match</small></span></button>`).join("")}</div><p class="key-hint">Use ↑ and ↓ to change groups.</p></aside>
     <section class="evidence" aria-labelledby="group-title"><div class="evidence-heading"><div><span class="match-badge">${escapeHtml(group.kind)}</span><h2 id="group-title">${escapeHtml(humanGroup(group.id))}</h2><p>${escapeHtml(group.reason)}</p></div><div class="confidence"><strong>${group.confidence}%</strong><span>match</span></div></div>
       <div class="photo-strip" tabindex="0" role="region" aria-label="${escapeHtml(humanGroup(group.id))} photo copies. Scroll sideways to compare every copy.">${group.files.map((file, index) => `<figure class="photo-card ${file.decision} ${completed.has(file.path) ? "completed" : ""}"><img src="${safeThumbnail(file.thumbnail || group.files[0].thumbnail)}" width="320" height="210" alt="${escapeHtml(humanGroup(group.id))} copy ${index + 1}."><figcaption>${completed.has(file.path) ? "Moved to quarantine" : file.decision === "keep" ? "Keep" : file.decision === "quarantine" ? "Quarantine" : "Needs review"}</figcaption></figure>`).join("")}</div>
       <div class="file-list" aria-label="Copy evidence">${group.files.map(file => fileRow(file, completed.has(file.path))).join("")}</div>
