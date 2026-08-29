@@ -49,6 +49,8 @@ Repair commits: `3cc76fd`, `c19ecd6`; this handoff is committed on `main`.
 - Live `/#how`: hash retained, `#how-title` focused, target top `0` after scroll.
 - `verify-url.sh`: no root console errors; `lang=en`, one h1, main, alt text,
   and labeled buttons passed.
+- GitHub Actions run `33260484638` stopped at `validate-signing`; release,
+  platform build, and checksum jobs were skipped before any unsigned output.
 - Evidence: `.factory/evidence/polish-3/local/` and
   `.factory/evidence/polish-3/live/`.
 - Finding-by-finding evidence: `.factory/polish-3.md`.

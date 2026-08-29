@@ -46,14 +46,14 @@ Evidence screenshots and machine reports are under
 | F-1-31 | Kept “Restore a purchase.” | `@claim:paid-license`; live `/`. |
 | F-1-32 | Kept “Mark for review.” | `keyboard decisions move focus to the next file…`; live `/demo`. |
 | F-1-33 | Kept truthful desktop-download wording on phones. | `Android and iPhone visitors see truthful desktop availability`; live mobile check. |
-| F-1-34 | Removed all unsigned macOS/Windows fallback jobs. Release creation now fails before publication without both trusted credential sets; successful jobs verify Authenticode, app signatures, Gatekeeper, and notarization, then publish a signature marker. The download dialog recognizes that marker. | `blocks release publication until trusted desktop signatures can be verified`; `.github/workflows/release.yml`. Current v0.1.10 assets remain unsigned because the repository exposes zero signing secrets. |
+| F-1-34 | Removed all unsigned macOS/Windows fallback jobs. Release creation now fails before publication without both trusted credential sets; successful jobs verify Authenticode, app signatures, Gatekeeper, and notarization, then publish a signature marker. The download dialog recognizes that marker. | `blocks release publication until trusted desktop signatures can be verified`; workflow run `33260484638` stopped before release creation. Current v0.1.10 assets remain unsigned because the repository exposes zero signing secrets. |
 
 ## Review 2 findings
 
 | Finding | Change made | Evidence |
 | --- | --- | --- |
 | F-2-1 | Kept package, Tauri, app, and static-404 version identity aligned. | `keeps the static 404 release identity in sync with the product version`; live `/404.html`. |
-| F-2-2 | Same release hard gate and verification path as F-1-34/F-3-1. | Signing workflow unit check; repository secret inventory: `0`. |
+| F-2-2 | Same release hard gate and verification path as F-1-34/F-3-1. | Workflow run `33260484638`; repository secret inventory: `0`. |
 | F-2-3 | Kept exact 23:59:59 and 24:00:00 license-cache boundary coverage. | `@claim:paid-license`. |
 | F-2-4 | Asset-provenance marketing text remains absent from both footers. | `tests/model.test.ts`; live `/` and `/missing-frame`. |
 | F-2-5 | Refund text remains a tested email action. | `@claim:paid-checkout`; live `/terms`. |
@@ -63,7 +63,7 @@ Evidence screenshots and machine reports are under
 
 | Finding | Change made | Evidence |
 | --- | --- | --- |
-| F-3-1 | Releases can no longer fall back to unsigned macOS or Windows packages. Publication requires credentials and post-build OS signature checks; the site changes its trust copy only when the verified marker exists. Existing v0.1.10 binaries cannot be retroactively trusted without owner-held certificates. | `blocks release publication until trusted desktop signatures can be verified`; GitHub secret inventory `0`; latest release API check. |
+| F-3-1 | Releases can no longer fall back to unsigned macOS or Windows packages. Publication requires credentials and post-build OS signature checks; the site changes its trust copy only when the verified marker exists. Existing v0.1.10 binaries cannot be retroactively trusted without owner-held certificates. | Workflow run `33260484638` failed only at `validate-signing`; build, release, and checksum jobs were skipped; GitHub secret inventory `0`. |
 | F-3-2 | Internal routing now preserves path, query, and hash. `/#how` focuses “How photo cleanup works,” scrolls it into view, and works from home, policy pages, and direct loads. | `How it works keeps its hash and focuses the section from home and another route`; live `/#how` focused `#how-title` at viewport top `0`. |
 | F-3-3 | Added `review-before-move`. The native core rejects unreviewed entries and plans without a readable kept copy. UI confirmation names count and destination before invoking native work. | `npm run test:claim:review-before-move`; Rust `claim_review_before_move_rejects_unreviewed_native_plans`; live `/demo`. |
 | F-3-4 | Changed `/app` to “Proof Pile — Review photo copies” and covered canonical/social metadata. | `the app route uses a product-first title and route metadata`; live `/app`. |
@@ -87,6 +87,7 @@ Evidence screenshots and machine reports are under
 - Live routing: normal routes returned 200; `/missing-frame` returned 404; every route had one h1 and one main.
 - Live demo: direct `?demo=1`, isolated edit, reset, exit, real-data preservation, three groups, and offline reload passed.
 - `/opt/fleet/lib/verify-url.sh` found `lang=en`, one h1, main, complete alt text, labeled buttons, and no root console errors.
+- Release workflow run `33260484638` proved the credential gate executes before release creation; no unsigned fallback job ran.
 
 ## External signing dependency
 
