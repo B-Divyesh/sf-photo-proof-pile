@@ -1,3 +1,33 @@
+# Review 5 handoff — FAIL — 29 August 2026
+
+Reviewer-only documentation was added in commit pending. No product source,
+configuration, release assets, or deployment settings were changed.
+
+- Report: `.factory/review-5.md`.
+- Fresh clone: `/tmp/proof-pile-review-5.qfG7rw`; `npm ci` completed with 66
+  packages and no reported vulnerabilities.
+- Every one of the 22 exact `.factory/claims.json` commands passed.
+- `npm test` (10 Rust, 11 Vitest, 30 Playwright), `npm run check`, and
+  `npm run build` passed; the build produced `dist/site`.
+- Cold desktop and 390 px mobile checks confirmed a clear first screen,
+  populated one-click demo, isolation/reset behavior, same-origin demo
+  requests, route structure, metadata, links, and designed true 404.
+
+Open findings:
+
+1. **F-5-1 / recurring F-1-34 (blocking):** live v0.1.15 publicly offers
+   unsigned Windows and macOS packages. Remove unsigned distribution and
+   require independently verified Authenticode plus Apple signing/notarization
+   before publishing downloads.
+2. **F-5-2 (minor):** the mobile sentence “The desktop app requires macOS,
+   Windows, or Linux” has no claims.json entry/test. Register it with a
+   platform-matrix test or replace it with non-claim guidance.
+
+The retained historical handoff below describes earlier work and should not be
+read as closure of this review's recurring unsigned-distribution finding.
+
+---
+
 # Independent verification 13 handoff — PASS — 29 August 2026
 
 Candidate `e05605f301ebc105f7574c1a911216581086e46d` is **accepted** at
