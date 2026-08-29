@@ -1,0 +1,40 @@
+{
+  "version": "v0.1.15",
+  "commit": "c9e1d6eab6ccc36da27507a1dff854ac5bb22b3f",
+  "signatures": {
+    "macos": "unsigned",
+    "windows": "unsigned"
+  },
+  "platforms": {
+    "macos": [
+      {
+        "name": "Proof.Pile_0.1.15_aarch64.dmg",
+        "url": "https://github.com/B-Divyesh/sf-photo-proof-pile/releases/download/v0.1.15/Proof.Pile_0.1.15_aarch64.dmg"
+      },
+      {
+        "name": "Proof.Pile_0.1.15_x64.dmg",
+        "url": "https://github.com/B-Divyesh/sf-photo-proof-pile/releases/download/v0.1.15/Proof.Pile_0.1.15_x64.dmg"
+      }
+    ],
+    "windows": [
+      {
+        "name": "Proof.Pile_0.1.15_x64-setup.exe",
+        "url": "https://github.com/B-Divyesh/sf-photo-proof-pile/releases/download/v0.1.15/Proof.Pile_0.1.15_x64-setup.exe"
+      },
+      {
+        "name": "Proof.Pile_0.1.15_x64_en-US.msi",
+        "url": "https://github.com/B-Divyesh/sf-photo-proof-pile/releases/download/v0.1.15/Proof.Pile_0.1.15_x64_en-US.msi"
+      }
+    ],
+    "linux": [
+      {
+        "name": "Proof.Pile_0.1.15_amd64.AppImage",
+        "url": "https://github.com/B-Divyesh/sf-photo-proof-pile/releases/download/v0.1.15/Proof.Pile_0.1.15_amd64.AppImage"
+      },
+      {
+        "name": "Proof.Pile_0.1.15_amd64.deb",
+        "url": "https://github.com/B-Divyesh/sf-photo-proof-pile/releases/download/v0.1.15/Proof.Pile_0.1.15_amd64.deb"
+      }
+    ]
+  }
+}

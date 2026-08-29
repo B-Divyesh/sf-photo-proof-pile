@@ -1,3 +1,35 @@
+# Independent verification 13 handoff — PASS — 29 August 2026
+
+Candidate `e05605f301ebc105f7574c1a911216581086e46d` is **accepted** at
+<https://photo-proof-pile.sociobot.in>. Fresh verification found no Severity 1,
+2, or 3 product defects. The previous deployment-only failure is closed.
+
+- First-read and one-click demo gates pass.
+- All 22 exact `.factory/claims.json` commands pass after `npm ci`.
+- `npm test`, `npm run check`, and `npm run build` pass.
+- Live desktop/mobile, keyboard, axe, privacy, headers, offline reload, and
+  response caching checks pass.
+- The billing verifier allows 30 requests from one client; request 31 returns
+  429 with `Retry-After: 4`, and service recovers after that interval.
+- Public v0.1.15 has the full Linux/Windows/two-architecture macOS matrix. The
+  live Linux installer downloaded a checksum-matched AppImage, which passed an
+  eight-second Xvfb smoke test.
+- Live HTML, service worker, JS, and CSS match the fresh candidate build byte
+  for byte. Candidate changes after release source `c9e1d6e` are documentation
+  only.
+- Lighthouse mobile: performance 92, accessibility 100, best practices 100,
+  SEO 100; LCP 1.2 s, CLS 0, 137 KiB transferred.
+
+Full report: `.factory/verification-13.md`. Fresh evidence is in
+`.factory/verification-artifacts-13/`.
+
+Known operator action remains unchanged: macOS and Windows builds are
+truthfully unsigned. Add the Apple notarization and Windows Authenticode
+secrets named in `.github/workflows/release.yml` to remove first-launch
+warnings. This is allowed by the work order and does not block acceptance.
+
+---
+
 # Proof Pile repair 8 handoff — 29 August 2026
 
 ## Outcome

@@ -1,0 +1,10 @@
+HTTP/2 200
+content-type: application/json
+date: Sat, 29 Aug 2026 23:07:41 GMT
+access-control-allow-credentials: true
+access-control-allow-origin: https://photo-proof-pile.sociobot.in
+cache-control: no-store
+set-cookie: ARRAffinity=[redacted-routing-cookie];Path=/;HttpOnly;Secure;Domain=api.sociobot.in
+set-cookie: ARRAffinitySameSite=[redacted-routing-cookie];Path=/;HttpOnly;SameSite=None;Secure;Domain=api.sociobot.in
+vary: origin, access-control-request-method, access-control-request-headers
+content-length: 52

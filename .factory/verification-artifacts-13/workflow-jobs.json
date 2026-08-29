@@ -1,0 +1,857 @@
+{
+  "total_count": 7,
+  "jobs": [
+    {
+      "id": 99168808042,
+      "run_id": 33278280973,
+      "workflow_name": "Release desktop apps",
+      "head_branch": "v0.1.15",
+      "run_url": "https://api.github.com/repos/B-Divyesh/sf-photo-proof-pile/actions/runs/33278280973",
+      "run_attempt": 1,
+      "node_id": "CR_kwDOUHNJxs8AAAAXFuvsag",
+      "head_sha": "c9e1d6eab6ccc36da27507a1dff854ac5bb22b3f",
+      "url": "https://api.github.com/repos/B-Divyesh/sf-photo-proof-pile/actions/jobs/99168808042",
+      "html_url": "https://github.com/B-Divyesh/sf-photo-proof-pile/actions/runs/33278280973/job/99168808042",
+      "status": "completed",
+      "conclusion": "success",
+      "created_at": "2026-08-29T22:19:04Z",
+      "started_at": "2026-08-29T22:19:06Z",
+      "completed_at": "2026-08-29T22:19:14Z",
+      "name": "prepare-release",
+      "steps": [
+        {
+          "name": "Set up job",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 1,
+          "started_at": "2026-08-29T22:19:07Z",
+          "completed_at": "2026-08-29T22:19:08Z"
+        },
+        {
+          "name": "Run actions/checkout@v4",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 2,
+          "started_at": "2026-08-29T22:19:08Z",
+          "completed_at": "2026-08-29T22:19:10Z"
+        },
+        {
+          "name": "Require a versioned tag for this exact desktop source",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 3,
+          "started_at": "2026-08-29T22:19:10Z",
+          "completed_at": "2026-08-29T22:19:10Z"
+        },
+        {
+          "name": "Create a draft release before matrix uploads",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 4,
+          "started_at": "2026-08-29T22:19:10Z",
+          "completed_at": "2026-08-29T22:19:12Z"
+        },
+        {
+          "name": "Post Run actions/checkout@v4",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 8,
+          "started_at": "2026-08-29T22:19:12Z",
+          "completed_at": "2026-08-29T22:19:13Z"
+        },
+        {
+          "name": "Complete job",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 9,
+          "started_at": "2026-08-29T22:19:13Z",
+          "completed_at": "2026-08-29T22:19:13Z"
+        }
+      ],
+      "check_run_url": "https://api.github.com/repos/B-Divyesh/sf-photo-proof-pile/check-runs/99168808042",
+      "labels": [
+        "ubuntu-latest"
+      ],
+      "runner_id": 1000009070,
+      "runner_name": "GitHub Actions 1000009070",
+      "runner_group_id": 0,
+      "runner_group_name": "GitHub Actions"
+    },
+    {
+      "id": 99168828830,
+      "run_id": 33278280973,
+      "workflow_name": "Release desktop apps",
+      "head_branch": "v0.1.15",
+      "run_url": "https://api.github.com/repos/B-Divyesh/sf-photo-proof-pile/actions/runs/33278280973",
+      "run_attempt": 1,
+      "node_id": "CR_kwDOUHNJxs8AAAAXFuw9ng",
+      "head_sha": "c9e1d6eab6ccc36da27507a1dff854ac5bb22b3f",
+      "url": "https://api.github.com/repos/B-Divyesh/sf-photo-proof-pile/actions/jobs/99168828830",
+      "html_url": "https://github.com/B-Divyesh/sf-photo-proof-pile/actions/runs/33278280973/job/99168828830",
+      "status": "completed",
+      "conclusion": "success",
+      "created_at": "2026-08-29T22:19:15Z",
+      "started_at": "2026-08-29T22:19:18Z",
+      "completed_at": "2026-08-29T22:24:22Z",
+      "name": "build (macos-latest, x86_64-apple-darwin, --target x86_64-apple-darwin)",
+      "steps": [
+        {
+          "name": "Set up job",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 1,
+          "started_at": "2026-08-29T22:19:19Z",
+          "completed_at": "2026-08-29T22:19:21Z"
+        },
+        {
+          "name": "Run actions/checkout@v4",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 2,
+          "started_at": "2026-08-29T22:19:21Z",
+          "completed_at": "2026-08-29T22:19:24Z"
+        },
+        {
+          "name": "Run actions/setup-node@v4",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 3,
+          "started_at": "2026-08-29T22:19:24Z",
+          "completed_at": "2026-08-29T22:19:26Z"
+        },
+        {
+          "name": "Run dtolnay/rust-toolchain@stable",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 4,
+          "started_at": "2026-08-29T22:19:26Z",
+          "completed_at": "2026-08-29T22:19:38Z"
+        },
+        {
+          "name": "Install Linux packages",
+          "status": "completed",
+          "conclusion": "skipped",
+          "number": 5,
+          "started_at": "2026-08-29T22:19:38Z",
+          "completed_at": "2026-08-29T22:19:38Z"
+        },
+        {
+          "name": "Run npm ci",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 6,
+          "started_at": "2026-08-29T22:19:38Z",
+          "completed_at": "2026-08-29T22:19:41Z"
+        },
+        {
+          "name": "Import Windows signing certificate",
+          "status": "completed",
+          "conclusion": "skipped",
+          "number": 7,
+          "started_at": "2026-08-29T22:19:41Z",
+          "completed_at": "2026-08-29T22:19:41Z"
+        },
+        {
+          "name": "Verify Windows installer checksum gate",
+          "status": "completed",
+          "conclusion": "skipped",
+          "number": 8,
+          "started_at": "2026-08-29T22:19:41Z",
+          "completed_at": "2026-08-29T22:19:41Z"
+        },
+        {
+          "name": "Build signed macOS package",
+          "status": "completed",
+          "conclusion": "skipped",
+          "number": 9,
+          "started_at": "2026-08-29T22:19:41Z",
+          "completed_at": "2026-08-29T22:19:41Z"
+        },
+        {
+          "name": "Build signed Windows package",
+          "status": "completed",
+          "conclusion": "skipped",
+          "number": 10,
+          "started_at": "2026-08-29T22:19:41Z",
+          "completed_at": "2026-08-29T22:19:41Z"
+        },
+        {
+          "name": "Build package without a signing certificate",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 11,
+          "started_at": "2026-08-29T22:19:41Z",
+          "completed_at": "2026-08-29T22:24:15Z"
+        },
+        {
+          "name": "Verify Windows package signature",
+          "status": "completed",
+          "conclusion": "skipped",
+          "number": 12,
+          "started_at": "2026-08-29T22:24:15Z",
+          "completed_at": "2026-08-29T22:24:15Z"
+        },
+        {
+          "name": "Verify macOS package signature and notarization",
+          "status": "completed",
+          "conclusion": "skipped",
+          "number": 13,
+          "started_at": "2026-08-29T22:24:15Z",
+          "completed_at": "2026-08-29T22:24:15Z"
+        },
+        {
+          "name": "Post Run actions/setup-node@v4",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 25,
+          "started_at": "2026-08-29T22:24:15Z",
+          "completed_at": "2026-08-29T22:24:18Z"
+        },
+        {
+          "name": "Post Run actions/checkout@v4",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 26,
+          "started_at": "2026-08-29T22:24:18Z",
+          "completed_at": "2026-08-29T22:24:18Z"
+        },
+        {
+          "name": "Complete job",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 27,
+          "started_at": "2026-08-29T22:24:18Z",
+          "completed_at": "2026-08-29T22:24:19Z"
+        }
+      ],
+      "check_run_url": "https://api.github.com/repos/B-Divyesh/sf-photo-proof-pile/check-runs/99168828830",
+      "labels": [
+        "macos-latest"
+      ],
+      "runner_id": 1000009072,
+      "runner_name": "GitHub Actions 1000009072",
+      "runner_group_id": 0,
+      "runner_group_name": "GitHub Actions"
+    },
+    {
+      "id": 99168828831,
+      "run_id": 33278280973,
+      "workflow_name": "Release desktop apps",
+      "head_branch": "v0.1.15",
+      "run_url": "https://api.github.com/repos/B-Divyesh/sf-photo-proof-pile/actions/runs/33278280973",
+      "run_attempt": 1,
+      "node_id": "CR_kwDOUHNJxs8AAAAXFuw9nw",
+      "head_sha": "c9e1d6eab6ccc36da27507a1dff854ac5bb22b3f",
+      "url": "https://api.github.com/repos/B-Divyesh/sf-photo-proof-pile/actions/jobs/99168828831",
+      "html_url": "https://github.com/B-Divyesh/sf-photo-proof-pile/actions/runs/33278280973/job/99168828831",
+      "status": "completed",
+      "conclusion": "success",
+      "created_at": "2026-08-29T22:19:15Z",
+      "started_at": "2026-08-29T22:19:17Z",
+      "completed_at": "2026-08-29T22:24:25Z",
+      "name": "build (ubuntu-latest, x86_64-unknown-linux-gnu)",
+      "steps": [
+        {
+          "name": "Set up job",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 1,
+          "started_at": "2026-08-29T22:19:17Z",
+          "completed_at": "2026-08-29T22:19:18Z"
+        },
+        {
+          "name": "Run actions/checkout@v4",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 2,
+          "started_at": "2026-08-29T22:19:18Z",
+          "completed_at": "2026-08-29T22:19:20Z"
+        },
+        {
+          "name": "Run actions/setup-node@v4",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 3,
+          "started_at": "2026-08-29T22:19:20Z",
+          "completed_at": "2026-08-29T22:19:20Z"
+        },
+        {
+          "name": "Run dtolnay/rust-toolchain@stable",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 4,
+          "started_at": "2026-08-29T22:19:20Z",
+          "completed_at": "2026-08-29T22:19:21Z"
+        },
+        {
+          "name": "Install Linux packages",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 5,
+          "started_at": "2026-08-29T22:19:21Z",
+          "completed_at": "2026-08-29T22:19:45Z"
+        },
+        {
+          "name": "Run npm ci",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 6,
+          "started_at": "2026-08-29T22:19:45Z",
+          "completed_at": "2026-08-29T22:19:47Z"
+        },
+        {
+          "name": "Import Windows signing certificate",
+          "status": "completed",
+          "conclusion": "skipped",
+          "number": 7,
+          "started_at": "2026-08-29T22:19:47Z",
+          "completed_at": "2026-08-29T22:19:47Z"
+        },
+        {
+          "name": "Verify Windows installer checksum gate",
+          "status": "completed",
+          "conclusion": "skipped",
+          "number": 8,
+          "started_at": "2026-08-29T22:19:47Z",
+          "completed_at": "2026-08-29T22:19:47Z"
+        },
+        {
+          "name": "Build signed macOS package",
+          "status": "completed",
+          "conclusion": "skipped",
+          "number": 9,
+          "started_at": "2026-08-29T22:19:47Z",
+          "completed_at": "2026-08-29T22:19:47Z"
+        },
+        {
+          "name": "Build signed Windows package",
+          "status": "completed",
+          "conclusion": "skipped",
+          "number": 10,
+          "started_at": "2026-08-29T22:19:47Z",
+          "completed_at": "2026-08-29T22:19:47Z"
+        },
+        {
+          "name": "Build package without a signing certificate",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 11,
+          "started_at": "2026-08-29T22:19:47Z",
+          "completed_at": "2026-08-29T22:24:23Z"
+        },
+        {
+          "name": "Verify Windows package signature",
+          "status": "completed",
+          "conclusion": "skipped",
+          "number": 12,
+          "started_at": "2026-08-29T22:24:23Z",
+          "completed_at": "2026-08-29T22:24:23Z"
+        },
+        {
+          "name": "Verify macOS package signature and notarization",
+          "status": "completed",
+          "conclusion": "skipped",
+          "number": 13,
+          "started_at": "2026-08-29T22:24:23Z",
+          "completed_at": "2026-08-29T22:24:23Z"
+        },
+        {
+          "name": "Post Run actions/setup-node@v4",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 25,
+          "started_at": "2026-08-29T22:24:23Z",
+          "completed_at": "2026-08-29T22:24:24Z"
+        },
+        {
+          "name": "Post Run actions/checkout@v4",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 26,
+          "started_at": "2026-08-29T22:24:24Z",
+          "completed_at": "2026-08-29T22:24:24Z"
+        },
+        {
+          "name": "Complete job",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 27,
+          "started_at": "2026-08-29T22:24:24Z",
+          "completed_at": "2026-08-29T22:24:24Z"
+        }
+      ],
+      "check_run_url": "https://api.github.com/repos/B-Divyesh/sf-photo-proof-pile/check-runs/99168828831",
+      "labels": [
+        "ubuntu-latest"
+      ],
+      "runner_id": 1000009074,
+      "runner_name": "GitHub Actions 1000009074",
+      "runner_group_id": 0,
+      "runner_group_name": "GitHub Actions"
+    },
+    {
+      "id": 99168828849,
+      "run_id": 33278280973,
+      "workflow_name": "Release desktop apps",
+      "head_branch": "v0.1.15",
+      "run_url": "https://api.github.com/repos/B-Divyesh/sf-photo-proof-pile/actions/runs/33278280973",
+      "run_attempt": 1,
+      "node_id": "CR_kwDOUHNJxs8AAAAXFuw9sQ",
+      "head_sha": "c9e1d6eab6ccc36da27507a1dff854ac5bb22b3f",
+      "url": "https://api.github.com/repos/B-Divyesh/sf-photo-proof-pile/actions/jobs/99168828849",
+      "html_url": "https://github.com/B-Divyesh/sf-photo-proof-pile/actions/runs/33278280973/job/99168828849",
+      "status": "completed",
+      "conclusion": "success",
+      "created_at": "2026-08-29T22:19:15Z",
+      "started_at": "2026-08-29T22:19:17Z",
+      "completed_at": "2026-08-29T22:26:06Z",
+      "name": "build (windows-latest, x86_64-pc-windows-msvc)",
+      "steps": [
+        {
+          "name": "Set up job",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 1,
+          "started_at": "2026-08-29T22:19:17Z",
+          "completed_at": "2026-08-29T22:19:19Z"
+        },
+        {
+          "name": "Run actions/checkout@v4",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 2,
+          "started_at": "2026-08-29T22:19:19Z",
+          "completed_at": "2026-08-29T22:19:23Z"
+        },
+        {
+          "name": "Run actions/setup-node@v4",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 3,
+          "started_at": "2026-08-29T22:19:23Z",
+          "completed_at": "2026-08-29T22:19:28Z"
+        },
+        {
+          "name": "Run dtolnay/rust-toolchain@stable",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 4,
+          "started_at": "2026-08-29T22:19:28Z",
+          "completed_at": "2026-08-29T22:19:33Z"
+        },
+        {
+          "name": "Install Linux packages",
+          "status": "completed",
+          "conclusion": "skipped",
+          "number": 5,
+          "started_at": "2026-08-29T22:19:33Z",
+          "completed_at": "2026-08-29T22:19:33Z"
+        },
+        {
+          "name": "Run npm ci",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 6,
+          "started_at": "2026-08-29T22:19:33Z",
+          "completed_at": "2026-08-29T22:19:40Z"
+        },
+        {
+          "name": "Import Windows signing certificate",
+          "status": "completed",
+          "conclusion": "skipped",
+          "number": 7,
+          "started_at": "2026-08-29T22:19:40Z",
+          "completed_at": "2026-08-29T22:19:40Z"
+        },
+        {
+          "name": "Verify Windows installer checksum gate",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 8,
+          "started_at": "2026-08-29T22:19:40Z",
+          "completed_at": "2026-08-29T22:19:40Z"
+        },
+        {
+          "name": "Build signed macOS package",
+          "status": "completed",
+          "conclusion": "skipped",
+          "number": 9,
+          "started_at": "2026-08-29T22:19:40Z",
+          "completed_at": "2026-08-29T22:19:40Z"
+        },
+        {
+          "name": "Build signed Windows package",
+          "status": "completed",
+          "conclusion": "skipped",
+          "number": 10,
+          "started_at": "2026-08-29T22:19:40Z",
+          "completed_at": "2026-08-29T22:19:40Z"
+        },
+        {
+          "name": "Build package without a signing certificate",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 11,
+          "started_at": "2026-08-29T22:19:40Z",
+          "completed_at": "2026-08-29T22:26:01Z"
+        },
+        {
+          "name": "Verify Windows package signature",
+          "status": "completed",
+          "conclusion": "skipped",
+          "number": 12,
+          "started_at": "2026-08-29T22:26:01Z",
+          "completed_at": "2026-08-29T22:26:01Z"
+        },
+        {
+          "name": "Verify macOS package signature and notarization",
+          "status": "completed",
+          "conclusion": "skipped",
+          "number": 13,
+          "started_at": "2026-08-29T22:26:01Z",
+          "completed_at": "2026-08-29T22:26:01Z"
+        },
+        {
+          "name": "Post Run actions/setup-node@v4",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 25,
+          "started_at": "2026-08-29T22:26:01Z",
+          "completed_at": "2026-08-29T22:26:02Z"
+        },
+        {
+          "name": "Post Run actions/checkout@v4",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 26,
+          "started_at": "2026-08-29T22:26:02Z",
+          "completed_at": "2026-08-29T22:26:04Z"
+        },
+        {
+          "name": "Complete job",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 27,
+          "started_at": "2026-08-29T22:26:04Z",
+          "completed_at": "2026-08-29T22:26:04Z"
+        }
+      ],
+      "check_run_url": "https://api.github.com/repos/B-Divyesh/sf-photo-proof-pile/check-runs/99168828849",
+      "labels": [
+        "windows-latest"
+      ],
+      "runner_id": 1000009071,
+      "runner_name": "GitHub Actions 1000009071",
+      "runner_group_id": 0,
+      "runner_group_name": "GitHub Actions"
+    },
+    {
+      "id": 99168828862,
+      "run_id": 33278280973,
+      "workflow_name": "Release desktop apps",
+      "head_branch": "v0.1.15",
+      "run_url": "https://api.github.com/repos/B-Divyesh/sf-photo-proof-pile/actions/runs/33278280973",
+      "run_attempt": 1,
+      "node_id": "CR_kwDOUHNJxs8AAAAXFuw9vg",
+      "head_sha": "c9e1d6eab6ccc36da27507a1dff854ac5bb22b3f",
+      "url": "https://api.github.com/repos/B-Divyesh/sf-photo-proof-pile/actions/jobs/99168828862",
+      "html_url": "https://github.com/B-Divyesh/sf-photo-proof-pile/actions/runs/33278280973/job/99168828862",
+      "status": "completed",
+      "conclusion": "success",
+      "created_at": "2026-08-29T22:19:15Z",
+      "started_at": "2026-08-29T22:19:17Z",
+      "completed_at": "2026-08-29T22:23:31Z",
+      "name": "build (macos-latest, aarch64-apple-darwin, --target aarch64-apple-darwin)",
+      "steps": [
+        {
+          "name": "Set up job",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 1,
+          "started_at": "2026-08-29T22:19:18Z",
+          "completed_at": "2026-08-29T22:19:20Z"
+        },
+        {
+          "name": "Run actions/checkout@v4",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 2,
+          "started_at": "2026-08-29T22:19:20Z",
+          "completed_at": "2026-08-29T22:19:22Z"
+        },
+        {
+          "name": "Run actions/setup-node@v4",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 3,
+          "started_at": "2026-08-29T22:19:22Z",
+          "completed_at": "2026-08-29T22:19:24Z"
+        },
+        {
+          "name": "Run dtolnay/rust-toolchain@stable",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 4,
+          "started_at": "2026-08-29T22:19:24Z",
+          "completed_at": "2026-08-29T22:19:32Z"
+        },
+        {
+          "name": "Install Linux packages",
+          "status": "completed",
+          "conclusion": "skipped",
+          "number": 5,
+          "started_at": "2026-08-29T22:19:32Z",
+          "completed_at": "2026-08-29T22:19:32Z"
+        },
+        {
+          "name": "Run npm ci",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 6,
+          "started_at": "2026-08-29T22:19:32Z",
+          "completed_at": "2026-08-29T22:19:33Z"
+        },
+        {
+          "name": "Import Windows signing certificate",
+          "status": "completed",
+          "conclusion": "skipped",
+          "number": 7,
+          "started_at": "2026-08-29T22:19:33Z",
+          "completed_at": "2026-08-29T22:19:33Z"
+        },
+        {
+          "name": "Verify Windows installer checksum gate",
+          "status": "completed",
+          "conclusion": "skipped",
+          "number": 8,
+          "started_at": "2026-08-29T22:19:33Z",
+          "completed_at": "2026-08-29T22:19:33Z"
+        },
+        {
+          "name": "Build signed macOS package",
+          "status": "completed",
+          "conclusion": "skipped",
+          "number": 9,
+          "started_at": "2026-08-29T22:19:33Z",
+          "completed_at": "2026-08-29T22:19:33Z"
+        },
+        {
+          "name": "Build signed Windows package",
+          "status": "completed",
+          "conclusion": "skipped",
+          "number": 10,
+          "started_at": "2026-08-29T22:19:33Z",
+          "completed_at": "2026-08-29T22:19:33Z"
+        },
+        {
+          "name": "Build package without a signing certificate",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 11,
+          "started_at": "2026-08-29T22:19:33Z",
+          "completed_at": "2026-08-29T22:23:26Z"
+        },
+        {
+          "name": "Verify Windows package signature",
+          "status": "completed",
+          "conclusion": "skipped",
+          "number": 12,
+          "started_at": "2026-08-29T22:23:26Z",
+          "completed_at": "2026-08-29T22:23:26Z"
+        },
+        {
+          "name": "Verify macOS package signature and notarization",
+          "status": "completed",
+          "conclusion": "skipped",
+          "number": 13,
+          "started_at": "2026-08-29T22:23:26Z",
+          "completed_at": "2026-08-29T22:23:26Z"
+        },
+        {
+          "name": "Post Run actions/setup-node@v4",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 25,
+          "started_at": "2026-08-29T22:23:26Z",
+          "completed_at": "2026-08-29T22:23:28Z"
+        },
+        {
+          "name": "Post Run actions/checkout@v4",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 26,
+          "started_at": "2026-08-29T22:23:28Z",
+          "completed_at": "2026-08-29T22:23:29Z"
+        },
+        {
+          "name": "Complete job",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 27,
+          "started_at": "2026-08-29T22:23:29Z",
+          "completed_at": "2026-08-29T22:23:29Z"
+        }
+      ],
+      "check_run_url": "https://api.github.com/repos/B-Divyesh/sf-photo-proof-pile/check-runs/99168828862",
+      "labels": [
+        "macos-latest"
+      ],
+      "runner_id": 1000009073,
+      "runner_name": "GitHub Actions 1000009073",
+      "runner_group_id": 0,
+      "runner_group_name": "GitHub Actions"
+    },
+    {
+      "id": 99169659143,
+      "run_id": 33278280973,
+      "workflow_name": "Release desktop apps",
+      "head_branch": "v0.1.15",
+      "run_url": "https://api.github.com/repos/B-Divyesh/sf-photo-proof-pile/actions/runs/33278280973",
+      "run_attempt": 1,
+      "node_id": "CR_kwDOUHNJxs8AAAAXFvjpBw",
+      "head_sha": "c9e1d6eab6ccc36da27507a1dff854ac5bb22b3f",
+      "url": "https://api.github.com/repos/B-Divyesh/sf-photo-proof-pile/actions/jobs/99169659143",
+      "html_url": "https://github.com/B-Divyesh/sf-photo-proof-pile/actions/runs/33278280973/job/99169659143",
+      "status": "completed",
+      "conclusion": "success",
+      "created_at": "2026-08-29T22:26:06Z",
+      "started_at": "2026-08-29T22:26:09Z",
+      "completed_at": "2026-08-29T22:26:21Z",
+      "name": "checksums",
+      "steps": [
+        {
+          "name": "Set up job",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 1,
+          "started_at": "2026-08-29T22:26:09Z",
+          "completed_at": "2026-08-29T22:26:10Z"
+        },
+        {
+          "name": "Run actions/checkout@v4",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 2,
+          "started_at": "2026-08-29T22:26:10Z",
+          "completed_at": "2026-08-29T22:26:12Z"
+        },
+        {
+          "name": "Download release assets",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 3,
+          "started_at": "2026-08-29T22:26:12Z",
+          "completed_at": "2026-08-29T22:26:15Z"
+        },
+        {
+          "name": "Write checksums and immutable release manifest",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 4,
+          "started_at": "2026-08-29T22:26:15Z",
+          "completed_at": "2026-08-29T22:26:15Z"
+        },
+        {
+          "name": "Upload checksums and release manifest",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 5,
+          "started_at": "2026-08-29T22:26:15Z",
+          "completed_at": "2026-08-29T22:26:18Z"
+        },
+        {
+          "name": "Upload verified-signatures marker",
+          "status": "completed",
+          "conclusion": "skipped",
+          "number": 6,
+          "started_at": "2026-08-29T22:26:18Z",
+          "completed_at": "2026-08-29T22:26:18Z"
+        },
+        {
+          "name": "Publish only after every platform and checksum passes",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 7,
+          "started_at": "2026-08-29T22:26:18Z",
+          "completed_at": "2026-08-29T22:26:19Z"
+        },
+        {
+          "name": "Post Run actions/checkout@v4",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 14,
+          "started_at": "2026-08-29T22:26:19Z",
+          "completed_at": "2026-08-29T22:26:19Z"
+        },
+        {
+          "name": "Complete job",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 15,
+          "started_at": "2026-08-29T22:26:19Z",
+          "completed_at": "2026-08-29T22:26:19Z"
+        }
+      ],
+      "check_run_url": "https://api.github.com/repos/B-Divyesh/sf-photo-proof-pile/check-runs/99169659143",
+      "labels": [
+        "ubuntu-latest"
+      ],
+      "runner_id": 1000009090,
+      "runner_name": "GitHub Actions 1000009090",
+      "runner_group_id": 0,
+      "runner_group_name": "GitHub Actions"
+    },
+    {
+      "id": 99169685749,
+      "run_id": 33278280973,
+      "workflow_name": "Release desktop apps",
+      "head_branch": "v0.1.15",
+      "run_url": "https://api.github.com/repos/B-Divyesh/sf-photo-proof-pile/actions/runs/33278280973",
+      "run_attempt": 1,
+      "node_id": "CR_kwDOUHNJxs8AAAAXFvlQ9Q",
+      "head_sha": "c9e1d6eab6ccc36da27507a1dff854ac5bb22b3f",
+      "url": "https://api.github.com/repos/B-Divyesh/sf-photo-proof-pile/actions/jobs/99169685749",
+      "html_url": "https://github.com/B-Divyesh/sf-photo-proof-pile/actions/runs/33278280973/job/99169685749",
+      "status": "completed",
+      "conclusion": "success",
+      "created_at": "2026-08-29T22:26:21Z",
+      "started_at": "2026-08-29T22:26:23Z",
+      "completed_at": "2026-08-29T22:26:27Z",
+      "name": "verify-release",
+      "steps": [
+        {
+          "name": "Set up job",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 1,
+          "started_at": "2026-08-29T22:26:23Z",
+          "completed_at": "2026-08-29T22:26:23Z"
+        },
+        {
+          "name": "Verify published identity, package matrix, and checksums",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 2,
+          "started_at": "2026-08-29T22:26:24Z",
+          "completed_at": "2026-08-29T22:26:25Z"
+        },
+        {
+          "name": "Complete job",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 3,
+          "started_at": "2026-08-29T22:26:25Z",
+          "completed_at": "2026-08-29T22:26:25Z"
+        }
+      ],
+      "check_run_url": "https://api.github.com/repos/B-Divyesh/sf-photo-proof-pile/check-runs/99169685749",
+      "labels": [
+        "ubuntu-latest"
+      ],
+      "runner_id": 1000009091,
+      "runner_name": "GitHub Actions 1000009091",
+      "runner_group_id": 0,
+      "runner_group_name": "GitHub Actions"
+    }
+  ]
+}
