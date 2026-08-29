@@ -4,6 +4,11 @@ on:
   push:
     tags: ["v*"]
   workflow_dispatch:
+    inputs:
+      tag:
+        description: Existing version tag to release (for example, v0.1.11)
+        required: true
+        type: string
 
 permissions:
   contents: write
@@ -29,14 +34,41 @@ jobs:
   prepare-release:
     needs: validate-signing
     runs-on: ubuntu-latest
+    outputs:
+      tag: ${{ steps.identity.outputs.tag }}
+      commit: ${{ steps.identity.outputs.commit }}
     steps:
       - uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.tag || github.ref }}
+          fetch-depth: 0
+      - name: Require a versioned tag for this exact desktop source
+        id: identity
+        shell: bash
+        env:
+          REQUESTED_TAG: ${{ inputs.tag }}
+          REF_NAME: ${{ github.ref_name }}
+        run: |
+          version=$(node -p "require('./package.json').version")
+          expected_tag="v${version}"
+          release_tag="${REQUESTED_TAG:-$REF_NAME}"
+          if [ "$release_tag" != "$expected_tag" ]; then
+            echo "Release tag $release_tag does not match package version $expected_tag." >&2
+            exit 1
+          fi
+          git rev-parse "${release_tag}^{commit}" >/dev/null
+          release_commit=$(git rev-parse "${release_tag}^{commit}")
+          if [ "$release_commit" != "$(git rev-parse HEAD)" ]; then
+            echo "Checked-out source does not match $release_tag." >&2
+            exit 1
+          fi
+          echo "tag=$release_tag" >> "$GITHUB_OUTPUT"
+          echo "commit=$release_commit" >> "$GITHUB_OUTPUT"
       - name: Create release before matrix uploads
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          version=$(node -p "require('./package.json').version")
-          gh release view "v${version}" >/dev/null 2>&1 || gh release create "v${version}" --title "Proof Pile v${version}" --notes "Desktop packages for local duplicate-photo review."
+          gh release view "${{ steps.identity.outputs.tag }}" >/dev/null 2>&1 || gh release create "${{ steps.identity.outputs.tag }}" --title "Proof Pile ${{ steps.identity.outputs.tag }}" --notes "Desktop packages for local duplicate-photo review."
 
   build:
     needs: prepare-release
@@ -59,6 +91,8 @@ jobs:
     runs-on: ${{ matrix.platform }}
     steps:
       - uses: actions/checkout@v4
+        with:
+          ref: ${{ needs.prepare-release.outputs.tag }}
       - uses: actions/setup-node@v4
         with:
           node-version: 22
@@ -162,26 +196,28 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+        with:
+          ref: ${{ needs.prepare-release.outputs.tag }}
       - name: Download release assets
         id: release
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          version=$(node -p "require('./package.json').version")
-          echo "tag=v${version}" >> "$GITHUB_OUTPUT"
+          echo "tag=${{ needs.prepare-release.outputs.tag }}" >> "$GITHUB_OUTPUT"
           mkdir release-assets
-          gh release download "v${version}" --dir release-assets
+          gh release download "${{ needs.prepare-release.outputs.tag }}" --dir release-assets
       - name: Write checksums and release manifest
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          RELEASE_TAG: ${{ needs.prepare-release.outputs.tag }}
+          RELEASE_COMMIT: ${{ needs.prepare-release.outputs.commit }}
         run: |
-          version=$(node -p "require('./package.json').version")
           cd release-assets
           printf '%s\n' '{"macos":"signed-and-notarized","windows":"authenticode-signed"}' > DESKTOP_SIGNATURES_VERIFIED.json
           : > SHA256SUMS
           while IFS= read -r -d '' asset; do sha256sum "$asset" | sed 's#  \./#  #' >> SHA256SUMS; done < <(find . -maxdepth 1 -type f ! -name SHA256SUMS ! -name latest.json -print0 | sort -z)
-          gh api "repos/${GITHUB_REPOSITORY}/releases/tags/v${version}" > release.json
-          jq --arg commit "$GITHUB_SHA" '{version: .tag_name, commit: $commit, signatures: {macos: "signed-and-notarized", windows: "authenticode-signed"}, platforms: {macos: [.assets[] | select(.name | test("\\.dmg$")) | {name, url: .browser_download_url}], windows: [.assets[] | select(.name | test("\\.(msi|exe)$")) | {name, url: .browser_download_url}], linux: [.assets[] | select(.name | test("\\.(AppImage|deb)$")) | {name, url: .browser_download_url}]}}' release.json > latest.json
+          gh api "repos/${GITHUB_REPOSITORY}/releases/tags/${RELEASE_TAG}" > release.json
+          jq --arg commit "$RELEASE_COMMIT" '{version: .tag_name, commit: $commit, signatures: {macos: "signed-and-notarized", windows: "authenticode-signed"}, platforms: {macos: [.assets[] | select(.name | test("\\.dmg$")) | {name, url: .browser_download_url}], windows: [.assets[] | select(.name | test("\\.(msi|exe)$")) | {name, url: .browser_download_url}], linux: [.assets[] | select(.name | test("\\.(AppImage|deb)$")) | {name, url: .browser_download_url}]}}' release.json > latest.json
           rm release.json
       - uses: softprops/action-gh-release@v2
         with:

@@ -54,6 +54,7 @@ describe("review model", () => {
     const index = readFileSync(new URL("../index.html", import.meta.url), "utf8");
     const sitemap = readFileSync(new URL("../public/sitemap.xml", import.meta.url), "utf8");
     const tauri = JSON.parse(readFileSync(new URL("../src-tauri/tauri.conf.json", import.meta.url), "utf8"));
+    const cargo = readFileSync(new URL("../src-tauri/Cargo.toml", import.meta.url), "utf8");
     const main = readFileSync(new URL("../src/main.ts", import.meta.url), "utf8");
     expect(notFound).toContain(`<p>v${version}</p>`);
     expect(notFound).toContain("<h1>This page was not found</h1>");
@@ -62,6 +63,7 @@ describe("review model", () => {
     expect(index).not.toContain("without permanent deletion");
     for (const route of ["/demo", "/app", "/privacy", "/terms"]) expect(sitemap).toContain(`photo-proof-pile.sociobot.in${route}`);
     expect(tauri.version).toBe(version);
+    expect(cargo).toMatch(new RegExp(`\\[package\\][\\s\\S]*?version = "${version}"`));
     expect(main).toContain(`const VERSION = "${version}"`);
   });
 
@@ -72,5 +74,16 @@ describe("review model", () => {
     expect(workflow).toContain("xcrun stapler validate");
     expect(workflow).toContain("DESKTOP_SIGNATURES_VERIFIED.json");
     expect(workflow).not.toContain("Build unsigned package");
+  });
+
+  it("releases only the matching version tag and records that tag's immutable commit", () => {
+    const workflow = readFileSync(new URL("../.github/workflows/release.yml", import.meta.url), "utf8");
+    expect(workflow).toContain('expected_tag="v${version}"');
+    expect(workflow).toContain('if [ "$release_tag" != "$expected_tag" ]');
+    expect(workflow).toContain('git rev-parse "${release_tag}^{commit}"');
+    expect(workflow).toContain('if [ "$release_commit" != "$(git rev-parse HEAD)" ]');
+    expect(workflow).toContain('RELEASE_COMMIT: ${{ needs.prepare-release.outputs.commit }}');
+    expect(workflow).toContain('jq --arg commit "$RELEASE_COMMIT"');
+    expect(workflow).not.toContain('jq --arg commit "$GITHUB_SHA"');
   });
 });

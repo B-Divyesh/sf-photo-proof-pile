@@ -1,104 +1,81 @@
-# Verification 9 handoff — 29 August 2026
+# Repair 6 handoff — 29 August 2026
 
-## Current release verdict: FAIL
+## Repair
 
-Candidate `601f04c75fc1ff28521d7e955b7ab8350b5b3ffd` is **not releasable**.
-See `.factory/verification-9.md` for the complete independent evidence.
+Independent verification 9 found one release-blocking S1 defect: the live
+download flow served `v0.1.10`, whose release commit
+`444b4d151296c6f75045a3a1e5f077e267bdffcb` predated the reviewed-plan native
+quarantine gate in candidate `601f04c75fc1ff28521d7e955b7ab8350b5b3ffd`.
+The static web assets were already current; the installed desktop package was
+not.
 
-The static site at <https://photo-proof-pile.sociobot.in> matches this
-candidate, but its desktop download flow still serves `v0.1.10` built from
-`444b4d151296c6f75045a3a1e5f077e267bdffcb` (`v0.1.10-8-g601f04c` behind the
-candidate). That package predates the native reviewed-plan quarantine gate and
-can accept paths without verifying a quarantine decision or readable kept copy.
-This is an S1 release-blocking safety defect for a desktop product that promises
-review-before-move.
+This repair prepares the successor desktop release as `v0.1.11`.
 
-All 20 exact claims, `npm run check`, `npm test` (10 Rust, 10 Vitest, 28
-Playwright), and `npm run build` passed from clean `npm ci`. The desktop build
-could not complete in this verifier container only because the image lacks the
-`glib-2.0` development prerequisite; CI installs it. No product source was
-changed during verification.
+- The npm, Cargo, Tauri, web footer, and static 404 versions now agree on
+  `0.1.11`.
+- The release workflow now checks out and releases only `v<package version>`.
+  It verifies that the tag resolves to the exact checked-out commit before any
+  platform build begins.
+- `latest.json` now records the resolved immutable tag commit from the release
+  identity job, not a context-dependent `GITHUB_SHA`.
+- All matrix package jobs check out that same release tag.
+- The signing/notarization gate remains required before a desktop release can
+  be published; the repair does not weaken the safety behavior that already
+  passed review.
+- A unit regression test asserts the release-tag/source identity and the
+  immutable `latest.json` commit plumbing.
 
-Required next step: release a newly versioned, signed/notarized desktop package
-from this candidate or successor, publish matching `latest.json`/checksums, and
-verify an installed package’s reviewed-plan quarantine path before re-verifying.
+## Verification before release
 
----
-
-# Proof Pile polish 3 handoff — 29 August 2026
-
-## Result
-
-The cumulative product repair is implemented, tested, pushed, and deployed at
-<https://photo-proof-pile.sociobot.in>. The hash route, `/app` metadata,
-review-before-move boundary, sitemap, 404 shell, catalog copy, and signed-release
-gate are repaired without changing the archival light-table visual identity.
-
-Static deployment ID: `38ac84a2-25c6-4514-9aef-e55697378e13`.
-
-Repair commits: `3cc76fd`, `c19ecd6`; this handoff is committed on `main`.
-
-## What changed
-
-- `/#how` now survives SPA navigation, scrolls to the steps, receives keyboard
-  focus, and works from home, policy routes, and a direct address-bar load.
-- `/app` now uses the product-first title “Proof Pile — Review photo copies”
-  with matching route metadata.
-- `.factory/claims.json` now includes `review-before-move`. Its command runs a
-  native rejection test and the browser confirmation/payload test.
-- Native quarantine accepts a reviewed plan, rejects non-quarantine entries,
-  rejects plans without a readable kept copy, and moves only after the UI
-  confirms the exact count and chosen destination.
-- `/app` is in the sitemap; the static 404 carries the full header navigation.
-- Release CI no longer publishes unsigned macOS or Windows fallbacks. It
-  requires signing credentials, verifies Authenticode and Apple notarization,
-  and publishes `DESKTOP_SIGNATURES_VERIFIED.json` only after those checks.
-- The download dialog shows signed/notarized wording only when that verified
-  release marker exists. Current unsigned release wording remains honest.
-- The catalog description is now: “Review photo copies, quarantine extras,
-  and keep a reversible decision log.”
-
-## Verification evidence
-
-- All 20 claim commands passed individually from clean clone
-  `/tmp/tmp.k6Wb7qPPOy/repo` at commit `f066733`.
-- Full clean-clone `npm test`: 10 Rust, 10 Vitest, 28 Playwright tests passed.
-- `npm run check`: TypeScript, Rust formatting, and Clippy passed.
-- `npm run build`: `dist/site` produced; JS 14.90 kB gzip, CSS 5.09 kB gzip.
-- Local Lighthouse mobile: 100 performance, 100 accessibility, 100 best
-  practices, 100 SEO; LCP 1.6 s; CLS 0; 138 KiB.
-- Live Lighthouse mobile: 100/100/100/100; LCP 1.2 s; CLS 0; 137 KiB.
-- Live cold audit: 200 for `/`, `/demo`, `/app`, `/privacy`, and `/terms`; 404
-  for `/missing-frame`; one h1/main and zero axe serious/critical findings on
-  each. `/app` title and social metadata are product-first.
-- Live demo: direct `?demo=1`, three seeded groups, isolated session changes,
-  reset, exit, real-data preservation, and offline reload all passed.
-- Live `/#how`: hash retained, `#how-title` focused, target top `0` after scroll.
-- `verify-url.sh`: no root console errors; `lang=en`, one h1, main, alt text,
-  and labeled buttons passed.
-- GitHub Actions run `33260484638` stopped at `validate-signing`; release,
-  platform build, and checksum jobs were skipped before any unsigned output.
-- Evidence: `.factory/evidence/polish-3/local/` and
-  `.factory/evidence/polish-3/live/`.
-- Finding-by-finding evidence: `.factory/polish-3.md`.
-
-Run locally:
+Run from a clean dependency install:
 
 ```sh
 npm ci
 npm test
 npm run check
 npm run build
+CI=false npm run build:desktop
 ```
 
-## Known gap requiring operator credentials
+Evidence collected in this worker:
 
-The published v0.1.10 Windows and macOS assets are still unsigned. GitHub
-reports zero repository signing secrets, and Azure reports no Trusted Signing
-account. Therefore recurring F-1-34/F-2-2/F-3-1 cannot be truthfully marked
-closed from this worker. The workflow now prevents another unsigned release.
+- `npm ci`: passed; 66 packages installed; `npm audit` reported 0
+  vulnerabilities.
+- `npm test`: passed: 10 Rust tests, 11 Vitest tests (including the new
+  release-identity regression), and 28 Playwright tests.
+- `npm run check`: passed TypeScript, Rust formatting, and strict Clippy.
+- `npm run build`: passed. `dist/site` was produced with 13.37 kB gzip main
+  JavaScript and 5.09 kB gzip CSS.
+- `npm run test:claim:review-before-move`: passed. The native core rejected
+  unreviewed quarantine plans, and the desktop UI fixture proved exact
+  confirmation and payload behavior.
+- Local `/demo` post-build audit via `verify-url.sh`: HTTP 200, `Demo — Proof
+  Pile`, `lang=en`, one h1, one main landmark, zero missing image alt text,
+  zero unlabeled buttons, and zero page/console errors. The Playwright suite
+  also ran axe scans at desktop and 390 px with zero serious or critical
+  violations, keyboard decision traversal and skip-link checks, 200% text,
+  touch target, privacy, offline reload, and license-request coverage.
+- Native packaging was run after installing the documented Linux Tauri system
+  dependencies. It produced
+  `Proof Pile_0.1.11_amd64.deb` and
+  `Proof Pile-0.1.11-1.x86_64.rpm`. Debian metadata reports package
+  `proof-pile`, version `0.1.11`, architecture `amd64`. The DEB SHA-256 is
+  `57a77a10237b6eda2e001c801703a1bd3f8d73ae3472c60158b2de1a74b5ea24`.
+- The extracted DEB consumer binary stayed running for a 12-second virtual
+  X11 smoke test (intentional `timeout` exit 124; no application crash). The
+  container emitted expected headless portal/FUSE warnings because it exposes
+  no `/dev/fuse` device.
 
-Add these repository secrets, then dispatch `.github/workflows/release.yml`:
+## Release and deployment status
+
+The signed cross-platform release and static-site deployment are performed
+after this repair commit is pushed. Their tag, workflow, checksum, package,
+and live-site evidence will be appended here in the final deployment commit.
+
+## Operator prerequisites
+
+The release workflow intentionally refuses unsigned macOS or Windows assets.
+It requires these repository secrets before it can publish `v0.1.11`:
 
 - `APPLE_CERTIFICATE`
 - `APPLE_CERTIFICATE_PASSWORD`
@@ -109,6 +86,6 @@ Add these repository secrets, then dispatch `.github/workflows/release.yml`:
 - `WINDOWS_CERT_PFX`
 - `WINDOWS_CERTIFICATE_PASSWORD`
 
-The workflow must pass its signature checks and publish
-`DESKTOP_SIGNATURES_VERIFIED.json`. Then update the README after confirming the
-new release assets. No source-code TODO remains.
+If any are unavailable, GitHub Actions stops in `validate-signing` before a
+release is created, rather than publishing an unsafe replacement for the
+verified desktop package.
