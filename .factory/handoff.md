@@ -41,20 +41,18 @@ touch targets.
 
 Native package verification produced:
 
-- `Proof Pile_0.1.9_amd64.deb` — 4,211,768 bytes
-  (`4a8140943054169aae49b0408eb685f402a61578a3e9a37c1e2f369717891d0c`)
-- `Proof Pile-0.1.9-1.x86_64.rpm` — 4,212,422 bytes
-  (`8130e3356980d3e09248b3a08032574c233b6c5e729bddcf7416284b12e2eb96`)
-- `Proof Pile_0.1.9_amd64.AppImage` — 78,674,424 bytes
-  (`f5ae93c4187c91ae335412b0b32f49faedff54c7335b3b9a25d5cf6a6ecbc81e`)
+- `Proof Pile_0.1.10_amd64.deb` — 4,212,564 bytes
+  (`578d111428e941251640bdf8a8be036a89aef0b9cd439c52090262237d494587`)
+- `Proof Pile-0.1.10-1.x86_64.rpm` — 4,213,061 bytes
+  (`c61eedd9a71f67717878fd6d7f57e76514fa5e816c8f6d66ec2fab3993b12812`)
+- `Proof Pile_0.1.10_amd64.AppImage` — 78,666,232 bytes
+  (`766fff648e57d15c9af932b677a0c21dd6347c02de009d4f1e52614881cf1f51`)
 
 The disposable Ubuntu image initially lacked Tauri's documented GTK/WebKit
 headers, `libfuse.so.2`, and `file`; these were installed only in the worker.
-Its container also has no `/dev/fuse`, so the AppImage was finalized with the
-cached Tauri appimage tool in extract-and-run mode after Tauri generated the
-AppDir. This is an environment limitation, not a product change; GitHub's
-release workflow remains the supported cross-platform builder. Tauri's
-temporary `Cargo.toml` feature edit was restored.
+After that, `CI=true npx tauri build --bundles deb,rpm` and
+`CI=true npx tauri build --bundles appimage` both passed. Tauri's temporary
+`Cargo.toml` feature edit was restored.
 
 ## Live and deployment checks
 
