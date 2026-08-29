@@ -118,7 +118,8 @@ Observed results in the clean repair workspace:
 
 ## Production deployment and browser evidence
 
-- Static deployment `38af8ae4-c777-4696-b400-43b45baae000` completed and
+- Final static deployment `c10ef376-35ba-488e-8628-6f322499857a` completed
+  from the clean `aa6eaf2` site build and
   `https://photo-proof-pile.sociobot.in` serves the repaired `v0.1.13` site.
   The deployed hashed JavaScript, CSS, and service worker match `dist/site`.
 - `/opt/fleet/lib/verify-url.sh` passed `/` and `/demo`: correct titles and
