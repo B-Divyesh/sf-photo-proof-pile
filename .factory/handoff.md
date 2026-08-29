@@ -1,75 +1,101 @@
-# Proof Pile independent verification handoff
+# Proof Pile repair handoff
 
 ## Result
 
-**FAIL — do not release candidate
-`5df33f303d73c419ad0bbee3d1dcece5b7f75419`.**
+**PASS — verifier report `6ddf24e2aef0ed3f39d5e1be1b051d6e73942547`
+is repaired and released.**
 
-Verified 2026-08-29 against
-<https://photo-proof-pile.sociobot.in>. Full evidence and reproduction detail
-are in [verification-2.md](verification-2.md).
+- Repair commit: `5461ae675995fa91739856f13fcf925688af5a4c`
+- Release: [`v0.1.1`](https://github.com/B-Divyesh/sf-photo-proof-pile/releases/tag/v0.1.1)
+- Release workflow: [`33230591124`](https://github.com/B-Divyesh/sf-photo-proof-pile/actions/runs/33230591124), successful
+- Production: <https://photo-proof-pile.sociobot.in>
+- Static deployment ID: `2aaa0ddd-6421-491f-9678-9fe18c04ca53`
 
-## Release blockers
+## Repairs
 
-1. The live static site matches the candidate, but every desktop download is
-   from `v0.1.0` at
-   `94328e12ffcd06e16b40fa00276a3a5c179eee27`. That package predates the
-   candidate's safety repairs and loses recovery state on restart.
-2. Candidate `src/main.ts:232` replaces the whole recovery log with the newest
-   quarantine batch. A two-batch exercise lost both records from the first
-   batch, so those files could no longer be restored after restart or CSV
-   export.
-3. The “license is checked at most once each day” claim is false for fresh
-   cached invalid/revoked verdicts; each reload calls the API again.
-4. Production checkout returns 404. The product provides no price or working
-   one-time purchase despite the brief and paid-unlock contract.
-5. Licensed removal of the 1,000-file limit and the Windows installer's
-   checksum promise are public but lack matching claim tests.
+1. Native quarantine results now append to the durable move log. A Tauri-bridge
+   regression runs two batches, reloads, and restores one file from each batch.
+2. Fresh invalid, expired, and revoked license verdicts now use the same
+   24-hour cache as valid verdicts. The regression reloads twice and observes
+   no verification request.
+3. The live Sociobot product is registered as Proof Pile at USD 2900. The page
+   states US$29 once, opens hosted checkout, stores the returned license, and
+   retains license paste/restore.
+4. Licensed scans above 1,000 images and the Windows installer checksum gate
+   now have dedicated claims and regression coverage. The release workflow
+   executes the PowerShell harness on Windows before packaging.
+5. Version `0.1.1` is consistent in npm, Cargo, Tauri, and the UI. Release
+   metadata includes its source commit, and release caching is versioned so a
+   stale v0.1.0 browser entry cannot win.
+6. Privacy, Terms, and 404 links meet the 44 px target baseline. The 390 px
+   review no longer clips at 200% text size.
+7. Service-worker cache generation `proof-pile-v5` replaces the prior shell.
 
-## What passed
+The researched brief, demo behavior, matching rules, kept-copy guard, local
+storage model, CSV recovery, and every previously passing claim were preserved.
 
-- `.factory/claims.json` exists; all 12 exact listed commands passed when run
-  separately first. Two are too narrow and are independently falsified above.
-- The cold desktop and 390 px first screen plainly identifies the job, user,
-  first action, and provides a one-click sample demo.
-- `npm ci`, `npm test`, strict Rust formatting/Clippy, `npm run build`, and
-  `CI=true npm run build:desktop` passed from the clean clone.
-- The live demo completed quarantine, CSV export/import, reload, recovery,
-  invalid-input handling, reset, and exit-to-real flows.
-- Demo traffic remained same-origin. No analytics, photo uploads, console
-  errors, or page errors were observed.
-- The service worker updated and reloaded the demo offline.
-- Axe found no serious/critical issue across five routes, desktop/mobile,
-  light/dark. Keyboard and reduced-motion checks passed.
-- Lighthouse mobile scored 96 performance, 100 accessibility, 100 best
-  practices, and 100 SEO. Initial JS is 11.54 KiB gzip and CSS 4.90 KiB gzip.
-- Security headers, 404 behavior, immutable hashed-asset caching, Linux
-  installer checksum, and live API rate limiting passed. The observed license
-  API allowance was 30 immediate requests; request 31 returned 429 with
-  `Retry-After: 4`.
+## Verification
 
-## Re-run
+Run from the repaired tree:
 
 ```sh
 npm ci
 npm test
-cargo fmt --manifest-path src-tauri/Cargo.toml -- --check
-cargo clippy --manifest-path src-tauri/Cargo.toml --no-default-features --all-targets -- -D warnings
-npm run build
+npm run check
+npm run build:site
 CI=true npm run build:desktop
-/opt/fleet/lib/verify-url.sh https://photo-proof-pile.sociobot.in .factory/evidence/verification-2/verify-url-live
 ```
 
-The repository has no separate lint script. Native Linux packaging requires
-the documented Tauri GTK/WebKit dependencies and the `file` utility.
+Results on 29 August 2026:
 
-## Next candidate requirements
+- `npm ci`: 66 packages installed; 0 audit vulnerabilities.
+- `npm test`: Rust 6/6, Vitest 6/6, Playwright 19/19.
+- Every command in `.factory/claims.json` passed independently (15 claims).
+- `npm run check`: TypeScript, `cargo fmt --check`, and strict Clippy passed.
+- `npm run build:site`: passed; built JS totals 13.10 KiB gzip, CSS is
+  4.96 KiB gzip, and the hero image is 29.9 KB.
+- `CI=true npm run build:desktop`: produced and launched a Linux AppImage and
+  produced DEB/RPM packages. The rendered desktop window is recorded at
+  `.factory/evidence/repair-2/local-app.png`.
+- Playwright covered desktop, 390 x 844 mobile, 200% text, light/dark axe,
+  keyboard and dialog focus, privacy request logging, offline reload/update,
+  license return/cache, and the native multi-batch boundary.
+- `/opt/fleet/lib/verify-url.sh` passed locally and live with one h1, one main,
+  `lang=en`, alt text, labeled buttons, and zero console errors. Evidence is in
+  `.factory/evidence/repair-2/verify-url-local/` and `verify-url-live/`.
+- Live mobile Lighthouse: Performance 100, Accessibility 100, Best Practices
+  100, SEO 100; FCP 0.9 s, LCP 0.9 s, TBT 20 ms, CLS 0, transfer 135 KiB.
+  Report: `.factory/evidence/repair-2/lighthouse-live-mobile.json`.
+- Live root, service worker, installers, 404, hero, manifest, and all seven
+  built assets match `dist/site` byte for byte.
+- The live demo/offline/keyboard smoke made 18 same-origin requests and no
+  console errors. The release chooser linked only to v0.1.1 assets.
 
-- Preserve all quarantine batches and cover real multi-batch restart/restore.
-- Correct invalid-verdict daily caching.
-- Publish and identify candidate-native artifacts for all platforms.
-- Enable and verify Sociobot checkout, or formally remove the paid tier.
-- Complete the missing claims and repair the remaining 44 px touch-target and
-  200% text-resize defects recorded in the full report.
+## Release and policy evidence
 
-No product code was modified by this verifier.
+GitHub Actions built both macOS architectures, Windows, and Linux from repair
+commit `5461ae6`. The release contains two DMGs, MSI, EXE, AppImage, DEB, RPM,
+application archives, `SHA256SUMS`, and `latest.json`.
+
+- `latest.json`: version `v0.1.1`, commit
+  `5461ae675995fa91739856f13fcf925688af5a4c`, and two advertised assets for
+  each platform.
+- Downloaded DEB: package `proof-pile`, version `0.1.1`, architecture `amd64`;
+  published SHA-256
+  `fad13fdd2ceec2b0cf07d4d099a12c64072768e08aa59bd9b55d833f9757315d` matched.
+- Root response: HSTS, CSP, `nosniff`, strict-origin referrer policy,
+  Permissions Policy, and 30-second revalidation.
+- Hashed asset response: one-year immutable cache.
+- Unknown route: HTTP 404 with the designed page.
+- Checkout: HTTP 303 to Dodo hosted checkout with production-origin CORS.
+- Invalid license check: `{valid:false, reason:"invalid"}`, `Cache-Control:
+  no-store`, and production-origin CORS.
+- No analytics, trackers, third-party fonts, photo uploads, or raw Azure keys.
+
+## Known gaps and operator action
+
+There are no known release-blocking gaps. Native packages are intentionally
+unsigned, and the download dialog says so. Signing requires owner certificates;
+use `APPLE_CERTIFICATE` for macOS and `WINDOWS_CERT_PFX` for Windows when the
+workflow is extended to sign releases. The app does not check for native
+updates, so no updater manifest is shipped.
