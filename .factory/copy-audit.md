@@ -1,6 +1,6 @@
 # Landing page copy audit
 
-Audited 28 August 2026. Counts treat hyphenated terms and prices as one word. No sentence exceeds 22 words. No banned marketing word appears.
+Audited 29 August 2026. Counts treat hyphenated terms and prices as one word. No sentence exceeds 22 words. No banned marketing word appears.
 
 | Landing copy | Words | Flag |
 | --- | ---: | --- |
@@ -12,7 +12,7 @@ Audited 28 August 2026. Counts treat hyphenated terms and prices as one word. No
 | Download for your computer | 4 | None |
 | Photos stay on this device | 5 | None |
 | Works without an account | 4 | None |
-| Free scans cover 1,000 files at a time | 8 | None |
+| Free for 1,000 files; US$29 once for full libraries | 9 | None |
 | See why files match | 4 | None |
 | Compare paths, dimensions, dates, hashes, and backup counts before making a plan. | 12 | None |
 | Copies line up. | 3 | None |
@@ -35,10 +35,10 @@ Audited 28 August 2026. Counts treat hyphenated terms and prices as one word. No
 | Open important backups before cleanup. | 5 | None |
 | Review a full library | 5 | None |
 | The free app scans 1,000 files at a time. | 9 | None |
-| An existing license removes that scan limit. | 7 | None |
-| Desktop license checkout is being prepared. | 6 | None |
-| Sociobot is the merchant of record. | 6 | None |
-| Refunds are handled there. | 4 | None |
+| A license removes that scan limit. | 6 | None |
+| US$29 one-time purchase | 3 | None |
+| Buy the desktop license | 4 | None |
+| Sociobot and Dodo handle payment and refunds as merchant of record. | 11 | None |
 | Enter a license | 3 | None |
 | Proof before photo cleanup. | 4 | None |
 

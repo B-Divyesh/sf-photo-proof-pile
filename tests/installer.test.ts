@@ -52,3 +52,25 @@ test("@claim:installer-checksum installs only a package matching SHA256SUMS", ()
     expect(existsSync(bad.target)).toBe(false);
   } finally { rmSync(bad.root, { recursive: true, force: true }); }
 });
+
+// @claim:windows-installer-checksum
+test("@claim:windows-installer-checksum verifies before opening the MSI", () => {
+  const script = readFileSync("public/install.ps1", "utf8");
+  const download = script.indexOf("Invoke-WebRequest $asset.browser_download_url -OutFile $download");
+  const hash = script.indexOf("Get-FileHash $download -Algorithm SHA256");
+  const mismatch = script.indexOf("$expected.ToLowerInvariant() -ne $actual");
+  const remove = script.indexOf("Remove-Item $download");
+  const install = script.indexOf("Start-Process msiexec.exe");
+  expect(script).toContain("SHA256SUMS");
+  expect(script).toContain("'\\.msi$'");
+  expect(download).toBeGreaterThan(-1);
+  expect(hash).toBeGreaterThan(download);
+  expect(mismatch).toBeGreaterThan(hash);
+  expect(remove).toBeGreaterThan(mismatch);
+  expect(install).toBeGreaterThan(remove);
+
+  if (process.platform === "win32") {
+    const result = spawnSync("pwsh", ["-NoProfile", "-File", "tests/install-windows.ps1"], { cwd: process.cwd(), encoding: "utf8" });
+    expect(result.status, `${result.stdout}\n${result.stderr}`).toBe(0);
+  }
+});

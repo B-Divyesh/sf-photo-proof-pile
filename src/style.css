@@ -120,7 +120,8 @@ p, li { line-height: 1.55; }
 .pricing .price-actions { display: flex; flex-wrap: wrap; align-items: center; gap: 16px; }
 .pricing .button.quiet { border-color: var(--canvas); color: var(--canvas); }
 .pricing .price-actions p { flex-basis: 100%; margin: 0; color: #c4ccc8; font-size: .8rem; }
-.pricing .checkout-pending { color: #dce5df; font-weight: 700; }
+.pricing .price { color: #dce5df; }
+.pricing .price strong { margin-right: 8px; color: #f5f1e7; font: 600 2rem/1 var(--serif); }
 
 footer { display: grid; grid-template-columns: 1fr auto 1fr; align-items: center; gap: 24px; padding-block: 32px; border-top: 1px solid var(--line); color: var(--muted); font-size: .78rem; }
 footer p { margin: 0; }
@@ -196,6 +197,7 @@ footer .fine { text-align: right; }
 .prose-page h1 { max-width: 13ch; }
 .prose-page h2 { margin-top: 48px; font-size: 1.55rem; }
 .prose-page p { max-width: 68ch; }
+.prose-page > p:last-child a { display: inline-flex; min-width: 44px; min-height: 44px; align-items: center; }
 .not-found { display: grid; min-height: 70vh; place-content: center; justify-items: start; }
 .not-found .giant { margin: 0; color: var(--coral); font: 700 clamp(6rem, 22vw, 14rem)/.75 var(--serif); }
 .not-found h1 { max-width: 15ch; }
@@ -245,9 +247,12 @@ dialog input { width: 100%; min-height: 48px; padding: 10px; border: 1px solid v
   .group-rail { position: static; }
   .group-rail [role="listbox"] { display: flex; overflow-x: auto; padding: 8px 4px; scroll-snap-type: x mandatory; }
   .group-rail [role="option"] { min-width: 190px; scroll-snap-align: start; }
+  .group-rail [role="option"] > span:last-child { min-width: 0; overflow-wrap: anywhere; }
   .group-rail [role="option"][aria-selected="true"] { transform: translateY(3px); box-shadow: 0 -3px 0 var(--pine); }
   .key-hint { display: none; }
   .photo-strip { grid-template-columns: repeat(3, minmax(140px, 1fr)); overflow-x: auto; padding-bottom: 12px; }
+  .evidence-heading { align-items: flex-start; flex-direction: column; }
+  .confidence { max-width: 100%; text-align: left; }
   .file-row dl { grid-template-columns: repeat(2, minmax(100px, 1fr)); }
   .file-row dl div:last-child { grid-column: 1 / -1; }
   .file-row fieldset { flex-wrap: wrap; }

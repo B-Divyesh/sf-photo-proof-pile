@@ -1,6 +1,6 @@
 :root { color-scheme: light dark; font: 18px/1.5 system-ui, sans-serif; color: #17211d; background: #f4f0e6; }
 body { display: grid; min-height: 100vh; place-items: center; margin: 0; }
 main { max-width: 34rem; padding: 2rem; }
-a { color: #155b4b; }
+a { display: inline-flex; min-width: 44px; min-height: 44px; align-items: center; color: #155b4b; }
 svg { width: 10rem; }
 @media (prefers-color-scheme: dark) { :root { color: #f5f1e7; background: #171918; } a { color: #70d7b6; } }

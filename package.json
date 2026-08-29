@@ -1,7 +1,7 @@
 {
   "name": "photo-proof-pile",
   "private": true,
-  "version": "0.1.0",
+  "version": "0.1.1",
   "type": "module",
   "scripts": {
     "dev": "vite",
@@ -11,6 +11,7 @@
     "build": "npm run build:site",
     "build:site": "tsc --noEmit && vite build --outDir dist/site",
     "build:desktop": "tauri build",
+    "check": "tsc --noEmit && cargo fmt --manifest-path src-tauri/Cargo.toml -- --check && cargo clippy --manifest-path src-tauri/Cargo.toml --no-default-features --all-targets -- -D warnings",
     "test": "npm run check:rust && npm run test:unit && npm run test:e2e",
     "test:unit": "vitest run",
     "test:e2e": "playwright test",

@@ -56,6 +56,20 @@
     "sandbox": "mock the Sociobot verification response; paste a token, reload, and assert one request plus the namespaced stored token"
   },
   {
+    "id": "paid-checkout",
+    "claim": "A US$29 one-time purchase removes the scan limit through Sociobot hosted checkout.",
+    "where": "landing page, pricing section, terms, and README",
+    "test": "npm run test:e2e -- --grep @claim:paid-checkout",
+    "sandbox": "fresh browser context; assert the exact price and checkout request, then simulate a returned license and verify storage plus URL cleanup"
+  },
+  {
+    "id": "licensed-scan-limit",
+    "claim": "A valid license removes the 1,000-image scan limit.",
+    "where": "pricing section, terms, and README",
+    "test": "cargo test --manifest-path src-tauri/Cargo.toml --no-default-features claim_licensed_scan_limit",
+    "sandbox": "temporary folder with 1,001 valid images; invoke the licensed native scan and assert all 1,001 are scanned without a limit flag"
+  },
+  {
     "id": "offline-reload",
     "claim": "The review desk works offline after the first visit.",
     "where": "README",
@@ -82,5 +96,12 @@
     "where": "README",
     "test": "npm run test:unit -- --testNamePattern @claim:installer-checksum",
     "sandbox": "mock release metadata, package bytes, and SHA256SUMS; assert the installer writes a matching package and removes a mismatched one"
+  },
+  {
+    "id": "windows-installer-checksum",
+    "claim": "The Windows installer verifies the package against SHA256SUMS before opening it.",
+    "where": "README",
+    "test": "npm run test:unit -- --testNamePattern @claim:windows-installer-checksum",
+    "sandbox": "inspect the shipped PowerShell installer contract; assert SHA-256 comparison and mismatch removal happen before msiexec can start"
   }
 ]

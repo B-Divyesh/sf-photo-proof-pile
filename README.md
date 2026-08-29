@@ -19,9 +19,11 @@ The app does not upload photos, recognize faces, host a cloud gallery, or perman
 
 ## Price and license
 
-The free desktop app scans up to 1,000 image files at a time. An existing license removes that scan limit. Saved reviews, CSV export, and every safety feature stay free.
+The free desktop app scans up to 1,000 image files at a time. A US$29 one-time license removes that scan limit. Saved reviews, CSV export, and every safety feature stay free.
 
-The app stores a returned license under `sb_license:photo-proof-pile` and checks it with the Sociobot API at most once each day. Photo data is never part of that request. Existing buyers can paste a license into the app. New license checkout is being prepared.
+Buy through the [Sociobot hosted checkout](https://api.sociobot.in/api/v1/products/photo-proof-pile/checkout). Sociobot and Dodo handle payment and refunds as merchant of record.
+
+The app stores a returned license under `sb_license:photo-proof-pile` and checks it with the Sociobot API at most once each day. Photo data is never part of that request. Buyers can paste a license into the app when moving to another device.
 
 ## Install
 

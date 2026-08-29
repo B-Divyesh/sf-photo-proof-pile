@@ -6,6 +6,7 @@ declare global { interface Window { __TAURI_INTERNALS__?: unknown } }
 const app = document.querySelector<HTMLDivElement>("#app")!;
 const isDesktop = Boolean(window.__TAURI_INTERNALS__);
 const PRODUCT = "photo-proof-pile";
+const VERSION = "0.1.1";
 const LICENSE_KEY = `sb_license:${PRODUCT}`;
 const DEMO_KEY = "demo:photo-proof-pile:session";
 const REAL_KEY = "proof-pile:session";
@@ -32,7 +33,7 @@ function header() {
 }
 
 function footer() {
-  return `<footer><p>Proof before photo cleanup.</p><nav aria-label="Footer navigation"><a class="route-link" href="/privacy">Privacy</a><a class="route-link" href="/terms">Terms</a><a href="https://sociobot.in" rel="external" aria-label="Built by Param Factory (external site)">Built by Param Factory ↗</a></nav><p class="fine">v0.1.0 · Generated hero imagery.</p></footer>`;
+  return `<footer><p>Proof before photo cleanup.</p><nav aria-label="Footer navigation"><a class="route-link" href="/privacy">Privacy</a><a class="route-link" href="/terms">Terms</a><a href="https://sociobot.in" rel="external" aria-label="Built by Param Factory (external site)">Built by Param Factory ↗</a></nav><p class="fine">v${VERSION} · Generated hero imagery.</p></footer>`;
 }
 
 function shell(content: string) {
@@ -44,7 +45,7 @@ function landing() {
   demo = false;
   shell(`<main id="main" tabindex="-1">
     <section class="hero">
-      <div class="hero-copy"><p class="eyebrow">A safer photo cleanup desk</p><h1 tabindex="-1">Review photo copies before you remove them</h1><p class="lede">For people with photos across several drives who fear removing the only meaningful copy.</p><div class="hero-action"><a class="button primary route-link" href="/demo">Try it with sample data ${icon("arrow")}</a><span>Opens three ready-to-review groups.</span></div><button class="download-link" id="download-app" type="button">Download for ${platformName()}</button><ul class="fact-list"><li>${icon("shield")} Photos stay on this device</li><li>${icon("check")} Works without an account</li><li>${icon("check")} Free scans cover 1,000 files at a time</li></ul></div>
+      <div class="hero-copy"><p class="eyebrow">A safer photo cleanup desk</p><h1 tabindex="-1">Review photo copies before you remove them</h1><p class="lede">For people with photos across several drives who fear removing the only meaningful copy.</p><div class="hero-action"><a class="button primary route-link" href="/demo">Try it with sample data ${icon("arrow")}</a><span>Opens three ready-to-review groups.</span></div><button class="download-link" id="download-app" type="button">Download for ${platformName()}</button><ul class="fact-list"><li>${icon("shield")} Photos stay on this device</li><li>${icon("check")} Works without an account</li><li>${icon("check")} Free for 1,000 files; US$29 once for full libraries</li></ul></div>
       <figure class="hero-art"><img src="/hero-proof-table.webp" width="900" height="600" fetchpriority="high" decoding="async" alt="Overlapping photo plates connect to a protected original on an archival work table."><figcaption>Copies line up. Evidence stays attached.</figcaption></figure>
     </section>
     <section class="preview-section" aria-labelledby="preview-title"><div><p class="eyebrow">The review desk</p><h2 id="preview-title">See why files match</h2><p>Compare paths, dimensions, dates, hashes, and backup counts before making a plan.</p></div>${previewGraphic()}</section>
@@ -60,7 +61,7 @@ function previewGraphic() {
 }
 
 function pricing() {
-  return `<section class="pricing" aria-labelledby="price-title"><div><p class="eyebrow">Desktop license</p><h2 id="price-title">Review a full library</h2><p>The free app scans 1,000 files at a time. An existing license removes that scan limit.</p>${licenseNotice ? `<p class="license-notice" role="status">${escapeHtml(licenseNotice)}</p>` : ""}</div><div class="price-actions"><p class="checkout-pending" role="status">Desktop license checkout is being prepared.</p><button class="button quiet" id="restore-license" type="button">Enter a license</button><p>Sociobot is the merchant of record. Refunds are handled there.</p></div></section>`;
+  return `<section class="pricing" aria-labelledby="price-title"><div><p class="eyebrow">Desktop license</p><h2 id="price-title">Review a full library</h2><p>The free app scans 1,000 files at a time. A license removes that scan limit.</p>${licenseNotice ? `<p class="license-notice" role="status">${escapeHtml(licenseNotice)}</p>` : ""}</div><div class="price-actions"><p class="price"><strong>US$29</strong> one-time purchase</p><a class="button primary" id="buy-license" href="https://api.sociobot.in/api/v1/products/${PRODUCT}/checkout">Buy the desktop license</a><button class="button quiet" id="restore-license" type="button">Enter a license</button><p>Sociobot and Dodo handle payment and refunds as merchant of record.</p></div></section>`;
 }
 
 function bindLanding() {
@@ -229,8 +230,9 @@ async function runPlan() {
     const destination = await open({ directory: true, multiple: false, title: "Choose a quarantine folder" });
     if (!destination || Array.isArray(destination)) return;
     const { invoke } = await import("@tauri-apps/api/core");
-    moves = await invoke<MoveRecord[]>("execute_quarantine", { paths: selected.map(file => file.path), quarantineDir: destination });
-    persist(); notice = `${moves.length} files moved to quarantine. The decision log is ready to export.`; renderDesk();
+    const completed = await invoke<MoveRecord[]>("execute_quarantine", { paths: selected.map(file => file.path), quarantineDir: destination });
+    moves.push(...completed);
+    persist(); notice = `${completed.length} file${completed.length === 1 ? "" : "s"} moved to quarantine. The decision log is ready to export.`; renderDesk();
   } catch (error) { notice = `The plan did not run. ${plainError(error)} Choose a writable quarantine folder and try again.`; renderDesk(); }
 }
 
@@ -307,7 +309,7 @@ function plainError(error: unknown) { return String(error).replace(/^Error:\s*/,
 
 function legalPage(kind: "privacy" | "terms") {
   const privacy = `<main id="main" class="prose-page" tabindex="-1"><p class="eyebrow">Policy</p><h1 tabindex="-1">Privacy without photo uploads</h1><p>Last updated 28 August 2026.</p><h2>Your photos stay local</h2><p>The desktop app reads selected folders on your device. It does not upload photos, thumbnails, paths, hashes, or decision logs.</p><h2>Data stored on your device</h2><p>The app stores review choices and recovery records, your license token, and cached license status. Demo choices use a separate session-only key.</p><h2>License checks</h2><p>License verification sends the license token to the Sociobot billing API. It does not send photo data.</p><h2>Website requests</h2><p>The download page may request release details from GitHub. We do not run advertising or tracking scripts.</p><h2>Remove your data</h2><p>Reset the demo or clear this site's storage. Desktop quarantine files remain where you chose to place them.</p><p>Questions: <a href="mailto:privacy@sociobot.in">privacy@sociobot.in</a></p></main>`;
-  const terms = `<main id="main" class="prose-page" tabindex="-1"><p class="eyebrow">Terms</p><h1 tabindex="-1">Terms for careful photo cleanup</h1><p>Last updated 28 August 2026.</p><h2>Use and responsibility</h2><p>Proof Pile helps you review and move files. You remain responsible for your files and backups.</p><h2>No permanent deletion</h2><p>The app moves chosen files to a quarantine folder. Do not empty that folder until you test important backups.</p><h2>License</h2><p>The free tier scans up to 1,000 files at once. An existing license removes that scan limit.</p><h2>Payments and refunds</h2><p>When available, Sociobot and Dodo handle checkout as merchant of record. A refunded license may stop working.</p><h2>Warranty</h2><p>The software is provided as is. Keep verified backups before changing a photo library.</p><p>Questions: <a href="mailto:support@sociobot.in">support@sociobot.in</a></p></main>`;
+  const terms = `<main id="main" class="prose-page" tabindex="-1"><p class="eyebrow">Terms</p><h1 tabindex="-1">Terms for careful photo cleanup</h1><p>Last updated 29 August 2026.</p><h2>Use and responsibility</h2><p>Proof Pile helps you review and move files. You remain responsible for your files and backups.</p><h2>No permanent deletion</h2><p>The app moves chosen files to a quarantine folder. Do not empty that folder until you test important backups.</p><h2>License</h2><p>The free tier scans up to 1,000 files at once. A US$29 one-time license removes that scan limit.</p><h2>Payments and refunds</h2><p>Sociobot and Dodo handle checkout as merchant of record. A refunded license stops working.</p><h2>Warranty</h2><p>The software is provided as is. Keep verified backups before changing a photo library.</p><p>Questions: <a href="mailto:support@sociobot.in">support@sociobot.in</a></p></main>`;
   shell(kind === "privacy" ? privacy : terms);
 }
 
@@ -349,8 +351,12 @@ async function verifySavedLicense() {
   const token = localStorage.getItem(LICENSE_KEY); if (!token) return;
   let cached: { valid?: boolean; checkedAt?: number } | null = null;
   try { cached = JSON.parse(localStorage.getItem(`${LICENSE_KEY}:verified`) || "null"); } catch { localStorage.removeItem(`${LICENSE_KEY}:verified`); }
-  if (cached?.valid && cached.checkedAt && Date.now() - cached.checkedAt < 86_400_000) { licenseActive = true; return; }
-  try { const response = await fetch(`https://api.sociobot.in/api/v1/products/${PRODUCT}/verify?license=${encodeURIComponent(token)}`); if (!response.ok) throw new Error(); const verdict = await response.json(); localStorage.setItem(`${LICENSE_KEY}:verified`, JSON.stringify({ ...verdict, checkedAt: Date.now() })); licenseActive = Boolean(verdict.valid); if (!verdict.valid) licenseNotice = "This license is no longer active. Enter another license or buy a new one."; }
+  if (cached?.checkedAt && Date.now() - cached.checkedAt < 86_400_000) {
+    licenseActive = Boolean(cached.valid);
+    if (!cached.valid) licenseNotice = "This license is no longer active. Enter another license.";
+    return;
+  }
+  try { const response = await fetch(`https://api.sociobot.in/api/v1/products/${PRODUCT}/verify?license=${encodeURIComponent(token)}`); if (!response.ok) throw new Error(); const verdict = await response.json(); localStorage.setItem(`${LICENSE_KEY}:verified`, JSON.stringify({ ...verdict, checkedAt: Date.now() })); licenseActive = Boolean(verdict.valid); if (!verdict.valid) licenseNotice = "This license is no longer active. Enter another license."; }
   catch { licenseActive = Boolean(cached?.valid); }
 }
 
@@ -358,7 +364,8 @@ async function showDownloads() {
   const existing = document.querySelector("dialog"); if (existing) existing.remove();
   const dialog = document.createElement("dialog"); dialog.innerHTML = `<div class="download-dialog"><button class="dialog-close" aria-label="Close download window">×</button><p class="eyebrow">Desktop app</p><h2>Choose your download</h2><p id="release-state">Checking the latest release…</p><div id="release-links"></div><a href="https://github.com/B-Divyesh/sf-photo-proof-pile/releases" rel="external">Open all releases ↗</a><p class="fine">Current builds are unsigned. Your system may ask you to confirm the first launch.</p></div>`; document.body.append(dialog); dialog.showModal(); dialog.querySelector(".dialog-close")?.addEventListener("click", () => dialog.close()); dialog.addEventListener("close", () => dialog.remove());
   try {
-    let release = JSON.parse(localStorage.getItem("proof-pile:release") || "null"); if (!release || Date.now() - release.savedAt > 3_600_000) { const response = await fetch("https://api.github.com/repos/B-Divyesh/sf-photo-proof-pile/releases/latest"); if (!response.ok) throw new Error(); release = { data: await response.json(), savedAt: Date.now() }; localStorage.setItem("proof-pile:release", JSON.stringify(release)); }
+    const releaseKey = `proof-pile:release:v${VERSION}`;
+    let release = JSON.parse(localStorage.getItem(releaseKey) || "null"); if (!release || Date.now() - release.savedAt > 3_600_000) { const response = await fetch("https://api.github.com/repos/B-Divyesh/sf-photo-proof-pile/releases/latest"); if (!response.ok) throw new Error(); release = { data: await response.json(), savedAt: Date.now() }; localStorage.setItem(releaseKey, JSON.stringify(release)); }
     const assets = release.data.assets as { name: string; browser_download_url: string }[];
     const macArm = assets.find(item => /\.(dmg)$/i.test(item.name) && /(aarch64|arm64)/i.test(item.name));
     const macIntel = assets.find(item => /\.(dmg)$/i.test(item.name) && /(x86_64|x64|intel)/i.test(item.name));

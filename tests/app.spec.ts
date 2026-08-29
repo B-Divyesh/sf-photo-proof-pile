@@ -1,6 +1,33 @@
 import { expect, test } from "@playwright/test";
 import AxeBuilder from "@axe-core/playwright";
 
+async function installTauriMock(page: import("@playwright/test").Page) {
+  await page.addInitScript(() => {
+    const restored: string[] = [];
+    let batch = 0;
+    (window as unknown as { __PROOF_PILE_TAURI_TEST__: unknown }).__PROOF_PILE_TAURI_TEST__ = { restored };
+    (window as unknown as { __TAURI_INTERNALS__: unknown }).__TAURI_INTERNALS__ = {
+      invoke: async (command: string, args: { paths?: string[] }) => {
+        if (command === "plugin:dialog|open") return "/Mock quarantine";
+        if (command === "execute_quarantine") {
+          batch += 1;
+          return (args.paths ?? []).map((source, index) => ({
+            id: `batch-${batch}-${index}`,
+            source,
+            destination: `/Mock quarantine/${source.split("/").pop()}`,
+            movedAt: `2026-08-29T00:0${batch}:00.000Z`
+          }));
+        }
+        if (command === "restore_quarantined") {
+          restored.push((args as unknown as { record: { source: string } }).record.source);
+          return null;
+        }
+        throw new Error(`Unexpected native command: ${command}`);
+      }
+    };
+  });
+}
+
 test("@claim:demo-isolated opens and resets a separate sample review", async ({ page }) => {
   await page.goto("/");
   await page.getByRole("link", { name: /Try it with sample data/ }).click();
@@ -65,6 +92,38 @@ test("@claim:reversible-plan persists recovery records, exports them, and import
   await expect(page.getByText(/restored in the demo/)).toBeVisible();
 });
 
+test("native quarantine keeps and restores recovery records from separate batches", async ({ page }) => {
+  await installTauriMock(page);
+  await page.goto("/demo");
+  await page.getByRole("button", { name: "Mark exact extras" }).click();
+  await page.evaluate(() => localStorage.setItem("proof-pile:session", sessionStorage.getItem("demo:photo-proof-pile:session")!));
+  await page.goto("/app");
+
+  page.once("dialog", dialog => dialog.accept());
+  await page.getByRole("button", { name: "Review and run plan" }).click();
+  await expect(page.getByText("2 files moved to quarantine. The decision log is ready to export.")).toBeVisible();
+
+  while (await page.locator('.file-row.quarantine button[data-decision="review"]').count()) {
+    await page.locator('.file-row.quarantine button[data-decision="review"]').first().click();
+  }
+  await page.getByRole("option").nth(1).click();
+  await page.locator(".file-row").nth(1).getByRole("button", { name: "Quarantine" }).click();
+  page.once("dialog", dialog => dialog.accept());
+  await page.getByRole("button", { name: "Review and run plan" }).click();
+  await expect(page.getByText("1 file moved to quarantine. The decision log is ready to export.")).toBeVisible();
+
+  expect(await page.evaluate(() => JSON.parse(localStorage.getItem("proof-pile:session")!).moves)).toHaveLength(3);
+  await page.reload();
+  await page.getByRole("button", { name: "Restore last move" }).click();
+  await expect.poll(() => page.evaluate(() => JSON.parse(localStorage.getItem("proof-pile:session")!).moves.filter((move: { restoredAt?: string }) => move.restoredAt).length)).toBe(1);
+  await page.getByRole("button", { name: "Restore last move" }).click();
+  await expect.poll(() => page.evaluate(() => JSON.parse(localStorage.getItem("proof-pile:session")!).moves.filter((move: { restoredAt?: string }) => move.restoredAt).length)).toBe(2);
+  const restored = await page.evaluate(() => (window as unknown as { __PROOF_PILE_TAURI_TEST__: { restored: string[] } }).__PROOF_PILE_TAURI_TEST__.restored);
+  expect(restored).toHaveLength(2);
+  expect(restored.some(path => path.includes("DSC_2082"))).toBe(true);
+  expect(restored.some(path => path.includes("IMG_4812"))).toBe(true);
+});
+
 test("never allows a plan that quarantines a group's only kept copy", async ({ page }) => {
   await page.goto("/demo");
   await page.getByRole("button", { name: "Quarantine", exact: true }).first().click();
@@ -107,6 +166,46 @@ test("@claim:paid-license verifies and caches a restored license", async ({ page
   expect(await page.evaluate(() => localStorage.getItem("sb_license:photo-proof-pile"))).toBe("test-license-token");
 });
 
+test("a fresh invalid license verdict is reused without another request", async ({ page }) => {
+  let checks = 0;
+  await page.addInitScript(() => {
+    localStorage.setItem("sb_license:photo-proof-pile", "revoked-license-token");
+    localStorage.setItem("sb_license:photo-proof-pile:verified", JSON.stringify({ valid: false, reason: "revoked", checkedAt: Date.now() }));
+  });
+  await page.route("https://api.sociobot.in/**", route => {
+    checks += 1;
+    return route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify({ valid: false, reason: "revoked", expires_at: null }) });
+  });
+  await page.goto("/");
+  await expect(page.getByText("This license is no longer active. Enter another license.")).toBeVisible();
+  await page.reload();
+  await page.reload();
+  expect(checks).toBe(0);
+});
+
+test("@claim:paid-checkout shows the price, opens hosted checkout, and stores a returned license", async ({ page }) => {
+  let checkoutRequests = 0;
+  let verifyRequests = 0;
+  await page.route("https://api.sociobot.in/api/v1/products/photo-proof-pile/checkout", route => {
+    checkoutRequests += 1;
+    return route.fulfill({ status: 200, contentType: "text/html", body: "<!doctype html><title>Hosted checkout</title>" });
+  });
+  await page.goto("/");
+  await expect(page.getByText("US$29", { exact: true }).first()).toBeVisible();
+  await page.getByRole("link", { name: "Buy the desktop license" }).click();
+  await expect(page).toHaveURL("https://api.sociobot.in/api/v1/products/photo-proof-pile/checkout");
+  expect(checkoutRequests).toBe(1);
+
+  await page.route("https://api.sociobot.in/api/v1/products/photo-proof-pile/verify?license=returned-token", route => {
+    verifyRequests += 1;
+    return route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify({ valid: true, reason: "ok", expires_at: null }) });
+  });
+  await page.goto("/?license=returned-token");
+  await expect(page).toHaveURL("/");
+  expect(await page.evaluate(() => localStorage.getItem("sb_license:photo-proof-pile"))).toBe("returned-token");
+  expect(verifyRequests).toBe(1);
+});
+
 test("@claim:offline-reload reloads the demo without a network", async ({ page, context }) => {
   await page.goto("/demo");
   await page.evaluate(() => navigator.serviceWorker.ready);
@@ -147,6 +246,27 @@ test("the phone layout keeps actions usable", async ({ page }) => {
   }
 });
 
+test("phone policy and not-found actions meet the touch target baseline", async ({ page }) => {
+  await page.setViewportSize({ width: 390, height: 844 });
+  for (const path of ["/privacy", "/terms", "/missing-frame"]) {
+    await page.goto(path);
+    const action = path === "/missing-frame" ? page.getByRole("link", { name: "Return home" }) : page.getByRole("link", { name: /@sociobot\.in/ });
+    const box = await action.boundingBox();
+    expect(box?.width).toBeGreaterThanOrEqual(44);
+    expect(box?.height).toBeGreaterThanOrEqual(44);
+  }
+});
+
+test("the 390px review keeps all content available at 200% text size", async ({ page }) => {
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page.goto("/demo");
+  await page.locator("html").evaluate(element => { element.style.fontSize = "34px"; });
+  expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBeLessThanOrEqual(390);
+  for (const option of await page.getByRole("option").all()) {
+    expect(await option.evaluate(element => element.scrollWidth)).toBeLessThanOrEqual(await option.evaluate(element => element.clientWidth));
+  }
+});
+
 test("the skip link moves keyboard focus to main", async ({ page }) => {
   await page.goto("/");
   await page.getByRole("link", { name: "Skip to main content" }).focus();
@@ -165,7 +285,9 @@ test("download picker offers both published macOS architectures", async ({ page 
     ] })
   }));
   await page.goto("/");
+  await page.evaluate(() => localStorage.setItem("proof-pile:release", JSON.stringify({ savedAt: Date.now(), data: { tag_name: "v0.1.0", assets: [] } })));
   await page.getByRole("button", { name: /Download for/ }).click();
+  await expect(page.getByText("v0.1.1 is ready.")).toBeVisible();
   await expect(page.getByRole("link", { name: "Download for macOS (Apple silicon)" })).toHaveAttribute("href", "https://example.test/arm.dmg");
   await expect(page.getByRole("link", { name: "Download for macOS (Intel)" })).toHaveAttribute("href", "https://example.test/intel.dmg");
 });

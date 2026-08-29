@@ -794,4 +794,22 @@ mod tests {
         assert!(report.limited);
         let _ = fs::remove_dir_all(root);
     }
+
+    // @claim:licensed-scan-limit
+    #[test]
+    fn claim_licensed_scan_limit_is_removed() {
+        let root = temp_dir("licensed-limit");
+        sample(&root.join("photo-0000.png"), [40, 90, 120]);
+        for index in 1..=FREE_LIMIT {
+            fs::copy(
+                root.join("photo-0000.png"),
+                root.join(format!("photo-{index:04}.png")),
+            )
+            .unwrap();
+        }
+        let report = scan_directories(vec![root.to_string_lossy().to_string()], true).unwrap();
+        assert_eq!(report.scanned, FREE_LIMIT + 1);
+        assert!(!report.limited);
+        let _ = fs::remove_dir_all(root);
+    }
 }
