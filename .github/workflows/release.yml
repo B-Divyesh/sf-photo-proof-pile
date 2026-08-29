@@ -220,11 +220,12 @@ jobs:
           : > SHA256SUMS
           while IFS= read -r -d '' asset; do sha256sum "$asset" | sed 's#  \./#  #' >> SHA256SUMS; done < <(find . -maxdepth 1 -type f ! -name SHA256SUMS ! -name latest.json -print0 | sort -z)
           gh api "repos/${GITHUB_REPOSITORY}/releases/${RELEASE_ID}" > release.json
-          jq --arg commit "$RELEASE_COMMIT" --arg apple "$apple_status" --arg windows "$windows_status" \
-            '{version: .tag_name, commit: $commit, signatures: {macos: $apple, windows: $windows}, platforms: {macos: [.assets[] | select(.name | test("\\.dmg$")) | {name, url: .browser_download_url}], windows: [.assets[] | select(.name | test("\\.(msi|exe)$")) | {name, url: .browser_download_url}], linux: [.assets[] | select(.name | test("\\.(AppImage|deb)$")) | {name, url: .browser_download_url}]}}' \
+          download_base="https://github.com/${GITHUB_REPOSITORY}/releases/download/${RELEASE_TAG}"
+          jq --arg commit "$RELEASE_COMMIT" --arg apple "$apple_status" --arg windows "$windows_status" --arg base "$download_base" \
+            '{version: .tag_name, commit: $commit, signatures: {macos: $apple, windows: $windows}, platforms: {macos: [.assets[] | select(.name | test("\\.dmg$")) | {name, url: ($base + "/" + .name)}], windows: [.assets[] | select(.name | test("\\.(msi|exe)$")) | {name, url: ($base + "/" + .name)}], linux: [.assets[] | select(.name | test("\\.(AppImage|deb)$")) | {name, url: ($base + "/" + .name)}]}}' \
             release.json > latest.json
           rm release.json
-          jq -e --arg commit "$RELEASE_COMMIT" '.commit == $commit and (.platforms.macos | length) >= 2 and (.platforms.windows | length) >= 1 and (.platforms.linux | length) >= 2' latest.json
+          jq -e --arg commit "$RELEASE_COMMIT" --arg base "$download_base" '.commit == $commit and (.platforms.macos | length) >= 2 and (.platforms.windows | length) >= 1 and (.platforms.linux | length) >= 2 and all(.platforms[][]; .url | startswith($base + "/"))' latest.json
       - name: Upload checksums and release manifest
         uses: softprops/action-gh-release@v2
         with:
@@ -262,6 +263,8 @@ jobs:
           mkdir verified-release
           gh release download "$RELEASE_TAG" --repo "$GITHUB_REPOSITORY" --dir verified-release
           cd verified-release
-          jq -e --arg tag "$RELEASE_TAG" --arg commit "$RELEASE_COMMIT" \
-            '.version == $tag and .commit == $commit and (.platforms.macos | length) >= 2 and (.platforms.windows | length) >= 1 and (.platforms.linux | length) >= 2' latest.json
+          download_base="https://github.com/${GITHUB_REPOSITORY}/releases/download/${RELEASE_TAG}"
+          jq -e --arg tag "$RELEASE_TAG" --arg commit "$RELEASE_COMMIT" --arg base "$download_base" \
+            '.version == $tag and .commit == $commit and (.platforms.macos | length) >= 2 and (.platforms.windows | length) >= 1 and (.platforms.linux | length) >= 2 and all(.platforms[][]; .url | startswith($base + "/"))' latest.json
           sha256sum -c SHA256SUMS
+          while IFS= read -r asset_url; do curl --fail --silent --show-error --location --head --retry 3 "$asset_url" >/dev/null; done < <(jq -r '.platforms[][] | .url' latest.json)

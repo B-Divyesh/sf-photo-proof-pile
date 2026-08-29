@@ -12,7 +12,8 @@ This repair addresses every release-blocking finding in
   when the full credential set exists.
 - A release remains a draft until all four platform builds, the package matrix,
   `SHA256SUMS`, and the immutable `latest.json` commit identity pass. A final
-  job downloads the published assets and verifies every checksum again.
+  job downloads the published assets, verifies every checksum again, and checks
+  each canonical tagged URL in `latest.json`.
 - The desktop, Tauri, Cargo, site, and 404 identities are synchronized at
   `v0.1.13`; the service-worker cache is advanced to `proof-pile-v10`.
 - The privacy statement about advertising/tracking and the conditional
@@ -21,8 +22,8 @@ This repair addresses every release-blocking finding in
 - Existing reviewed-plan native safety, demo behavior, visual design, and the
   researched product scope are unchanged.
 
-The live release and deployment evidence is appended after the tagged workflow
-and production deployment complete.
+Release `v0.1.13` and the repaired static site are published. Exact evidence is
+recorded below.
 
 ## Regression coverage added
 
@@ -36,6 +37,23 @@ and production deployment complete.
   old mandatory signing dependency.
 - Existing immutable-tag and reviewed-plan tests continue to bind a release to
   its exact source and prevent moves of unreviewed or only-copy files.
+
+## Findings reproduced
+
+- **S1 — the reviewed native safety gate was not downloadable:** the latest
+  public packages were still `v0.1.10`, while the first repair workflow for
+  `v0.1.11` stopped before packaging because it required signing secrets that
+  this repository does not have. The old public binary therefore did not
+  contain the reviewed-plan quarantine gate.
+- **S2 — public claims were unlisted:** the privacy statement about advertising
+  and tracking and the desktop unsigned-build statement had no entries or
+  exact tests in `.factory/claims.json`.
+
+The release workflow now treats signatures as optional package provenance,
+not as a condition for producing packages. It publishes only after the full
+matrix and integrity gates pass, and exposes a verified-signatures marker only
+when both owner certificate sets were present and verified. The two public
+statements now have exact browser regressions.
 
 ## Local verification
 
@@ -72,6 +90,59 @@ Observed results in the clean repair workspace:
 - Mobile Lighthouse on the production build: performance 100, accessibility
   100, best practices 100, SEO 100; FCP 0.9 s, LCP 1.7 s, TBT 20 ms, CLS 0,
   transfer 141,230 bytes.
+
+## Published desktop release evidence
+
+- Tag `v0.1.13` resolves to reviewed source
+  `71afc93f8d9370bfda853f707b103370ba3e3b1d`.
+- GitHub Actions run
+  `https://github.com/B-Divyesh/sf-photo-proof-pile/actions/runs/33267683489`
+  passed prepare, macOS arm64, macOS x64, Windows, Linux, checksums, publish,
+  and post-publication verification.
+- The public release at
+  `https://github.com/B-Divyesh/sf-photo-proof-pile/releases/tag/v0.1.13`
+  has DMG packages for both Mac architectures, MSI and EXE packages for
+  Windows, AppImage, DEB, RPM, both Mac app archives, `SHA256SUMS`, and
+  `latest.json`.
+- `latest.json` reports `v0.1.13`, the exact commit above, and unsigned macOS
+  and Windows provenance. All six installer URLs use the canonical tagged
+  `/releases/download/v0.1.13/` path and returned HTTP 200 after publication.
+- The published DEB SHA-256 is
+  `a95fcc55566fe2a6356f079672c4972125420270074652118788a9a3d7105ba6`,
+  matching `SHA256SUMS`. After extraction, its package metadata is
+  `proof-pile` `0.1.13` `amd64`; the executable contains both reviewed-plan
+  guard messages and stayed running through the eight-second Xvfb smoke test.
+- The live dialog was exercised as Linux, Windows, and macOS. It reported
+  `v0.1.13 is ready`, showed the exact unsigned-package warning, chose the
+  expected AppImage, EXE, and arm64 DMG, and each selected URL returned 200.
+
+## Production deployment and browser evidence
+
+- Static deployment `38af8ae4-c777-4696-b400-43b45baae000` completed and
+  `https://photo-proof-pile.sociobot.in` serves the repaired `v0.1.13` site.
+  The deployed hashed JavaScript, CSS, and service worker match `dist/site`.
+- `/opt/fleet/lib/verify-url.sh` passed `/` and `/demo`: correct titles and
+  language, one h1 and main landmark, complete alt text, labeled buttons, and
+  no console or page errors.
+- Chromium checks passed `/`, `/demo`, `/privacy`, `/terms`, and the designed
+  true-404 response in both light and dark modes. Axe found zero serious or
+  critical issues. The skip link, keyboard review flow, dialog focus, live
+  status, and reduced-motion path passed.
+- At 390 CSS pixels, the page has no horizontal overflow and touch targets are
+  at least 44 pixels. At 200% text zoom, content and controls remain available.
+- Demo quarantine, CSV export with nine data rows, undo/restore persistence,
+  offline reload, update handling, and a fresh-context reset all passed. The
+  privacy claim flow made zero off-origin requests.
+- Production Lighthouse scored 100 for performance, accessibility, best
+  practices, and SEO: FCP 1.0 s, LCP 1.2 s, TBT 20 ms, CLS 0, and 140,412
+  transferred bytes.
+- All nine rendered internal links returned successful responses. Production
+  responses include CSP with `frame-ancestors 'none'`, HSTS, nosniff,
+  Referrer-Policy, and Permissions-Policy headers.
+- The license response-policy check returned 200 for the first 30 requests and
+  429 with `Retry-After` from request 31. Checkout returned the expected hosted
+  checkout redirect. The landing document exposes no identity-provider
+  controls or fields, so no live identity flow applies to this local-first app.
 
 ## Release policy and operator action
 

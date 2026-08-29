@@ -88,6 +88,9 @@ describe("review model", () => {
     expect(workflow).toContain('RELEASE_ID: ${{ needs.prepare-release.outputs.release_id }}');
     expect(workflow).toContain('releases/${RELEASE_ID}');
     expect(workflow).not.toContain('releases/tags/${RELEASE_TAG}');
+    expect(workflow).toContain('releases/download/${RELEASE_TAG}');
+    expect(workflow).not.toContain('url: .browser_download_url');
+    expect(workflow).toContain("jq -r '.platforms[][] | .url' latest.json");
     expect(workflow).toContain('jq --arg commit "$RELEASE_COMMIT"');
     expect(workflow).not.toContain('jq --arg commit "$GITHUB_SHA"');
   });
