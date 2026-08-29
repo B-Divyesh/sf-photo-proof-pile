@@ -9,7 +9,7 @@ performance checks pass.
 
 Functional repair commit: `419957b`
 
-Release: `v0.1.7`
+Release: `v0.1.8`
 
 Static deployment: `14bbb7d7-1b38-4e0f-847f-fcad14fd9db4`
 

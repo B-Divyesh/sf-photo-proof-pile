@@ -1,6 +1,6 @@
 # Polish round 2 — cumulative finding closure
 
-Product release: `v0.1.7`
+Product release: `v0.1.8`
 
 Functional repair commit: `419957b`
 
@@ -55,7 +55,7 @@ Every finding in `.factory/review-1.md`, `.factory/polish-1.md`, and
 
 | Finding | Change made | Evidence |
 | --- | --- | --- |
-| F-2-1 | All version sources and the static 404 say `v0.1.7`; a unit test prevents drift. | `keeps the static 404 release identity in sync with the product version`; `live-404-mobile.png`; cold `/missing-frame`. |
+| F-2-1 | All version sources and the static 404 say `v0.1.8`; a unit test prevents drift. | `keeps the static 404 release identity in sync with the product version`; `live-404-mobile.png`; cold `/missing-frame`. |
 | F-2-2 | See F-1-34. Signed build paths and verification are implemented; trusted credentials remain owner-controlled. | Workflow inspection and repository secret inventory. |
 | F-2-3 | The claim proves no request at 23:59:59, exactly one at 24:00:00, and none on immediate reload. | `@claim:paid-license` from the clean clone. |
 | F-2-4 | “Generated hero imagery” was removed from both footers; provenance remains in the visual thesis and sidecar. | `tests/model.test.ts`; cold `/` and `/missing-frame`. |
