@@ -6,7 +6,7 @@ on:
   workflow_dispatch:
     inputs:
       tag:
-        description: Existing version tag to release (for example, v0.1.11)
+        description: Existing version tag to release (for example, v0.1.12)
         required: true
         type: string
 
@@ -14,25 +14,7 @@ permissions:
   contents: write
 
 jobs:
-  validate-signing:
-    runs-on: ubuntu-latest
-    env:
-      HAS_APPLE_CERTIFICATE: ${{ secrets.APPLE_CERTIFICATE != '' && secrets.APPLE_CERTIFICATE_PASSWORD != '' && secrets.APPLE_SIGNING_IDENTITY != '' && secrets.APPLE_ID != '' && secrets.APPLE_PASSWORD != '' && secrets.APPLE_TEAM_ID != '' }}
-      HAS_WINDOWS_CERTIFICATE: ${{ secrets.WINDOWS_CERT_PFX != '' && secrets.WINDOWS_CERTIFICATE_PASSWORD != '' }}
-    steps:
-      - name: Require trusted desktop signing credentials
-        run: |
-          if [ "$HAS_APPLE_CERTIFICATE" != "true" ]; then
-            echo "macOS signing and notarization secrets are required; no release was created." >&2
-            exit 1
-          fi
-          if [ "$HAS_WINDOWS_CERTIFICATE" != "true" ]; then
-            echo "Windows Authenticode secrets are required; no release was created." >&2
-            exit 1
-          fi
-
   prepare-release:
-    needs: validate-signing
     runs-on: ubuntu-latest
     outputs:
       tag: ${{ steps.identity.outputs.tag }}
@@ -64,14 +46,20 @@ jobs:
           fi
           echo "tag=$release_tag" >> "$GITHUB_OUTPUT"
           echo "commit=$release_commit" >> "$GITHUB_OUTPUT"
-      - name: Create release before matrix uploads
+      - name: Create a draft release before matrix uploads
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          gh release view "${{ steps.identity.outputs.tag }}" >/dev/null 2>&1 || gh release create "${{ steps.identity.outputs.tag }}" --title "Proof Pile ${{ steps.identity.outputs.tag }}" --notes "Desktop packages for local duplicate-photo review."
+          gh release view "${{ steps.identity.outputs.tag }}" >/dev/null 2>&1 || \
+            gh release create "${{ steps.identity.outputs.tag }}" --draft \
+              --title "Proof Pile ${{ steps.identity.outputs.tag }}" \
+              --notes "Desktop packages for local duplicate-photo review. Packages without a verified signature marker are unsigned."
 
   build:
     needs: prepare-release
+    env:
+      HAS_APPLE_CERTIFICATE: ${{ secrets.APPLE_CERTIFICATE != '' && secrets.APPLE_CERTIFICATE_PASSWORD != '' && secrets.APPLE_SIGNING_IDENTITY != '' && secrets.APPLE_ID != '' && secrets.APPLE_PASSWORD != '' && secrets.APPLE_TEAM_ID != '' }}
+      HAS_WINDOWS_CERTIFICATE: ${{ secrets.WINDOWS_CERT_PFX != '' && secrets.WINDOWS_CERTIFICATE_PASSWORD != '' }}
     strategy:
       fail-fast: false
       matrix:
@@ -105,7 +93,7 @@ jobs:
         run: sudo apt-get update && sudo apt-get install -y libwebkit2gtk-4.1-dev libappindicator3-dev librsvg2-dev patchelf
       - run: npm ci
       - name: Import Windows signing certificate
-        if: matrix.platform == 'windows-latest'
+        if: matrix.platform == 'windows-latest' && env.HAS_WINDOWS_CERTIFICATE == 'true'
         shell: pwsh
         env:
           WINDOWS_CERT_PFX: ${{ secrets.WINDOWS_CERT_PFX }}
@@ -122,7 +110,7 @@ jobs:
         shell: pwsh
         run: ./tests/install-windows.ps1
       - name: Build signed macOS package
-        if: startsWith(matrix.platform, 'macos')
+        if: startsWith(matrix.platform, 'macos') && env.HAS_APPLE_CERTIFICATE == 'true'
         uses: tauri-apps/tauri-action@v0
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -135,36 +123,36 @@ jobs:
         with:
           tagName: v__VERSION__
           releaseName: Proof Pile v__VERSION__
-          releaseBody: Signed and notarized desktop packages for local duplicate-photo review.
-          releaseDraft: false
+          releaseBody: Desktop packages for local duplicate-photo review.
+          releaseDraft: true
           prerelease: false
           args: ${{ matrix.args }}
       - name: Build signed Windows package
-        if: matrix.platform == 'windows-latest'
+        if: matrix.platform == 'windows-latest' && env.HAS_WINDOWS_CERTIFICATE == 'true'
         uses: tauri-apps/tauri-action@v0
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           tagName: v__VERSION__
           releaseName: Proof Pile v__VERSION__
-          releaseBody: Local duplicate-photo review with reversible quarantine.
-          releaseDraft: false
+          releaseBody: Desktop packages for local duplicate-photo review.
+          releaseDraft: true
           prerelease: false
           args: ${{ matrix.args }}
-      - name: Build Linux package
-        if: matrix.platform == 'ubuntu-latest'
+      - name: Build package without a signing certificate
+        if: matrix.platform == 'ubuntu-latest' || (startsWith(matrix.platform, 'macos') && env.HAS_APPLE_CERTIFICATE != 'true') || (matrix.platform == 'windows-latest' && env.HAS_WINDOWS_CERTIFICATE != 'true')
         uses: tauri-apps/tauri-action@v0
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           tagName: v__VERSION__
           releaseName: Proof Pile v__VERSION__
-          releaseBody: Local duplicate-photo review with reversible quarantine.
-          releaseDraft: false
+          releaseBody: Desktop packages for local duplicate-photo review. Packages without a verified signature marker are unsigned.
+          releaseDraft: true
           prerelease: false
           args: ${{ matrix.args }}
       - name: Verify Windows package signature
-        if: matrix.platform == 'windows-latest'
+        if: matrix.platform == 'windows-latest' && env.HAS_WINDOWS_CERTIFICATE == 'true'
         shell: pwsh
         run: |
           $packages = Get-ChildItem -Path src-tauri/target -Recurse -File | Where-Object { $_.FullName -match '[\\/]bundle[\\/](msi|nsis)[\\/]' -and $_.Extension -in '.msi', '.exe' }
@@ -174,7 +162,7 @@ jobs:
             if ($signature.Status -ne "Valid") { throw "$($package.Name) has no valid Authenticode signature." }
           }
       - name: Verify macOS package signature and notarization
-        if: startsWith(matrix.platform, 'macos')
+        if: startsWith(matrix.platform, 'macos') && env.HAS_APPLE_CERTIFICATE == 'true'
         run: |
           app_count=0
           while IFS= read -r -d '' app; do
@@ -192,40 +180,81 @@ jobs:
           test "$dmg_count" -gt 0
 
   checksums:
-    needs: build
+    needs: [prepare-release, build]
     runs-on: ubuntu-latest
+    env:
+      HAS_APPLE_CERTIFICATE: ${{ secrets.APPLE_CERTIFICATE != '' && secrets.APPLE_CERTIFICATE_PASSWORD != '' && secrets.APPLE_SIGNING_IDENTITY != '' && secrets.APPLE_ID != '' && secrets.APPLE_PASSWORD != '' && secrets.APPLE_TEAM_ID != '' }}
+      HAS_WINDOWS_CERTIFICATE: ${{ secrets.WINDOWS_CERT_PFX != '' && secrets.WINDOWS_CERTIFICATE_PASSWORD != '' }}
     steps:
       - uses: actions/checkout@v4
         with:
           ref: ${{ needs.prepare-release.outputs.tag }}
       - name: Download release assets
-        id: release
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          echo "tag=${{ needs.prepare-release.outputs.tag }}" >> "$GITHUB_OUTPUT"
           mkdir release-assets
           gh release download "${{ needs.prepare-release.outputs.tag }}" --dir release-assets
-      - name: Write checksums and release manifest
+      - name: Write checksums and immutable release manifest
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           RELEASE_TAG: ${{ needs.prepare-release.outputs.tag }}
           RELEASE_COMMIT: ${{ needs.prepare-release.outputs.commit }}
         run: |
           cd release-assets
-          printf '%s\n' '{"macos":"signed-and-notarized","windows":"authenticode-signed"}' > DESKTOP_SIGNATURES_VERIFIED.json
+          rm -f SHA256SUMS latest.json DESKTOP_SIGNATURES_VERIFIED.json
+          apple_status=unsigned
+          windows_status=unsigned
+          if [ "$HAS_APPLE_CERTIFICATE" = "true" ]; then apple_status=signed-and-notarized; fi
+          if [ "$HAS_WINDOWS_CERTIFICATE" = "true" ]; then windows_status=authenticode-signed; fi
+          if [ "$HAS_APPLE_CERTIFICATE" = "true" ] && [ "$HAS_WINDOWS_CERTIFICATE" = "true" ]; then
+            printf '%s\n' '{"macos":"signed-and-notarized","windows":"authenticode-signed"}' > DESKTOP_SIGNATURES_VERIFIED.json
+          fi
           : > SHA256SUMS
           while IFS= read -r -d '' asset; do sha256sum "$asset" | sed 's#  \./#  #' >> SHA256SUMS; done < <(find . -maxdepth 1 -type f ! -name SHA256SUMS ! -name latest.json -print0 | sort -z)
           gh api "repos/${GITHUB_REPOSITORY}/releases/tags/${RELEASE_TAG}" > release.json
-          jq --arg commit "$RELEASE_COMMIT" '{version: .tag_name, commit: $commit, signatures: {macos: "signed-and-notarized", windows: "authenticode-signed"}, platforms: {macos: [.assets[] | select(.name | test("\\.dmg$")) | {name, url: .browser_download_url}], windows: [.assets[] | select(.name | test("\\.(msi|exe)$")) | {name, url: .browser_download_url}], linux: [.assets[] | select(.name | test("\\.(AppImage|deb)$")) | {name, url: .browser_download_url}]}}' release.json > latest.json
+          jq --arg commit "$RELEASE_COMMIT" --arg apple "$apple_status" --arg windows "$windows_status" \
+            '{version: .tag_name, commit: $commit, signatures: {macos: $apple, windows: $windows}, platforms: {macos: [.assets[] | select(.name | test("\\.dmg$")) | {name, url: .browser_download_url}], windows: [.assets[] | select(.name | test("\\.(msi|exe)$")) | {name, url: .browser_download_url}], linux: [.assets[] | select(.name | test("\\.(AppImage|deb)$")) | {name, url: .browser_download_url}]}}' \
+            release.json > latest.json
           rm release.json
-      - uses: softprops/action-gh-release@v2
+          jq -e --arg commit "$RELEASE_COMMIT" '.commit == $commit and (.platforms.macos | length) >= 2 and (.platforms.windows | length) >= 1 and (.platforms.linux | length) >= 2' latest.json
+      - name: Upload checksums and release manifest
+        uses: softprops/action-gh-release@v2
         with:
-          tag_name: ${{ steps.release.outputs.tag }}
+          tag_name: ${{ needs.prepare-release.outputs.tag }}
           files: |
             release-assets/SHA256SUMS
             release-assets/latest.json
-            release-assets/DESKTOP_SIGNATURES_VERIFIED.json
           fail_on_unmatched_files: true
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - name: Upload verified-signatures marker
+        if: env.HAS_APPLE_CERTIFICATE == 'true' && env.HAS_WINDOWS_CERTIFICATE == 'true'
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ needs.prepare-release.outputs.tag }}
+          files: release-assets/DESKTOP_SIGNATURES_VERIFIED.json
+          fail_on_unmatched_files: true
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - name: Publish only after every platform and checksum passes
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: gh release edit "${{ needs.prepare-release.outputs.tag }}" --draft=false --latest
+
+  verify-release:
+    needs: [prepare-release, checksums]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Verify published identity, package matrix, and checksums
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          RELEASE_TAG: ${{ needs.prepare-release.outputs.tag }}
+          RELEASE_COMMIT: ${{ needs.prepare-release.outputs.commit }}
+        run: |
+          mkdir verified-release
+          gh release download "$RELEASE_TAG" --repo "$GITHUB_REPOSITORY" --dir verified-release
+          cd verified-release
+          jq -e --arg tag "$RELEASE_TAG" --arg commit "$RELEASE_COMMIT" \
+            '.version == $tag and .commit == $commit and (.platforms.macos | length) >= 2 and (.platforms.windows | length) >= 1 and (.platforms.linux | length) >= 2' latest.json
+          sha256sum -c SHA256SUMS

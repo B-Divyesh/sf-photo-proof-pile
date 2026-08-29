@@ -1,6 +1,6 @@
 [package]
 name = "proof-pile"
-version = "0.1.11"
+version = "0.1.12"
 description = "Evidence-first duplicate photo cleanup"
 authors = ["Param Factory"]
 edition = "2021"
@@ -29,6 +29,6 @@ kamadak-exif = "0.6"
 image = { version = "0.25", default-features = false, features = ["jpeg", "png", "webp", "gif", "tiff", "bmp"] }
 serde = { version = "1", features = ["derive"] }
 sha2 = "0.10"
-tauri = { version = "2", optional = true }
+tauri = { version = "2", optional = true , features = [] }
 tauri-plugin-dialog = { version = "2", optional = true }
 walkdir = "2"

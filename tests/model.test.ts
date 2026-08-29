@@ -67,13 +67,15 @@ describe("review model", () => {
     expect(main).toContain(`const VERSION = "${version}"`);
   });
 
-  it("blocks release publication until trusted desktop signatures can be verified", () => {
+  it("publishes reviewed desktop source without certificates and verifies signatures when configured", () => {
     const workflow = readFileSync(new URL("../.github/workflows/release.yml", import.meta.url), "utf8");
-    expect(workflow).toContain("needs: validate-signing");
+    expect(workflow).toContain("Build package without a signing certificate");
+    expect(workflow).toContain("env.HAS_APPLE_CERTIFICATE != 'true'");
+    expect(workflow).toContain("env.HAS_WINDOWS_CERTIFICATE != 'true'");
     expect(workflow).toContain("Get-AuthenticodeSignature");
     expect(workflow).toContain("xcrun stapler validate");
     expect(workflow).toContain("DESKTOP_SIGNATURES_VERIFIED.json");
-    expect(workflow).not.toContain("Build unsigned package");
+    expect(workflow).not.toContain("needs: validate-signing");
   });
 
   it("releases only the matching version tag and records that tag's immutable commit", () => {
