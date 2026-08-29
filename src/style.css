@@ -121,6 +121,7 @@ p, li { line-height: 1.55; }
 .pricing .price-actions { display: flex; flex-wrap: wrap; align-items: center; gap: 16px; }
 .pricing .button.quiet { border-color: var(--canvas); color: var(--canvas); }
 .pricing .price-actions p { flex-basis: 100%; margin: 0; color: #c4ccc8; font-size: .8rem; }
+.pricing .price-actions p a { display: inline-flex; min-height: 44px; align-items: center; color: #b9dcfa; }
 .pricing .price { color: #dce5df; }
 .pricing .price strong { margin-right: 8px; color: #f5f1e7; font: 600 2rem/1 var(--serif); }
 
@@ -201,7 +202,7 @@ footer .fine { text-align: right; }
 .prose-page h1 { max-width: 13ch; }
 .prose-page h2 { margin-top: 48px; font-size: 1.55rem; }
 .prose-page p { max-width: 68ch; }
-.prose-page > p:last-child a { display: inline-flex; min-width: 44px; min-height: 44px; align-items: center; }
+.prose-page a[href^="mailto:"] { display: inline-flex; min-width: 44px; min-height: 44px; align-items: center; }
 .not-found { display: grid; min-height: 70vh; place-content: center; justify-items: start; }
 .not-found .giant { margin: 0; color: var(--coral); font: 700 clamp(6rem, 22vw, 14rem)/.75 var(--serif); }
 .not-found h1 { max-width: 15ch; }

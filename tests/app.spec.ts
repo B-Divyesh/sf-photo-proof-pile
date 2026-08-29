@@ -429,10 +429,12 @@ test("phone policy and not-found actions meet the touch target baseline", async 
   await page.setViewportSize({ width: 390, height: 844 });
   for (const path of ["/privacy", "/terms", "/missing-frame"]) {
     await page.goto(path);
-    const action = path === "/missing-frame" ? page.getByRole("link", { name: "Return home" }) : page.getByRole("link", { name: /@sociobot\.in/ });
-    const box = await action.boundingBox();
-    expect(box?.width).toBeGreaterThanOrEqual(44);
-    expect(box?.height).toBeGreaterThanOrEqual(44);
+    const actions = path === "/missing-frame" ? [page.getByRole("link", { name: "Return home" })] : await page.locator('a[href^="mailto:"]').all();
+    for (const action of actions) {
+      const box = await action.boundingBox();
+      expect(box?.width).toBeGreaterThanOrEqual(44);
+      expect(box?.height).toBeGreaterThanOrEqual(44);
+    }
   }
 });
 
