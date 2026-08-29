@@ -4,9 +4,9 @@ Product release: `v0.1.9`
 
 Functional repair commit: `419957b`
 
-Release commit: `674cd56`
+Release commit: `e505abf`
 
-Static deployment: `6d66c8ed-c3ba-4183-83e4-406b1bfec09d`
+Static deployment: `cbc2b5ea-8c33-4c43-bcce-56186eabe1a4`
 
 Live URL: <https://photo-proof-pile.sociobot.in>
 
@@ -69,6 +69,8 @@ Every finding in `.factory/review-1.md`, `.factory/polish-1.md`, and
 - Replaced the static and SPA 404 metaphor with “This page was not found.”
 - Removed “without permanent deletion” from initial social metadata.
 - Removed duplicate claim-tag comments so each ID has one executable test.
+- Made an incomplete saved group render safely and added a page-error assertion
+  to the real-review demo-isolation path.
 - Updated the verb-first catalog description to 85 characters.
 
 ## Verification
@@ -77,7 +79,7 @@ Every finding in `.factory/review-1.md`, `.factory/polish-1.md`, and
 - Full repository: 9 Rust, 9 Vitest, and 24 Playwright tests passed.
 - `npm run check` and `npm run build` passed; `dist/site` was produced.
 - Initial assets: 13.12 kB JavaScript gzip and 5.10 kB CSS gzip.
-- GitHub Actions run `33249788298` passed all four build jobs and checksums.
+- GitHub Actions run `33250158936` passed all four build jobs and checksums.
 - The v0.1.9 release has two macOS, two Windows, and two Linux install assets;
   the downloaded AppImage passed its published SHA-256 check.
 - Lighthouse mobile: 100 in all four categories, LCP 1.1 s, CLS 0, 137 KiB.

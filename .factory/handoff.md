@@ -9,11 +9,11 @@ performance checks pass.
 
 Functional repair commit: `419957b`
 
-Release commit: `674cd56`
+Release commit: `e505abf`
 
 Release: `v0.1.9`
 
-Static deployment: `6d66c8ed-c3ba-4183-83e4-406b1bfec09d`
+Static deployment: `cbc2b5ea-8c33-4c43-bcce-56186eabe1a4`
 
 The complete finding map is `.factory/polish-2.md`.
 
@@ -25,6 +25,8 @@ The complete finding map is `.factory/polish-2.md`.
   evidence tests, route metadata, scroll restoration, the shared 404 shell,
   terminology, and mobile controls.
 - Removed an untested social metadata claim and replaced metaphorical 404 copy.
+- Prevented incomplete saved groups from causing a page error and strengthened
+  the isolation claim with a valid real-review fixture and error assertion.
 - Added Windows Authenticode and macOS signing/notarization paths with
   post-build verification when owner credentials exist.
 - Updated the catalog description to an 85-character verb-first sentence.
@@ -47,7 +49,7 @@ Results on 29 August 2026:
 - All 19 exact `.factory/claims.json` commands passed from a fresh clone.
 - Build: `dist/site`; initial JS 13.12 kB gzip; CSS 5.10 kB gzip.
 - Release workflow run
-  <https://github.com/B-Divyesh/sf-photo-proof-pile/actions/runs/33249788298>
+  <https://github.com/B-Divyesh/sf-photo-proof-pile/actions/runs/33250158936>
   passed all four package builds and the checksum job.
 - Release <https://github.com/B-Divyesh/sf-photo-proof-pile/releases/tag/v0.1.9>
   contains two macOS, two Windows, and two Linux install assets plus
