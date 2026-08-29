@@ -1,45 +1,65 @@
-# Proof Pile adversarial review 1 handoff
+# Proof Pile polish round 1 handoff
 
 ## Result
 
-**FAIL — 34 findings remain.** Product code was not modified.
+Released the repair as `v0.1.4` from
+`214007d84cc4acdee5bc4a6fae30cb95553981c1` and deployed the static site at
+<https://photo-proof-pile.sociobot.in>. The deployed build is static deploy
+`0b6ae448-14e6-478f-a146-8d8b92e4821d`.
 
-- Work order: `photo-proof-pile-review-1`
-- Reviewed commit: `18d7eaa987f871954de3f35505cdecab5771b66d`
-- Live URL: <https://photo-proof-pile.sociobot.in>
-- Report: `.factory/review-1.md`
-- Reviewed: 29 August 2026 UTC
+The release workflow succeeded: [run 33239435244](https://github.com/B-Divyesh/sf-photo-proof-pile/actions/runs/33239435244).
+The `v0.1.4` GitHub release has 11 assets, including `SHA256SUMS`.
 
-The cold first screen and one-click sandbox demo pass. All 15 registered claim
-commands pass, but several tests do not prove their full public promise and
-additional public claims are unlisted. Back loses scroll position; route social
-metadata, the deployed 404 shell, terminology, action labels, and plain-language
-copy also need repair. Production desktop packages remain unsigned.
+## What changed
 
-## Verification performed
+- Closed the 34 findings recorded in `.factory/review-1.md`; the complete
+  finding-to-evidence map is in `.factory/polish-1.md`.
+- Added a direct isolated sample entry at `/?demo=1`, a persistent demo banner,
+  reset, and return-to-real action. Demo state uses its own session-storage key.
+- Expanded `.factory/claims.json` to 19 observable claims with exact tests.
+- Added route-specific metadata, history scroll restoration, a complete styled
+  404 page, plain-language copy, consistent labels, and responsive checks.
+- Released the desktop artifacts and deployed the repaired static landing site.
+
+## How to run and verify
 
 ```sh
 npm ci
-# Every command in .factory/claims.json, run separately
 npm test
+npm run check
 npm run build
-/opt/fleet/lib/verify-url.sh https://photo-proof-pile.sociobot.in <temp-dir>
+CI=true npm run build:desktop
 ```
 
-- `npm test`: PASS — Rust 7/7, Vitest 7/7, Playwright 21/21.
-- `npm run build`: PASS — `dist/site/` produced.
-- Live axe: zero violations across root, demo, privacy, terms, and 404 at
-  desktop/390 px in light and dark.
-- Live request log: demo flow used only same-origin requests.
-- Live link crawl: internal, Sociobot, GitHub release, and current package links
-  resolved; checkout returned the expected Dodo redirect.
-- Real-storage sentinel: unchanged across demo edit, reset, and exit.
-- Product code and configuration: unchanged.
+Run every registered claim from a clean clone:
 
-## Next steps
+```sh
+jq -r '.[].test' .factory/claims.json | while IFS= read -r command; do
+  eval "$command"
+done
+```
 
-Repair findings in `.factory/review-1.md` in ID order, starting with F-1-1
-through F-1-5. Extend the claim registry/tests before changing public copy, then
-fix routing/metadata, standardize terms and buttons, and sign the release
-packages when owner certificates are available. Re-run the complete review;
-this is not a diff-only acceptance.
+## Exact verification evidence
+
+- Fresh `git clone --no-local`, `npm ci`, then all 19 commands in
+  `.factory/claims.json`: passed.
+- `npm test`: passed — 9 Rust tests, 7 unit tests, and 22 Playwright tests.
+- `npm run check` and `npm run build`: passed. Production initial app JS is
+  12.65 kB gzip and CSS is 5.03 kB gzip.
+- `CI=true npm run build:desktop`: passed; produced Linux `.AppImage`, `.deb`,
+  and `.rpm` artifacts locally.
+- `/opt/fleet/lib/verify-url.sh https://photo-proof-pile.sociobot.in .factory/evidence/polish-1`:
+  passed. Root response was HTTP 200; it found title, `lang=en`, one h1, main,
+  image alt coverage, and no console errors.
+- Cold live Playwright axe checks at 390 px on `/`, `/demo`, `/?demo=1`,
+  `/privacy`, `/terms`, and `/missing-frame`: zero serious/critical violations.
+- Cold live functional check: demo banner/reset/exit and isolated storage
+  passed; `/privacy` metadata/canonical matched its route; `/missing-frame`
+  returned HTTP 404 with no console errors.
+
+## Operator action
+
+Desktop packages are intentionally unsigned. macOS notarization and Windows
+Authenticode require the owner-held `APPLE_CERTIFICATE` and `WINDOWS_CERT_PFX`
+secrets, which were not present in this work order. No product behavior is
+blocked by this, and the download page labels the packages as unsigned.
