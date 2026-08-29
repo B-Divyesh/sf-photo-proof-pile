@@ -1,3 +1,30 @@
+# Verification 9 handoff — 29 August 2026
+
+## Current release verdict: FAIL
+
+Candidate `601f04c75fc1ff28521d7e955b7ab8350b5b3ffd` is **not releasable**.
+See `.factory/verification-9.md` for the complete independent evidence.
+
+The static site at <https://photo-proof-pile.sociobot.in> matches this
+candidate, but its desktop download flow still serves `v0.1.10` built from
+`444b4d151296c6f75045a3a1e5f077e267bdffcb` (`v0.1.10-8-g601f04c` behind the
+candidate). That package predates the native reviewed-plan quarantine gate and
+can accept paths without verifying a quarantine decision or readable kept copy.
+This is an S1 release-blocking safety defect for a desktop product that promises
+review-before-move.
+
+All 20 exact claims, `npm run check`, `npm test` (10 Rust, 10 Vitest, 28
+Playwright), and `npm run build` passed from clean `npm ci`. The desktop build
+could not complete in this verifier container only because the image lacks the
+`glib-2.0` development prerequisite; CI installs it. No product source was
+changed during verification.
+
+Required next step: release a newly versioned, signed/notarized desktop package
+from this candidate or successor, publish matching `latest.json`/checksums, and
+verify an installed package’s reviewed-plan quarantine path before re-verifying.
+
+---
+
 # Proof Pile polish 3 handoff — 29 August 2026
 
 ## Result
