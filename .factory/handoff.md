@@ -1,3 +1,40 @@
+# Review 4 handoff — Proof Pile
+
+## What was done
+
+Completed the requested adversarial first-read review without modifying product
+code. The full report is `.factory/review-4.md`.
+
+## Verification
+
+- Cold live visits at 390 × 844 and 1440 × 1000: headline, audience, and
+  one-click sample action are clear before scrolling.
+- Live `/demo`: populated sample evidence, persistent demo banner, reset and
+  start-real actions, no console errors, and same-origin requests only.
+- Live route audit: `/`, `/demo`, `/app`, `/privacy`, `/terms`, and true 404;
+  route metadata, one h1/main, shell, mobile overflow, and CSP checked.
+- Crawled rendered/internal destination URLs, installers, checkout, releases,
+  sitemap, and robots; all returned 200 except the intentional unknown-route
+  404.
+- In a clean clone: `npm ci`, every command in `.factory/claims.json`,
+  `npm test`, `npm run check`, and `npm run build` passed. Build produced
+  `dist/site`.
+
+## Known gap / verdict
+
+**FAIL.** The live `v0.1.13` download dialog states: “Current builds are
+unsigned. Your system may ask you to confirm the first launch.” This recurs as
+F-1-34 / F-2-2 / F-3-1 and is reported as blocking F-4-1. All other reviewed
+requirements passed.
+
+## Next step
+
+Publish Windows Authenticode-signed and macOS signed/notarized packages,
+verify the downloaded release assets independently, then re-run the cold live
+review.
+
+---
+
 # Proof Pile independent verification 11 handoff — PASS
 
 Independent QA completed 29 August 2026 against candidate
