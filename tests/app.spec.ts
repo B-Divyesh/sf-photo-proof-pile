@@ -289,20 +289,43 @@ test("@claim:no-account starts a review without sign-in", async ({ page }) => {
   await expect(page.getByRole("textbox", { name: /email|password/i })).toHaveCount(0);
 });
 
-test("@claim:paid-license verifies and caches a restored license", async ({ page }) => {
+test("@claim:paid-license restores a license and checks it at most once per 24 hours", async ({ page }) => {
+  const checkedAt = Date.UTC(2026, 7, 29, 12, 0, 0);
+  await page.addInitScript(() => {
+    const actualNow = Date.now.bind(Date);
+    Date.now = () => {
+      try {
+        const mocked = localStorage.getItem("proof-pile:test-clock");
+        return mocked ? Number(mocked) : actualNow();
+      } catch {
+        return actualNow();
+      }
+    };
+  });
   let checks = 0;
   await page.route("https://api.sociobot.in/**", route => {
     checks += 1;
     return route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify({ valid: true, reason: "ok", expires_at: null }) });
   });
   await page.goto("/");
+  await page.evaluate(time => localStorage.setItem("proof-pile:test-clock", String(time)), checkedAt);
+  await page.reload();
   await page.getByRole("button", { name: "Restore a purchase" }).click();
   await page.getByLabel("License token").fill("test-license-token");
   await page.getByRole("button", { name: "Verify license" }).click();
   await expect(page.getByText("License verified. Full-library scans are active.")).toBeVisible();
-  await page.reload();
   expect(checks).toBe(1);
   expect(await page.evaluate(() => localStorage.getItem("sb_license:photo-proof-pile"))).toBe("test-license-token");
+
+  await page.evaluate(time => localStorage.setItem("proof-pile:test-clock", String(time)), checkedAt + 86_399_999);
+  await page.reload();
+  expect(checks).toBe(1);
+
+  await page.evaluate(time => localStorage.setItem("proof-pile:test-clock", String(time)), checkedAt + 86_400_000);
+  await page.reload();
+  await expect.poll(() => checks).toBe(2);
+  await page.reload();
+  expect(checks).toBe(2);
 });
 
 test("a fresh invalid license verdict is reused without another request", async ({ page }) => {
@@ -331,6 +354,7 @@ test("@claim:paid-checkout shows the price, opens hosted checkout, and stores a 
   });
   await page.goto("/");
   await expect(page.getByText("US$29", { exact: true }).first()).toBeVisible();
+  await expect(page.getByRole("link", { name: "support@sociobot.in" })).toHaveAttribute("href", "mailto:support@sociobot.in?subject=Proof%20Pile%20refund");
   await page.getByRole("link", { name: "Buy via Sociobot checkout ↗" }).click();
   await expect(page).toHaveURL("https://api.sociobot.in/api/v1/products/photo-proof-pile/checkout");
   expect(checkoutRequests).toBe(1);

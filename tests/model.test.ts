@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest";
+import { readFileSync } from "node:fs";
 import { countPlan, decisionCsv, formatBytes, movesFromDecisionCsv, normalizeMoves, sampleGroups } from "../src/model";
 
 describe("review model", () => {
@@ -45,5 +46,16 @@ describe("review model", () => {
   it("formats byte totals for review", () => {
     expect(formatBytes(550_000)).toBe("550 KB");
     expect(formatBytes(4_820_112)).toBe("4.8 MB");
+  });
+
+  it("keeps the static 404 release identity in sync with the product version", () => {
+    const version = JSON.parse(readFileSync(new URL("../package.json", import.meta.url), "utf8")).version;
+    const notFound = readFileSync(new URL("../public/404.html", import.meta.url), "utf8");
+    const tauri = JSON.parse(readFileSync(new URL("../src-tauri/tauri.conf.json", import.meta.url), "utf8"));
+    const main = readFileSync(new URL("../src/main.ts", import.meta.url), "utf8");
+    expect(notFound).toContain(`<p>v${version}</p>`);
+    expect(notFound).not.toContain("Generated hero imagery");
+    expect(tauri.version).toBe(version);
+    expect(main).toContain(`const VERSION = "${version}"`);
   });
 });

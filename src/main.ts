@@ -6,7 +6,7 @@ declare global { interface Window { __TAURI_INTERNALS__?: unknown } }
 const app = document.querySelector<HTMLDivElement>("#app")!;
 const isDesktop = Boolean(window.__TAURI_INTERNALS__);
 const PRODUCT = "photo-proof-pile";
-const VERSION = "0.1.5";
+const VERSION = "0.1.6";
 const LICENSE_KEY = `sb_license:${PRODUCT}`;
 const DEMO_KEY = "demo:photo-proof-pile:session";
 const REAL_KEY = "proof-pile:session";
@@ -35,7 +35,7 @@ function header() {
 }
 
 function footer() {
-  return `<footer><p>Review duplicate photos before moving extra copies.</p><nav aria-label="Footer navigation"><a class="route-link" href="/privacy">Privacy</a><a class="route-link" href="/terms">Terms</a><a href="https://sociobot.in" rel="external" aria-label="Built by Param Factory (external site)">Built by Param Factory ↗</a></nav><p class="fine">v${VERSION} · Generated hero imagery.</p></footer>`;
+  return `<footer><p>Review duplicate photos before moving extra copies.</p><nav aria-label="Footer navigation"><a class="route-link" href="/privacy">Privacy</a><a class="route-link" href="/terms">Terms</a><a href="https://sociobot.in" rel="external" aria-label="Built by Param Factory (external site)">Built by Param Factory ↗</a></nav><p class="fine">v${VERSION}</p></footer>`;
 }
 
 function shell(content: string) {
@@ -66,7 +66,7 @@ function previewGraphic() {
 }
 
 function pricing() {
-  return `<section class="pricing" aria-labelledby="price-title"><div><p class="eyebrow">Desktop license</p><h2 id="price-title">Review a full library</h2><p>The free app scans 1,000 files at a time. A license removes that scan limit.</p>${licenseNotice ? `<p class="license-notice" role="status">${escapeHtml(licenseNotice)}</p>` : ""}</div><div class="price-actions"><p class="price"><strong>US$29</strong> one-time purchase</p><a class="button primary" id="buy-license" rel="external" href="https://api.sociobot.in/api/v1/products/${PRODUCT}/checkout">Buy via Sociobot checkout ↗</a><button class="button quiet" id="restore-license" type="button">Restore a purchase</button><p>Sociobot checkout takes payment. Contact Sociobot for refunds.</p></div></section>`;
+  return `<section class="pricing" aria-labelledby="price-title"><div><p class="eyebrow">Desktop license</p><h2 id="price-title">Review a full library</h2><p>The free app scans 1,000 files at a time. A license removes that scan limit.</p>${licenseNotice ? `<p class="license-notice" role="status">${escapeHtml(licenseNotice)}</p>` : ""}</div><div class="price-actions"><p class="price"><strong>US$29</strong> one-time purchase</p><a class="button primary" id="buy-license" rel="external" href="https://api.sociobot.in/api/v1/products/${PRODUCT}/checkout">Buy via Sociobot checkout ↗</a><button class="button quiet" id="restore-license" type="button">Restore a purchase</button><p>Sociobot checkout takes payment. For refunds, email <a href="mailto:support@sociobot.in?subject=Proof%20Pile%20refund">support@sociobot.in</a>.</p></div></section>`;
 }
 
 function bindLanding() {
@@ -387,7 +387,7 @@ function plainError(error: unknown) { return String(error).replace(/^Error:\s*/,
 
 function legalPage(kind: "privacy" | "terms") {
   const privacy = `<main id="main" class="prose-page" tabindex="-1"><p class="eyebrow">Policy</p><h1 tabindex="-1">Privacy without photo uploads</h1><p>Last updated 29 August 2026.</p><h2>Your photos stay local</h2><p>The desktop app reads selected folders on your device. It does not upload photos, thumbnails, paths, file identifiers, or decision logs.</p><h2>Data stored on your device</h2><p>The app stores review choices and recovery records, your license token, and cached license status. Demo choices stay only in this browser tab.</p><h2>License checks</h2><p>License verification sends only the license token to the Sociobot billing API.</p><h2>Website requests</h2><p>The download page may request release details from GitHub. We do not run advertising or tracking scripts.</p><h2>Remove your data</h2><p>Reset the demo or clear this site's storage. Desktop quarantine files remain where you chose to place them.</p><p>Questions: <a href="mailto:privacy@sociobot.in">privacy@sociobot.in</a></p></main>`;
-  const terms = `<main id="main" class="prose-page" tabindex="-1"><p class="eyebrow">Terms</p><h1 tabindex="-1">Terms for careful photo cleanup</h1><p>Last updated 29 August 2026.</p><h2>Use and responsibility</h2><p>Proof Pile helps you review and move files. You remain responsible for your files and backups.</p><h2>Quarantine folders</h2><p>The app moves chosen files to a quarantine folder. Do not empty that folder until you test important backups.</p><h2>License</h2><p>The free tier scans up to 1,000 files at once. A US$29 one-time license removes that scan limit.</p><h2>Payments and refunds</h2><p>Sociobot checkout takes payment. Contact Sociobot for refunds.</p><h2>Warranty</h2><p>The software is provided as is. Keep verified backups before changing a photo library.</p><p>Questions: <a href="mailto:support@sociobot.in">support@sociobot.in</a></p></main>`;
+  const terms = `<main id="main" class="prose-page" tabindex="-1"><p class="eyebrow">Terms</p><h1 tabindex="-1">Terms for careful photo cleanup</h1><p>Last updated 29 August 2026.</p><h2>Use and responsibility</h2><p>Proof Pile helps you review and move files. You remain responsible for your files and backups.</p><h2>Quarantine folders</h2><p>The app moves chosen files to a quarantine folder. Do not empty that folder until you test important backups.</p><h2>License</h2><p>The free tier scans up to 1,000 files at once. A US$29 one-time license removes that scan limit.</p><h2>Payments and refunds</h2><p>Sociobot checkout takes payment. For refunds, email <a href="mailto:support@sociobot.in?subject=Proof%20Pile%20refund">support@sociobot.in</a>.</p><h2>Warranty</h2><p>The software is provided as is. Keep verified backups before changing a photo library.</p><p>Questions: <a href="mailto:support@sociobot.in">support@sociobot.in</a></p></main>`;
   shell(kind === "privacy" ? privacy : terms);
 }
 

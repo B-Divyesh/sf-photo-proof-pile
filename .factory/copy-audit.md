@@ -8,7 +8,7 @@ No sentence exceeds 22 words. No banned marketing word appears.
 | Local duplicate-photo review | 3 | None |
 | Review photo copies before you remove them | 7 | None |
 | For people with photos across several drives who fear removing the only meaningful copy. | 14 | None |
-| Try it with sample data | 6 | None |
+| Try it with sample data | 5 | None |
 | Opens three ready-to-review groups. | 4 | None |
 | Download for your computer | 4 | None |
 | The desktop app requires macOS, Windows, or Linux. | 8 | None |
@@ -34,9 +34,10 @@ No sentence exceeds 22 words. No banned marketing word appears.
 | US$29 one-time purchase | 3 | Claim: paid-checkout |
 | Buy via Sociobot checkout | 4 | Claim: paid-checkout |
 | Sociobot checkout takes payment. | 4 | Claim: paid-checkout |
-| Contact Sociobot for refunds. | 4 | None |
+| For refunds, email support@sociobot.in. | 4 | Claim: paid-checkout |
 | Restore a purchase | 3 | None |
 | Review duplicate photos before moving extra copies. | 7 | None |
+| v0.1.6 | 1 | Release identity |
 
 ## Terminology
 
@@ -50,4 +51,4 @@ No sentence exceeds 22 words. No banned marketing word appears.
 | Similar-image group | Looks alike |
 | The isolated trial state | demo |
 
-Catalog description: “Review photo copies, quarantine extras, and keep a reversible decision log.” It starts with a verb and contains 76 characters.
+Catalog description: “Review duplicate photos, quarantine extra copies, and keep a reversible decision log.” It starts with a verb and contains 85 characters.

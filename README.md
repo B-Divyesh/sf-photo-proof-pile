@@ -21,7 +21,7 @@ Copies on other drives are not tested backups. Open important backups before cle
 
 The free desktop app scans up to 1,000 image files at a time. A US$29 one-time license removes that scan limit. The license changes only the scan limit: quarantine, restore, and decision-log recovery remain available without one.
 
-Buy through the [Sociobot checkout](https://api.sociobot.in/api/v1/products/photo-proof-pile/checkout). Contact Sociobot for refunds.
+Buy through the [Sociobot checkout](https://api.sociobot.in/api/v1/products/photo-proof-pile/checkout). For refunds, email [support@sociobot.in](mailto:support@sociobot.in?subject=Proof%20Pile%20refund).
 
 The app stores a returned license under `sb_license:photo-proof-pile` and checks it with the Sociobot API at most once each day. The request contains only the license token.
 
@@ -41,7 +41,7 @@ Windows users can run in PowerShell:
 irm https://photo-proof-pile.sociobot.in/install.ps1 | iex
 ```
 
-Both scripts fetch release metadata and verify the downloaded package against `SHA256SUMS` before installing it.
+Both scripts compare the downloaded package with the published verification file before installing it.
 
 ## Develop and verify
 

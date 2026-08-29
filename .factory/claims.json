@@ -74,14 +74,14 @@
     "claim": "A license can be restored and is checked at most once each day.",
     "where": "pricing section and README",
     "test": "npm run test:e2e -- --grep @claim:paid-license",
-    "sandbox": "mock the Sociobot verification response; paste a token, reload, and assert one request plus namespaced storage"
+    "sandbox": "mock time and the Sociobot response; paste a token, assert no request at 23:59:59, then one request at 24:00:00"
   },
   {
     "id": "paid-checkout",
     "claim": "A US$29 one-time purchase uses Sociobot hosted checkout and returns a stored license.",
     "where": "landing page, pricing section, terms, and README",
     "test": "npm run test:e2e -- --grep @claim:paid-checkout",
-    "sandbox": "fresh browser context; assert the price, external checkout URL, returned license storage, and URL cleanup"
+    "sandbox": "fresh browser context; assert the price, external checkout URL, refund email action, returned license storage, and URL cleanup"
   },
   {
     "id": "licensed-scan-limit",
