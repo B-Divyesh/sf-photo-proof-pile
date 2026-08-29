@@ -8,7 +8,7 @@ import { expect, test } from "vitest";
 const payload = "proof-pile-test-appimage";
 const asset = "Proof.Pile_0.1.1_x64.AppImage";
 
-function runInstaller(checksum: string, trusted = true) {
+function runInstaller(checksum: string, trusted = true, releaseAvailable = true) {
   const root = mkdtempSync(join(tmpdir(), "proof-pile-installer-"));
   const bin = join(root, "bin");
   const target = join(root, "installed", "proof-pile.AppImage");
@@ -21,7 +21,7 @@ for arg in "$@"; do
   case "$arg" in http*) url="$arg" ;; esac
 done
 case "$url" in
-  *releases/latest) printf '%s' '{"assets":[{"browser_download_url": "https://downloads.test/${asset}"},{"browser_download_url": "https://downloads.test/SHA256SUMS"}${trusted ? ',{"browser_download_url": "https://downloads.test/DESKTOP_SIGNATURES_VERIFIED.json"}' : ""}]}' > "$out" ;;
+  *releases*) ${releaseAvailable ? `printf '%s' '[{"assets":[{"browser_download_url": "https://downloads.test/${asset}"},{"browser_download_url": "https://downloads.test/SHA256SUMS"}${trusted ? ',{"browser_download_url": "https://downloads.test/DESKTOP_SIGNATURES_VERIFIED.json"}' : ""}]}]' > "$out"` : "printf '[]' > \"$out\""} ;;
   *${asset}) printf '%s' '${payload}' > "$out" ;;
   *SHA256SUMS) printf '%s  %s\\n' '${checksum}' '${asset}' > "$out" ;;
   *DESKTOP_SIGNATURES_VERIFIED.json) printf '%s' '{"macos":"signed-and-notarized","windows":"authenticode-signed"}' > "$out" ;;
@@ -58,6 +58,13 @@ test("@claim:installer-checksum installs only a package matching SHA256SUMS", ()
     expect(untrusted.result.stderr).toContain("A trusted Linux release is not published yet");
     expect(existsSync(untrusted.target)).toBe(false);
   } finally { rmSync(untrusted.root, { recursive: true, force: true }); }
+
+  const unpublished = runInstaller(createHash("sha256").update(payload).digest("hex"), false, false);
+  try {
+    expect(unpublished.result.status).toBe(1);
+    expect(unpublished.result.stderr).toContain("A trusted Linux release is not published yet");
+    expect(existsSync(unpublished.target)).toBe(false);
+  } finally { rmSync(unpublished.root, { recursive: true, force: true }); }
 });
 
 test("@claim:windows-installer-checksum verifies before opening the MSI", () => {
@@ -72,6 +79,7 @@ test("@claim:windows-installer-checksum verifies before opening the MSI", () => 
   expect(script).toContain("SHA256SUMS");
   expect(script).toContain("'\\.msi$'");
   expect(script).toContain("DESKTOP_SIGNATURES_VERIFIED.json");
+  expect(script).toContain('throw "A trusted Windows release is not published yet. Nothing was installed."');
   expect(signature).toBeGreaterThan(-1);
   expect(signatureCheck).toBeGreaterThan(signature);
   expect(download).toBeGreaterThan(-1);

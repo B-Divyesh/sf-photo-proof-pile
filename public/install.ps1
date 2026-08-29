@@ -1,6 +1,11 @@
 $ErrorActionPreference = "Stop"
 $repo = "B-Divyesh/sf-photo-proof-pile"
-$release = Invoke-RestMethod "https://api.github.com/repos/$repo/releases/latest"
+try {
+  $releases = Invoke-RestMethod "https://api.github.com/repos/$repo/releases?per_page=1"
+  $release = @($releases) | Select-Object -First 1
+} catch {
+  throw "A trusted Windows release is not published yet. Nothing was installed."
+}
 $asset = $release.assets | Where-Object { $_.name -match '\.msi$' } | Select-Object -First 1
 $sums = $release.assets | Where-Object { $_.name -eq 'SHA256SUMS' } | Select-Object -First 1
 $signatureMarker = $release.assets | Where-Object { $_.name -eq 'DESKTOP_SIGNATURES_VERIFIED.json' } | Select-Object -First 1

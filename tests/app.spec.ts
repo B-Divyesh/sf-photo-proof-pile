@@ -519,16 +519,16 @@ test("the skip link moves keyboard focus to main", async ({ page }) => {
 });
 
 test("download picker offers both published macOS architectures", async ({ page }) => {
-  await page.route("https://api.github.com/repos/B-Divyesh/sf-photo-proof-pile/releases/latest", route => route.fulfill({
+  await page.route("https://api.github.com/repos/B-Divyesh/sf-photo-proof-pile/releases?per_page=1", route => route.fulfill({
     status: 200,
     contentType: "application/json",
-    body: JSON.stringify({ tag_name: "v0.1.1", assets: [
+    body: JSON.stringify([{ tag_name: "v0.1.1", assets: [
       { name: "Proof.Pile_0.1.1_aarch64.dmg", browser_download_url: "https://example.test/arm.dmg" },
       { name: "Proof.Pile_0.1.1_x86_64.dmg", browser_download_url: "https://example.test/intel.dmg" },
       { name: "Proof.Pile_0.1.1_x64_en-US.msi", browser_download_url: "https://example.test/app.msi" },
       { name: "Proof.Pile_0.1.1_amd64.AppImage", browser_download_url: "https://example.test/app.AppImage" },
       { name: "DESKTOP_SIGNATURES_VERIFIED.json", browser_download_url: "https://example.test/signatures.json" }
-    ] })
+    ] }])
   }));
   await page.goto("/");
   await page.evaluate(() => localStorage.setItem("proof-pile:release", JSON.stringify({ savedAt: Date.now(), data: { tag_name: "v0.1.0", assets: [] } })));
@@ -540,14 +540,14 @@ test("download picker offers both published macOS architectures", async ({ page 
 });
 
 test("@claim:verified-downloads-only refuses packages without verified signatures", async ({ page }) => {
-  await page.route("https://api.github.com/repos/B-Divyesh/sf-photo-proof-pile/releases/latest", route => route.fulfill({
+  await page.route("https://api.github.com/repos/B-Divyesh/sf-photo-proof-pile/releases?per_page=1", route => route.fulfill({
     status: 200,
     contentType: "application/json",
-    body: JSON.stringify({ tag_name: "v0.1.13", assets: [
+    body: JSON.stringify([{ tag_name: "v0.1.13", assets: [
       { name: "Proof.Pile_0.1.13_aarch64.dmg", browser_download_url: "https://example.test/app.dmg" },
       { name: "Proof.Pile_0.1.13_x64_en-US.msi", browser_download_url: "https://example.test/app.msi" },
       { name: "Proof.Pile_0.1.13_amd64.deb", browser_download_url: "https://example.test/app.deb" }
-    ] })
+    ] }])
   }));
   await page.goto("/");
   await page.getByRole("button", { name: /Check signed download/ }).click();
