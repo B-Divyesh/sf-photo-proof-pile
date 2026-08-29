@@ -39,33 +39,60 @@ findings in light and dark modes, demo privacy requests, offline reload,
 service-worker behavior, license request shape, local recovery, and mobile
 touch targets.
 
-Native package verification produced:
+`CI=true npm run build:desktop` passed and produced these local Linux
+artifacts (package metadata makes their checksums environment-specific):
 
-- `Proof Pile_0.1.10_amd64.deb` — 4,212,564 bytes
-  (`578d111428e941251640bdf8a8be036a89aef0b9cd439c52090262237d494587`)
+- `Proof Pile_0.1.10_amd64.deb` — 4,212,548 bytes
+  (`2ca46d99c1aafb97c5c8f424592e149e492ae08d29555003303cb5c499801348`)
 - `Proof Pile-0.1.10-1.x86_64.rpm` — 4,213,061 bytes
-  (`c61eedd9a71f67717878fd6d7f57e76514fa5e816c8f6d66ec2fab3993b12812`)
+  (`1f5833dcffc50787514351ed2b32c12e604f24916d45549f360f3c47f9d4b7ca`)
 - `Proof Pile_0.1.10_amd64.AppImage` — 78,666,232 bytes
-  (`766fff648e57d15c9af932b677a0c21dd6347c02de009d4f1e52614881cf1f51`)
+  (`cb9222e94f6678ba1b1a513752231e1f17ce71a3b721df2ed98e6b6b528f9bff`)
 
 The disposable Ubuntu image initially lacked Tauri's documented GTK/WebKit
 headers, `libfuse.so.2`, and `file`; these were installed only in the worker.
-After that, `CI=true npx tauri build --bundles deb,rpm` and
-`CI=true npx tauri build --bundles appimage` both passed. Tauri's temporary
-`Cargo.toml` feature edit was restored.
+After that, the individual bundle commands and the complete
+`CI=true npm run build:desktop` command passed. Tauri's temporary `Cargo.toml`
+feature edit was restored.
 
 ## Live and deployment checks
 
-Before deployment, `verify-url.sh` passed at
-`https://photo-proof-pile.sociobot.in`: HTTPS 200, title, `lang=en`, one h1,
-one main landmark, complete image alt text, labeled buttons, and no browser
-console errors. Header checks confirmed HSTS, `nosniff`, strict-origin
-referrer policy, restrictive permissions policy, and header-delivered CSP with
-`frame-ancestors 'none'`. The release/billing endpoint policy is checked again
-after deployment.
+Static deployment `e711b435-f615-4d80-88a6-589391312d04` completed to
+`https://photo-proof-pile.sociobot.in` on 29 August. The deployed root returned
+HTTPS 200 and `verify-url.sh` confirmed the title, `lang=en`, one h1, one main
+landmark, complete image alt text, labeled buttons, and no console errors.
 
-Deployment evidence and the final live asset identity are appended below after
-the static upload completes.
+The live asset identity is exact: the deployed JavaScript
+`index-Bm72iktJ.js` SHA-256 is
+`82ef5a4fa746001cd54f5256ed80e8c83eb2a6c2b3f9dc193ec36aef50e44e9d`,
+matching `dist/site`; the live 404 footer reports v0.1.10.
+
+A post-deploy Playwright browser smoke test on `/demo` passed at 1440 × 900
+and 390 × 844. Every decision control measured 44 px high (desktop widths:
+47.78, 78.84, and 101.28 px); Axe reported zero serious/critical issues; the
+service worker controlled the page; an offline reload showed the offline
+notice; no console errors or off-origin requests occurred; and Space on
+**Quarantine** advanced focus to the next file's **Keep** decision. Mobile
+document width remained 390 px with no horizontal overflow.
+
+Response-policy checks confirmed HSTS, `nosniff`, strict-origin referrer
+policy, restrictive permissions policy, and header-delivered CSP with
+`frame-ancestors 'none'`. `/`, `/demo`, `/app`, `/privacy`, `/terms`,
+`robots.txt`, and `sitemap.xml` returned 200; an unknown route returned 404.
+The license verification endpoint returned an exact-origin CORS response,
+`Cache-Control: no-store`, and an `invalid` result for a test token. Its
+rate-limit test returned 30 successful responses followed by one 429. The
+checkout endpoint redirected with 303 to the hosted merchant checkout.
+
+Release tag `v0.1.10` points to `444b4d151296c6f75045a3a1e5f077e267bdffcb`.
+The GitHub Actions release workflow passed prepare, Linux, Windows, macOS
+arm64, macOS x64, and checksums:
+`https://github.com/B-Divyesh/sf-photo-proof-pile/actions/runs/33253799316`.
+The published release includes Linux AppImage/DEB/RPM, Windows EXE/MSI, macOS
+arm64/x64 DMGs and app archives, `SHA256SUMS`, and a valid `latest.json` for
+v0.1.10. A downloaded release DEB hashed to
+`598780f1aaf5d4554481a50735754e7cce5c357bfc9ac702d5e9b9526682bfef`,
+exactly matching the published manifest.
 
 ## Reproduce
 
