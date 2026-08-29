@@ -134,23 +134,23 @@
   },
   {
     "id": "installer-checksum",
-    "claim": "The Linux installer requires a completed release marker and checks the package against SHA256SUMS before installing it.",
+    "claim": "The Linux installer requires verified desktop signatures and checks the package against SHA256SUMS before installing it.",
     "where": "README",
     "test": "npm run test:unit -- --testNamePattern @claim:installer-checksum",
-    "sandbox": "mock complete and incomplete release metadata, package bytes, and SHA256SUMS; assert incomplete or mismatched packages are never installed"
+    "sandbox": "mock trusted and untrusted release metadata, package bytes, and SHA256SUMS; assert untrusted or mismatched packages are never installed"
   },
   {
     "id": "windows-installer-checksum",
-    "claim": "The Windows installer requires a completed release marker and checks the package against SHA256SUMS before opening it.",
+    "claim": "The Windows installer requires verified desktop signatures and checks the package against SHA256SUMS before opening it.",
     "where": "README",
     "test": "npm run test:unit -- --testNamePattern @claim:windows-installer-checksum",
-    "sandbox": "run the shipped PowerShell installer contract with mocked release files; assert release and checksum checks happen before msiexec can start"
+    "sandbox": "inspect the shipped PowerShell installer contract; assert signature status and checksum checks both happen before msiexec can start"
   },
   {
     "id": "verified-downloads-only",
-    "claim": "The download dialog offers packages only after the complete platform matrix and SHA-256 checks pass.",
+    "claim": "The download dialog offers packages only after Windows and macOS signature checks pass.",
     "where": "README and download dialog",
     "test": "npm run test:e2e -- --grep @claim:verified-downloads-only",
-    "sandbox": "mock complete and incomplete unsigned releases; assert the complete release is offered with a warning and the incomplete release is not"
+    "sandbox": "mock complete releases with and without the verified-signatures marker; assert only the signed release exposes package links"
   }
 ]

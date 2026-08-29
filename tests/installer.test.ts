@@ -8,7 +8,7 @@ import { expect, test } from "vitest";
 const payload = "proof-pile-test-appimage";
 const asset = "Proof.Pile_0.1.1_x64.AppImage";
 
-function runInstaller(checksum: string, verified = true, releaseAvailable = true) {
+function runInstaller(checksum: string, trusted = true, releaseAvailable = true) {
   const root = mkdtempSync(join(tmpdir(), "proof-pile-installer-"));
   const bin = join(root, "bin");
   const target = join(root, "installed", "proof-pile.AppImage");
@@ -21,10 +21,10 @@ for arg in "$@"; do
   case "$arg" in http*) url="$arg" ;; esac
 done
 case "$url" in
-  *releases*) ${releaseAvailable ? `printf '%s' '[{"assets":[{"browser_download_url": "https://downloads.test/${asset}"},{"browser_download_url": "https://downloads.test/SHA256SUMS"}${verified ? ',{"browser_download_url": "https://downloads.test/DESKTOP_RELEASE_VERIFIED.json"}' : ""}]}]' > "$out"` : "printf '[]' > \"$out\""} ;;
+  *releases*) ${releaseAvailable ? `printf '%s' '[{"assets":[{"browser_download_url": "https://downloads.test/${asset}"},{"browser_download_url": "https://downloads.test/SHA256SUMS"}${trusted ? ',{"browser_download_url": "https://downloads.test/DESKTOP_SIGNATURES_VERIFIED.json"}' : ""}]}]' > "$out"` : "printf '[]' > \"$out\""} ;;
   *${asset}) printf '%s' '${payload}' > "$out" ;;
   *SHA256SUMS) printf '%s  %s\\n' '${checksum}' '${asset}' > "$out" ;;
-  *DESKTOP_RELEASE_VERIFIED.json) printf '%s' '{"matrix":"complete","checksums":"sha256","signatures":{"macos":"unsigned","windows":"unsigned"}}' > "$out" ;;
+  *DESKTOP_SIGNATURES_VERIFIED.json) printf '%s' '{"macos":"signed-and-notarized","windows":"authenticode-signed"}' > "$out" ;;
   *) exit 1 ;;
 esac
 `;
@@ -52,17 +52,17 @@ test("@claim:installer-checksum installs only a package matching SHA256SUMS", ()
     expect(existsSync(bad.target)).toBe(false);
   } finally { rmSync(bad.root, { recursive: true, force: true }); }
 
-  const incomplete = runInstaller(createHash("sha256").update(payload).digest("hex"), false);
+  const untrusted = runInstaller(createHash("sha256").update(payload).digest("hex"), false);
   try {
-    expect(incomplete.result.status).toBe(1);
-    expect(incomplete.result.stderr).toContain("A verified Linux release is not published yet");
-    expect(existsSync(incomplete.target)).toBe(false);
-  } finally { rmSync(incomplete.root, { recursive: true, force: true }); }
+    expect(untrusted.result.status).toBe(1);
+    expect(untrusted.result.stderr).toContain("A trusted Linux release is not published yet");
+    expect(existsSync(untrusted.target)).toBe(false);
+  } finally { rmSync(untrusted.root, { recursive: true, force: true }); }
 
   const unpublished = runInstaller(createHash("sha256").update(payload).digest("hex"), false, false);
   try {
     expect(unpublished.result.status).toBe(1);
-    expect(unpublished.result.stderr).toContain("A verified Linux release is not published yet");
+    expect(unpublished.result.stderr).toContain("A trusted Linux release is not published yet");
     expect(existsSync(unpublished.target)).toBe(false);
   } finally { rmSync(unpublished.root, { recursive: true, force: true }); }
 });
@@ -70,21 +70,20 @@ test("@claim:installer-checksum installs only a package matching SHA256SUMS", ()
 test("@claim:windows-installer-checksum verifies before opening the MSI", () => {
   const script = readFileSync("public/install.ps1", "utf8");
   const download = script.indexOf("Invoke-WebRequest $asset.browser_download_url -OutFile $download");
-  const releaseMarker = script.indexOf("Invoke-WebRequest $releaseMarker.browser_download_url -OutFile $releaseFile");
-  const releaseCheck = script.indexOf('$releaseStatus.matrix -ne "complete"');
+  const signature = script.indexOf("Invoke-WebRequest $signatureMarker.browser_download_url -OutFile $signatureFile");
+  const signatureCheck = script.indexOf('$signatureStatus.windows -ne "authenticode-signed"');
   const hash = script.indexOf("Get-FileHash $download -Algorithm SHA256");
   const mismatch = script.indexOf("$expected.ToLowerInvariant() -ne $actual");
   const remove = script.indexOf("Remove-Item $download");
   const install = script.indexOf("Start-Process msiexec.exe");
   expect(script).toContain("SHA256SUMS");
   expect(script).toContain("'\\.msi$'");
-  expect(script).toContain("DESKTOP_RELEASE_VERIFIED.json");
-  expect(script).toContain('throw "A verified Windows release is not published yet. Nothing was installed."');
-  expect(script).toContain('Write-Warning "This Windows installer is unsigned. Windows will ask you to confirm the publisher."');
-  expect(releaseMarker).toBeGreaterThan(-1);
-  expect(releaseCheck).toBeGreaterThan(releaseMarker);
+  expect(script).toContain("DESKTOP_SIGNATURES_VERIFIED.json");
+  expect(script).toContain('throw "A trusted Windows release is not published yet. Nothing was installed."');
+  expect(signature).toBeGreaterThan(-1);
+  expect(signatureCheck).toBeGreaterThan(signature);
   expect(download).toBeGreaterThan(-1);
-  expect(download).toBeGreaterThan(releaseCheck);
+  expect(download).toBeGreaterThan(signatureCheck);
   expect(hash).toBeGreaterThan(download);
   expect(mismatch).toBeGreaterThan(hash);
   expect(remove).toBeGreaterThan(mismatch);

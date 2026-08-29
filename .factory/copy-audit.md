@@ -15,8 +15,8 @@ No sentence exceeds 22 words. No banned marketing word appears.
 | For people with photos across several drives who fear removing the only meaningful copy. | 14 | None |
 | Try it with sample data | 5 | Claim: demo-isolated |
 | Opens three ready-to-review groups. | 4 | Claim: match-evidence |
-| Check download for Linux | 4 | Claim: verified-downloads-only; platform name changes |
-| The desktop app requires macOS, Windows, or Linux. | 8 | Mobile availability |
+| Check signed download for Linux | 5 | Claim: verified-downloads-only; platform name changes |
+| Open this page on a desktop computer to check signed downloads. | 10 | Mobile action guidance |
 | Photos stay on this device | 5 | Claim: native-local-privacy |
 | Works without an account | 4 | Claim: no-account |
 | Free for 1,000 files; US$29 once for full libraries | 9 | Claims: free-scan-limit, licensed-scan-limit, paid-checkout |
@@ -57,7 +57,7 @@ No sentence exceeds 22 words. No banned marketing word appears.
 | Review duplicate photos before moving extra copies. | 7 | Product description |
 | Terms | 1 | Legal navigation |
 | Built by Param Factory ↗ | 4 | Attribution |
-| v0.1.15 | 1 | Release identity |
+| v0.1.16 | 1 | Release identity |
 
 ## Download dialog copy
 
@@ -65,22 +65,20 @@ No sentence exceeds 22 words. No banned marketing word appears.
 | --- | ---: | --- |
 | Close download window | 3 | Accessible name |
 | Desktop app | 2 | Dialog label |
-| Desktop downloads | 2 | Dialog heading |
+| Signed desktop downloads | 3 | Dialog heading |
 | Checking the latest release… | 4 | Loading state |
-| Checking release verification… | 3 | Loading state |
-| Downloads are being prepared. | 4 | Empty state |
-| No package is offered until the complete matrix and checksums pass. | 11 | Claim: verified-downloads-only |
+| Checking package signatures… | 3 | Loading state |
+| Signed downloads are being prepared. | 5 | Empty state |
+| No package is offered until Windows and macOS signature checks pass. | 11 | Claim: verified-downloads-only |
 | Windows is Authenticode signed. | 4 | Claim: verified-downloads-only |
 | macOS is signed and notarized. | 5 | Claim: verified-downloads-only |
-| macOS and Windows builds are unsigned. | 6 | Signature disclosure |
-| Your system will ask you to confirm the first launch. | 10 | Installation warning |
 | Download for macOS (Apple silicon) | 5 | Result action |
 | Download for macOS (Intel) | 4 | Result action |
 | Download for Windows | 3 | Result action |
 | Download for Linux | 3 | Result action |
-| Downloads are not published yet. | 5 | Error state |
+| Signed downloads are not published yet. | 6 | Error state |
 | Check again later. | 3 | Error next step |
-| No package was offered because release verification could not be checked. | 10 | Error explanation |
+| No package was offered because signature status could not be checked. | 10 | Error explanation |
 
 ## Terminology
 
@@ -93,8 +91,8 @@ No sentence exceeds 22 words. No banned marketing word appears.
 | A matching copy on another selected root | copies on other drives / Other-drive copies |
 | Similar-image group | Looks alike |
 | The isolated trial state | demo |
-| An installable release | verified release |
+| An installable release | signed download |
 
 The move confirmation says “Move 2 files to /Sample drive/Proof Pile Quarantine?” (9 words) in the demo. The destination changes to the chosen desktop folder. This is covered by `review-before-move`.
 
-Catalog description: “Review photo copies, quarantine extras, and restore moves from a local decision log.” It starts with a verb and contains 84 characters.
+Catalog description: “Compare photo copies, quarantine extras, and restore every move from a local decision log.” It starts with a verb and contains 90 characters.
