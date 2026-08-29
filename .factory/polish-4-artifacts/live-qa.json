@@ -1,0 +1,168 @@
+{
+  "checkedAt": "2026-08-29T20:42:12.585Z",
+  "base": "https://photo-proof-pile.sociobot.in",
+  "routes": [
+    {
+      "route": "/",
+      "status": 200,
+      "title": "Proof Pile — Review photo copies before cleanup",
+      "description": "Review duplicate photo evidence, quarantine extra copies, and keep a local decision log you can reverse.",
+      "canonical": "https://photo-proof-pile.sociobot.in/",
+      "lang": "en",
+      "h1": [
+        "Review photo copies before you remove them"
+      ],
+      "mainCount": 1,
+      "missingAlt": 0,
+      "privacyLinks": 2,
+      "termsLinks": 1
+    },
+    {
+      "route": "/demo",
+      "status": 200,
+      "title": "Demo — Proof Pile",
+      "description": "Try a separate sample review with realistic duplicate-photo evidence. Nothing is saved to your real review.",
+      "canonical": "https://photo-proof-pile.sociobot.in/demo",
+      "lang": "en",
+      "h1": [
+        "Review a sample photo pile"
+      ],
+      "mainCount": 1,
+      "missingAlt": 0,
+      "privacyLinks": 2,
+      "termsLinks": 1
+    },
+    {
+      "route": "/?demo=1",
+      "status": 200,
+      "title": "Demo — Proof Pile",
+      "description": "Try a separate sample review with realistic duplicate-photo evidence. Nothing is saved to your real review.",
+      "canonical": "https://photo-proof-pile.sociobot.in/demo",
+      "lang": "en",
+      "h1": [
+        "Review a sample photo pile"
+      ],
+      "mainCount": 1,
+      "missingAlt": 0,
+      "privacyLinks": 2,
+      "termsLinks": 1
+    },
+    {
+      "route": "/app",
+      "status": 200,
+      "title": "Proof Pile — Review photo copies",
+      "description": "Choose photo folders, compare likely copies, and make a reversible quarantine plan.",
+      "canonical": "https://photo-proof-pile.sociobot.in/app",
+      "lang": "en",
+      "h1": [
+        "Choose folders to scan"
+      ],
+      "mainCount": 1,
+      "missingAlt": 0,
+      "privacyLinks": 2,
+      "termsLinks": 1
+    },
+    {
+      "route": "/privacy",
+      "status": 200,
+      "title": "Privacy — Proof Pile",
+      "description": "Learn what Proof Pile stores locally and what the optional license check sends to Sociobot.",
+      "canonical": "https://photo-proof-pile.sociobot.in/privacy",
+      "lang": "en",
+      "h1": [
+        "Privacy without photo uploads"
+      ],
+      "mainCount": 1,
+      "missingAlt": 0,
+      "privacyLinks": 2,
+      "termsLinks": 1
+    },
+    {
+      "route": "/terms",
+      "status": 200,
+      "title": "Terms — Proof Pile",
+      "description": "Read Proof Pile terms, license limits, payment information, and file-care responsibilities.",
+      "canonical": "https://photo-proof-pile.sociobot.in/terms",
+      "lang": "en",
+      "h1": [
+        "Terms for careful photo cleanup"
+      ],
+      "mainCount": 1,
+      "missingAlt": 0,
+      "privacyLinks": 2,
+      "termsLinks": 1
+    },
+    {
+      "route": "/not-a-proof-pile-route",
+      "status": 404,
+      "title": "Page not found — Proof Pile",
+      "description": "This Proof Pile page is not available. Return home to review duplicate photos.",
+      "canonical": "https://photo-proof-pile.sociobot.in/404",
+      "lang": "en",
+      "h1": [
+        "This page was not found"
+      ],
+      "mainCount": 1,
+      "missingAlt": 0,
+      "privacyLinks": 2,
+      "termsLinks": 1
+    }
+  ],
+  "checks": {
+    "demoJob": {
+      "confirmation": "Move 2 files to /Sample drive/Proof Pile Quarantine? You can restore them from the decision log.",
+      "csvRows": 9,
+      "quarantineFeedback": true,
+      "restoreDialogFocus": true
+    },
+    "demoIsolation": "one click, direct ?demo=1, banner, sample, reset, and Start for real passed",
+    "historyAndFocus": {
+      "savedScroll": 2959,
+      "restoredScroll": 2958,
+      "focusedHeading": true
+    },
+    "hashRoute": {
+      "url": "https://photo-proof-pile.sociobot.in/#how",
+      "focused": "How photo cleanup works"
+    },
+    "downloadGate": "no unsigned release is public; the dialog exposes zero links until signed/notarized verification succeeds",
+    "axe": "zero serious or critical findings on five routes in light and dark",
+    "normalFlowRequests": {
+      "beforeDownloadCheck": [],
+      "allowedAfterExplicitCheck": "https://api.github.com"
+    },
+    "mobile": {
+      "landingDimensions": {
+        "viewport": 390,
+        "document": 390
+      },
+      "demoDimensions": {
+        "viewport": 390,
+        "document": 390
+      },
+      "enlargedDimensions": {
+        "viewport": 390,
+        "document": 390
+      },
+      "transitionDuration": "1e-05s",
+      "touchTargets": ">=44px"
+    },
+    "offline": {
+      "swBefore": {
+        "caches": [
+          "proof-pile-v11"
+        ],
+        "registrations": 1,
+        "script": "https://photo-proof-pile.sociobot.in/sw.js"
+      },
+      "reloadStatus": 200,
+      "sampleGroups": 3
+    }
+  },
+  "consoleErrors": [],
+  "expected404NetworkErrors": [
+    "https://photo-proof-pile.sociobot.in/not-a-proof-pile-route: Failed to load resource: the server responded with a status of 404 ()",
+    "https://photo-proof-pile.sociobot.in/not-a-proof-pile-route: Failed to load resource: the server responded with a status of 404 ()",
+    "https://photo-proof-pile.sociobot.in/not-a-proof-pile-route: Failed to load resource: the server responded with a status of 404 ()"
+  ]
+}

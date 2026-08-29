@@ -1,0 +1,231 @@
+{
+  "total_count": 7,
+  "jobs": [
+    {
+      "id": 99155065054,
+      "run_id": 33273116306,
+      "workflow_name": "Release desktop apps",
+      "head_branch": "v0.1.14",
+      "run_url": "https://api.github.com/repos/B-Divyesh/sf-photo-proof-pile/actions/runs/33273116306",
+      "run_attempt": 1,
+      "node_id": "CR_kwDOUHNJxs8AAAAXFho43g",
+      "head_sha": "f9094139f428cbfb290aecfc8bf823bc5fe2bfbc",
+      "url": "https://api.github.com/repos/B-Divyesh/sf-photo-proof-pile/actions/jobs/99155065054",
+      "html_url": "https://github.com/B-Divyesh/sf-photo-proof-pile/actions/runs/33273116306/job/99155065054",
+      "status": "completed",
+      "conclusion": "failure",
+      "created_at": "2026-08-29T20:17:58Z",
+      "started_at": "2026-08-29T20:18:00Z",
+      "completed_at": "2026-08-29T20:18:03Z",
+      "name": "validate-signing",
+      "steps": [
+        {
+          "name": "Set up job",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 1,
+          "started_at": "2026-08-29T20:18:01Z",
+          "completed_at": "2026-08-29T20:18:01Z"
+        },
+        {
+          "name": "Require trusted Windows and macOS signing credentials",
+          "status": "completed",
+          "conclusion": "failure",
+          "number": 2,
+          "started_at": "2026-08-29T20:18:01Z",
+          "completed_at": "2026-08-29T20:18:01Z"
+        },
+        {
+          "name": "Complete job",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 3,
+          "started_at": "2026-08-29T20:18:01Z",
+          "completed_at": "2026-08-29T20:18:01Z"
+        }
+      ],
+      "check_run_url": "https://api.github.com/repos/B-Divyesh/sf-photo-proof-pile/check-runs/99155065054",
+      "labels": [
+        "ubuntu-latest"
+      ],
+      "runner_id": 1000008871,
+      "runner_name": "GitHub Actions 1000008871",
+      "runner_group_id": 0,
+      "runner_group_name": "GitHub Actions"
+    },
+    {
+      "id": 99155073889,
+      "run_id": 33273116306,
+      "workflow_name": "Release desktop apps",
+      "head_branch": "v0.1.14",
+      "run_url": "https://api.github.com/repos/B-Divyesh/sf-photo-proof-pile/actions/runs/33273116306",
+      "run_attempt": 1,
+      "node_id": "CR_kwDOUHNJxs8AAAAXFhpbYQ",
+      "head_sha": "f9094139f428cbfb290aecfc8bf823bc5fe2bfbc",
+      "url": "https://api.github.com/repos/B-Divyesh/sf-photo-proof-pile/actions/jobs/99155073889",
+      "html_url": "https://github.com/B-Divyesh/sf-photo-proof-pile/actions/runs/33273116306/job/99155073889",
+      "status": "completed",
+      "conclusion": "skipped",
+      "created_at": "2026-08-29T20:18:03Z",
+      "started_at": "2026-08-29T20:18:03Z",
+      "completed_at": "2026-08-29T20:18:03Z",
+      "name": "prepare-release",
+      "steps": [
+
+      ],
+      "check_run_url": "https://api.github.com/repos/B-Divyesh/sf-photo-proof-pile/check-runs/99155073889",
+      "labels": [
+        "ubuntu-latest"
+      ],
+      "runner_id": null,
+      "runner_name": null,
+      "runner_group_id": null,
+      "runner_group_name": null
+    },
+    {
+      "id": 99155073921,
+      "run_id": 33273116306,
+      "workflow_name": "Release desktop apps",
+      "head_branch": "v0.1.14",
+      "run_url": "https://api.github.com/repos/B-Divyesh/sf-photo-proof-pile/actions/runs/33273116306",
+      "run_attempt": 1,
+      "node_id": "CR_kwDOUHNJxs8AAAAXFhpbgQ",
+      "head_sha": "f9094139f428cbfb290aecfc8bf823bc5fe2bfbc",
+      "url": "https://api.github.com/repos/B-Divyesh/sf-photo-proof-pile/actions/jobs/99155073921",
+      "html_url": "https://github.com/B-Divyesh/sf-photo-proof-pile/actions/runs/33273116306/job/99155073921",
+      "status": "completed",
+      "conclusion": "skipped",
+      "created_at": "2026-08-29T20:18:03Z",
+      "started_at": "2026-08-29T20:18:03Z",
+      "completed_at": "2026-08-29T20:18:03Z",
+      "name": "verify-macos-release",
+      "steps": [
+
+      ],
+      "check_run_url": "https://api.github.com/repos/B-Divyesh/sf-photo-proof-pile/check-runs/99155073921",
+      "labels": [
+        "macos-latest"
+      ],
+      "runner_id": null,
+      "runner_name": null,
+      "runner_group_id": null,
+      "runner_group_name": null
+    },
+    {
+      "id": 99155073958,
+      "run_id": 33273116306,
+      "workflow_name": "Release desktop apps",
+      "head_branch": "v0.1.14",
+      "run_url": "https://api.github.com/repos/B-Divyesh/sf-photo-proof-pile/actions/runs/33273116306",
+      "run_attempt": 1,
+      "node_id": "CR_kwDOUHNJxs8AAAAXFhpbpg",
+      "head_sha": "f9094139f428cbfb290aecfc8bf823bc5fe2bfbc",
+      "url": "https://api.github.com/repos/B-Divyesh/sf-photo-proof-pile/actions/jobs/99155073958",
+      "html_url": "https://github.com/B-Divyesh/sf-photo-proof-pile/actions/runs/33273116306/job/99155073958",
+      "status": "completed",
+      "conclusion": "skipped",
+      "created_at": "2026-08-29T20:18:03Z",
+      "started_at": "2026-08-29T20:18:03Z",
+      "completed_at": "2026-08-29T20:18:03Z",
+      "name": "build",
+      "steps": [
+
+      ],
+      "check_run_url": "https://api.github.com/repos/B-Divyesh/sf-photo-proof-pile/check-runs/99155073958",
+      "labels": [
+
+      ],
+      "runner_id": null,
+      "runner_name": null,
+      "runner_group_id": null,
+      "runner_group_name": null
+    },
+    {
+      "id": 99155074069,
+      "run_id": 33273116306,
+      "workflow_name": "Release desktop apps",
+      "head_branch": "v0.1.14",
+      "run_url": "https://api.github.com/repos/B-Divyesh/sf-photo-proof-pile/actions/runs/33273116306",
+      "run_attempt": 1,
+      "node_id": "CR_kwDOUHNJxs8AAAAXFhpcFQ",
+      "head_sha": "f9094139f428cbfb290aecfc8bf823bc5fe2bfbc",
+      "url": "https://api.github.com/repos/B-Divyesh/sf-photo-proof-pile/actions/jobs/99155074069",
+      "html_url": "https://github.com/B-Divyesh/sf-photo-proof-pile/actions/runs/33273116306/job/99155074069",
+      "status": "completed",
+      "conclusion": "skipped",
+      "created_at": "2026-08-29T20:18:03Z",
+      "started_at": "2026-08-29T20:18:03Z",
+      "completed_at": "2026-08-29T20:18:03Z",
+      "name": "verify-windows-release",
+      "steps": [
+
+      ],
+      "check_run_url": "https://api.github.com/repos/B-Divyesh/sf-photo-proof-pile/check-runs/99155074069",
+      "labels": [
+        "windows-latest"
+      ],
+      "runner_id": null,
+      "runner_name": null,
+      "runner_group_id": null,
+      "runner_group_name": null
+    },
+    {
+      "id": 99155074300,
+      "run_id": 33273116306,
+      "workflow_name": "Release desktop apps",
+      "head_branch": "v0.1.14",
+      "run_url": "https://api.github.com/repos/B-Divyesh/sf-photo-proof-pile/actions/runs/33273116306",
+      "run_attempt": 1,
+      "node_id": "CR_kwDOUHNJxs8AAAAXFhpc_A",
+      "head_sha": "f9094139f428cbfb290aecfc8bf823bc5fe2bfbc",
+      "url": "https://api.github.com/repos/B-Divyesh/sf-photo-proof-pile/actions/jobs/99155074300",
+      "html_url": "https://github.com/B-Divyesh/sf-photo-proof-pile/actions/runs/33273116306/job/99155074300",
+      "status": "completed",
+      "conclusion": "skipped",
+      "created_at": "2026-08-29T20:18:04Z",
+      "started_at": "2026-08-29T20:18:04Z",
+      "completed_at": "2026-08-29T20:18:03Z",
+      "name": "checksums",
+      "steps": [
+
+      ],
+      "check_run_url": "https://api.github.com/repos/B-Divyesh/sf-photo-proof-pile/check-runs/99155074300",
+      "labels": [
+        "ubuntu-latest"
+      ],
+      "runner_id": null,
+      "runner_name": null,
+      "runner_group_id": null,
+      "runner_group_name": null
+    },
+    {
+      "id": 99155074329,
+      "run_id": 33273116306,
+      "workflow_name": "Release desktop apps",
+      "head_branch": "v0.1.14",
+      "run_url": "https://api.github.com/repos/B-Divyesh/sf-photo-proof-pile/actions/runs/33273116306",
+      "run_attempt": 1,
+      "node_id": "CR_kwDOUHNJxs8AAAAXFhpdGQ",
+      "head_sha": "f9094139f428cbfb290aecfc8bf823bc5fe2bfbc",
+      "url": "https://api.github.com/repos/B-Divyesh/sf-photo-proof-pile/actions/jobs/99155074329",
+      "html_url": "https://github.com/B-Divyesh/sf-photo-proof-pile/actions/runs/33273116306/job/99155074329",
+      "status": "completed",
+      "conclusion": "skipped",
+      "created_at": "2026-08-29T20:18:04Z",
+      "started_at": "2026-08-29T20:18:04Z",
+      "completed_at": "2026-08-29T20:18:03Z",
+      "name": "verify-release",
+      "steps": [
+
+      ],
+      "check_run_url": "https://api.github.com/repos/B-Divyesh/sf-photo-proof-pile/check-runs/99155074329",
+      "labels": [
+        "ubuntu-latest"
+      ],
+      "runner_id": null,
+      "runner_name": null,
+      "runner_group_id": null,
+      "runner_group_name": null
+    }
+  ]
+}

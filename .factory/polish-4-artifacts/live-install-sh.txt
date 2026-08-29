@@ -1,0 +1,2 @@
+A trusted Linux release is not published yet. Nothing was installed.
+exit_status=1

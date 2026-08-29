@@ -1,0 +1,25 @@
+clean clone: /tmp/proof-pile-polish4-final.2Pf1tS
+commit: 55a357715a64ac7bcbfbc9f4ade0a53cbfce1b06
+npm ci: PASS (0 vulnerabilities)
+PASS demo-isolated :: npm run test:e2e -- --grep @claim:demo-isolated
+PASS match-evidence :: npm run test:e2e -- --grep @claim:match-evidence
+PASS csv-export :: npm run test:e2e -- --grep @claim:csv-export
+PASS reversible-plan :: npm run test:e2e -- --grep @claim:reversible-plan
+PASS review-before-move :: npm run test:claim:review-before-move
+PASS local-privacy :: npm run test:e2e -- --grep @claim:local-privacy
+PASS no-ad-tracking :: npm run test:e2e -- --grep @claim:no-ad-tracking
+PASS native-local-privacy :: cargo test --manifest-path src-tauri/Cargo.toml --no-default-features claim_native_local_privacy
+PASS license-request-privacy :: npm run test:e2e -- --grep @claim:license-request-privacy
+PASS no-account :: npm run test:e2e -- --grep @claim:no-account
+PASS free-scan-limit :: cargo test --manifest-path src-tauri/Cargo.toml --no-default-features claim_free_scan_limit
+PASS free-safety-tools :: npm run test:e2e -- --grep @claim:free-safety-tools
+PASS paid-license :: npm run test:e2e -- --grep @claim:paid-license
+PASS paid-checkout :: npm run test:e2e -- --grep @claim:paid-checkout
+PASS licensed-scan-limit :: cargo test --manifest-path src-tauri/Cargo.toml --no-default-features claim_licensed_scan_limit
+PASS offline-reload :: npm run test:e2e -- --grep @claim:offline-reload
+PASS native-matching :: cargo test --manifest-path src-tauri/Cargo.toml --no-default-features claim_native_matching
+PASS scan-scope :: cargo test --manifest-path src-tauri/Cargo.toml --no-default-features claim_scan_scope
+PASS cross-drive-safety :: cargo test --manifest-path src-tauri/Cargo.toml --no-default-features claim_cross_drive_safety
+PASS installer-checksum :: npm run test:unit -- --testNamePattern @claim:installer-checksum
+PASS windows-installer-checksum :: npm run test:unit -- --testNamePattern @claim:windows-installer-checksum
+PASS verified-downloads-only :: npm run test:e2e -- --grep @claim:verified-downloads-only
