@@ -4,13 +4,15 @@ import AxeBuilder from "@axe-core/playwright";
 async function installTauriMock(page: import("@playwright/test").Page) {
   await page.addInitScript(() => {
     const restored: string[] = [];
+    const quarantineCalls: string[][] = [];
     let batch = 0;
-    (window as unknown as { __PROOF_PILE_TAURI_TEST__: unknown }).__PROOF_PILE_TAURI_TEST__ = { restored };
+    (window as unknown as { __PROOF_PILE_TAURI_TEST__: unknown }).__PROOF_PILE_TAURI_TEST__ = { restored, quarantineCalls };
     (window as unknown as { __TAURI_INTERNALS__: unknown }).__TAURI_INTERNALS__ = {
       invoke: async (command: string, args: { paths?: string[] }) => {
         if (command === "plugin:dialog|open") return "/Mock quarantine";
         if (command === "execute_quarantine") {
           batch += 1;
+          quarantineCalls.push([...(args.paths ?? [])]);
           return (args.paths ?? []).map((source, index) => ({
             id: `batch-${batch}-${index}`,
             source,
@@ -29,6 +31,49 @@ async function installTauriMock(page: import("@playwright/test").Page) {
     };
   });
 }
+
+test("completed quarantine plans leave no pending work and repeat safely in demo and native flows", async ({ page }) => {
+  for (const native of [false, true]) {
+    if (native) await installTauriMock(page);
+    await page.goto("/");
+    await page.evaluate(() => { localStorage.clear(); sessionStorage.clear(); });
+    await page.goto("/demo");
+    await page.getByRole("button", { name: "Mark exact extras" }).click();
+    if (native) {
+      await page.evaluate(() => localStorage.setItem("proof-pile:session", sessionStorage.getItem("demo:photo-proof-pile:session")!));
+      await page.goto("/app");
+    }
+
+    page.once("dialog", dialog => dialog.accept());
+    await page.getByRole("button", { name: "Move 2 files to quarantine" }).click();
+    await expect(page.locator(".plan-number strong")).toHaveText("0");
+    await expect(page.getByRole("button", { name: "Choose files to quarantine" })).toBeDisabled();
+    await page.locator("#run-plan").dispatchEvent("click");
+    await page.getByRole("button", { name: "Mark exact extras" }).click();
+    await expect(page.getByText("These exact copies are already in quarantine.")).toBeVisible();
+    await expect(page.locator(".plan-number strong")).toHaveText("0");
+
+    const storage = native ? "localStorage" : "sessionStorage";
+    const key = native ? "proof-pile:session" : "demo:photo-proof-pile:session";
+    expect(await page.evaluate(({ storage, key }) => JSON.parse(window[storage as "localStorage" | "sessionStorage"].getItem(key)!).moves, { storage, key })).toHaveLength(2);
+    if (native) {
+      expect(await page.evaluate(() => (window as unknown as { __PROOF_PILE_TAURI_TEST__: { quarantineCalls: string[][] } }).__PROOF_PILE_TAURI_TEST__.quarantineCalls)).toHaveLength(1);
+    }
+  }
+});
+
+test("keyboard decisions move focus to the next file without restarting traversal", async ({ page }) => {
+  await page.goto("/demo");
+  await page.getByRole("option").nth(1).click();
+  const secondQuarantine = page.locator(".file-row").nth(1).getByRole("button", { name: "Quarantine" });
+  await secondQuarantine.focus();
+  await page.keyboard.press("Space");
+  await expect(page.locator(".file-row").nth(2).getByRole("button", { name: "Keep" })).toBeFocused();
+  await page.keyboard.press("Tab");
+  await page.keyboard.press("Space");
+  await expect(page.locator(".file-row").nth(2).getByRole("button", { name: "Quarantine" })).toBeFocused();
+  await expect(page.locator('.file-row button[data-decision="quarantine"][aria-pressed="true"]')).toHaveCount(2);
+});
 
 test("@claim:demo-isolated keeps real storage untouched and discards only the sample session", async ({ page }) => {
   const realReview = JSON.stringify({ groups: [{ id: "real", files: [] }], moves: [{ id: "real-move" }] });
@@ -146,9 +191,6 @@ test("@claim:free-safety-tools keeps quarantine, restore, and decision-log recov
   await page.getByRole("button", { name: "Move 2 files to quarantine" }).click();
   await expect(page.getByText("2 files moved to quarantine. The decision log is ready to export.")).toBeVisible();
 
-  while (await page.locator('.file-row.quarantine button[data-decision="review"]').count()) {
-    await page.locator('.file-row.quarantine button[data-decision="review"]').first().click();
-  }
   await page.getByRole("option").nth(1).click();
   await page.locator(".file-row").nth(1).getByRole("button", { name: "Quarantine" }).click();
   page.once("dialog", dialog => dialog.accept());

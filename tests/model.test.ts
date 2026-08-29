@@ -1,11 +1,21 @@
 import { describe, expect, it } from "vitest";
-import { countPlan, decisionCsv, formatBytes, movesFromDecisionCsv, sampleGroups } from "../src/model";
+import { countPlan, decisionCsv, formatBytes, movesFromDecisionCsv, normalizeMoves, sampleGroups } from "../src/model";
 
 describe("review model", () => {
   it("counts only files marked for quarantine", () => {
     const groups = sampleGroups();
     groups[0].files[1].decision = "quarantine";
     expect(countPlan(groups)).toEqual({ files: 1, bytes: 4_820_112 });
+  });
+
+  it("excludes completed moves from the pending plan and repairs duplicate active recovery records", () => {
+    const groups = sampleGroups();
+    const file = groups[0].files[1];
+    file.decision = "quarantine";
+    const move = { id: "move-1", source: file.path, destination: `/Quarantine/${file.name}`, movedAt: "2026-08-29", sha256: "a".repeat(64), quarantineRoot: "/Quarantine" };
+    expect(countPlan(groups, [move])).toEqual({ files: 0, bytes: 0 });
+    expect(countPlan(groups, [{ ...move, restoredAt: "2026-08-30" }])).toEqual({ files: 1, bytes: file.size });
+    expect(normalizeMoves([move, { ...move, id: "duplicate" }])).toEqual([move]);
   });
 
   it("quotes every CSV cell and preserves paths", () => {

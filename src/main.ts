@@ -1,12 +1,12 @@
 import "./style.css";
-import { countPlan, decisionCsv, formatBytes, movesFromDecisionCsv, sampleGroups, type MoveRecord, type PhotoGroup, type SavedReview } from "./model";
+import { activeMoveSources, countPlan, decisionCsv, formatBytes, movesFromDecisionCsv, normalizeMoves, pendingQuarantineFiles, sampleGroups, type FileDecision, type MoveRecord, type PhotoGroup, type SavedReview } from "./model";
 
 declare global { interface Window { __TAURI_INTERNALS__?: unknown } }
 
 const app = document.querySelector<HTMLDivElement>("#app")!;
 const isDesktop = Boolean(window.__TAURI_INTERNALS__);
 const PRODUCT = "photo-proof-pile";
-const VERSION = "0.1.4";
+const VERSION = "0.1.5";
 const LICENSE_KEY = `sb_license:${PRODUCT}`;
 const DEMO_KEY = "demo:photo-proof-pile:session";
 const REAL_KEY = "proof-pile:session";
@@ -17,6 +17,7 @@ let notice = "";
 let demo = false;
 let licenseActive = Boolean(localStorage.getItem(LICENSE_KEY));
 let licenseNotice = "";
+let planRunning = false;
 const scrollPositions = new Map<string, number>();
 
 const escapeHtml = (value: unknown) => String(value).replace(/[&<>'"]/g, character => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", "'": "&#39;", '"': "&quot;" })[character]!);
@@ -111,7 +112,7 @@ function readReview(storage: Storage, key: string): SavedReview | null {
     // Read the older groups-only record, then upgrade it on the next write.
     if (Array.isArray(parsed)) return { groups: parsed, moves: [] };
     if (!Array.isArray(parsed?.groups) || !Array.isArray(parsed?.moves)) throw new Error();
-    return { groups: parsed.groups, moves: parsed.moves };
+    return { groups: parsed.groups, moves: normalizeMoves(parsed.moves) };
   } catch {
     storage.removeItem(key);
     notice = "The saved review could not be read. Start a new scan.";
@@ -121,7 +122,7 @@ function readReview(storage: Storage, key: string): SavedReview | null {
 
 function renderDesk() {
   const group = groups[activeGroup];
-  const plan = countPlan(groups);
+  const plan = countPlan(groups, moves);
   const title = demo ? "Review a sample photo pile" : groups.length ? "Review your photo pile" : "Choose folders to scan";
   shell(`<main id="main" class="desk-page" tabindex="-1">
     ${demo ? `<aside class="demo-banner" aria-label="Demo mode"><strong>Demo — sample data, nothing is saved</strong><div><button id="reset-demo" type="button">Reset demo</button><button id="start-real" type="button">Start for real</button></div></aside>` : ""}
@@ -137,24 +138,27 @@ function emptyState() {
 }
 
 function deskContent(group: PhotoGroup, planFiles: number, planBytes: number) {
+  const completed = activeMoveSources(moves);
+  const planSummary = planFiles
+    ? `${formatBytes(planBytes)} would move. Originals stay unchanged until you run the plan.`
+    : "No files are waiting to move.";
   return `<div class="desk-layout">
     <aside class="group-rail" aria-label="Photo groups"><div class="rail-heading"><h2>Groups</h2><span>${groups.length}</span></div><div role="listbox" aria-label="Duplicate groups">${groups.map((item, index) => `<button type="button" role="option" aria-selected="${index === activeGroup}" data-group="${index}"><span class="group-thumb"><img src="${safeThumbnail(item.files[0].thumbnail)}" alt=""></span><span><strong>${escapeHtml(item.kind)}</strong><small>${item.files.length} files · ${item.confidence}% match</small></span></button>`).join("")}</div><p class="key-hint">Use ↑ and ↓ to change groups.</p></aside>
     <section class="evidence" aria-labelledby="group-title"><div class="evidence-heading"><div><span class="match-badge">${escapeHtml(group.kind)}</span><h2 id="group-title">${escapeHtml(humanGroup(group.id))}</h2><p>${escapeHtml(group.reason)}</p></div><div class="confidence"><strong>${group.confidence}%</strong><span>match</span></div></div>
-      <div class="photo-strip" tabindex="0" role="region" aria-label="${escapeHtml(humanGroup(group.id))} photo copies. Scroll sideways to compare every copy.">${group.files.map((file, index) => `<figure class="photo-card ${file.decision}"><img src="${safeThumbnail(file.thumbnail || group.files[0].thumbnail)}" width="320" height="210" alt="${escapeHtml(humanGroup(group.id))} copy ${index + 1}."><figcaption>${file.decision === "keep" ? "Keep" : file.decision === "quarantine" ? "Quarantine" : "Needs review"}</figcaption></figure>`).join("")}</div>
-      <div class="file-list" aria-label="Copy evidence">${group.files.map(fileRow).join("")}</div>
+      <div class="photo-strip" tabindex="0" role="region" aria-label="${escapeHtml(humanGroup(group.id))} photo copies. Scroll sideways to compare every copy.">${group.files.map((file, index) => `<figure class="photo-card ${file.decision} ${completed.has(file.path) ? "completed" : ""}"><img src="${safeThumbnail(file.thumbnail || group.files[0].thumbnail)}" width="320" height="210" alt="${escapeHtml(humanGroup(group.id))} copy ${index + 1}."><figcaption>${completed.has(file.path) ? "Moved to quarantine" : file.decision === "keep" ? "Keep" : file.decision === "quarantine" ? "Quarantine" : "Needs review"}</figcaption></figure>`).join("")}</div>
+      <div class="file-list" aria-label="Copy evidence">${group.files.map(file => fileRow(file, completed.has(file.path))).join("")}</div>
       <div class="group-actions"><button class="button quiet" id="keep-best" type="button">Keep largest copy</button><button class="button quiet" id="mark-extras" type="button">Mark exact extras</button></div>
     </section>
-    <aside class="plan-rail" aria-labelledby="plan-title"><p class="eyebrow">Reversible plan</p><h2 id="plan-title">Quarantine plan</h2><div class="plan-number"><strong>${planFiles}</strong><span>files marked</span></div><p>${formatBytes(planBytes)} would move. Originals stay unchanged until you run the plan.</p><label for="quarantine-folder">Quarantine folder</label><input id="quarantine-folder" value="${demo ? "/Sample drive/Proof Pile Quarantine" : ""}" readonly placeholder="Choose a folder"><button class="button primary" id="run-plan" type="button" ${planFiles ? "" : "disabled"}>${planFiles ? `Move ${planFiles} file${planFiles === 1 ? "" : "s"} to quarantine` : "Choose files to quarantine"}</button><p class="safety-copy">Files move only to the quarantine folder. Test a backup before freeing drive space.</p>${moves.length ? `<button class="button quiet" id="restore-last" type="button">Restore last move</button>` : ""}</aside>
+    <aside class="plan-rail" aria-labelledby="plan-title"><p class="eyebrow">Reversible plan</p><h2 id="plan-title">Quarantine plan</h2><div class="plan-number"><strong>${planFiles}</strong><span>files marked</span></div><p>${planSummary}</p><label for="quarantine-folder">Quarantine folder</label><input id="quarantine-folder" value="${demo ? "/Sample drive/Proof Pile Quarantine" : ""}" readonly placeholder="Choose a folder"><button class="button primary" id="run-plan" type="button" ${planFiles ? "" : "disabled"}>${planFiles ? `Move ${planFiles} file${planFiles === 1 ? "" : "s"} to quarantine` : "Choose files to quarantine"}</button><p class="safety-copy">Files move only to the quarantine folder. Test a backup before freeing drive space.</p>${moves.some(move => !move.restoredAt) ? `<button class="button quiet" id="restore-last" type="button">Restore last move</button>` : ""}</aside>
   </div>`;
 }
 
-function fileRow(file: PhotoGroup["files"][number]) {
+function fileRow(file: PhotoGroup["files"][number], completed: boolean) {
   const date = file.capturedAt ? new Date(file.capturedAt).toLocaleString([], { dateStyle: "medium", timeStyle: "short" }) : "No capture date";
-  return `<article class="file-row ${file.decision}"><div class="file-path"><strong title="${escapeHtml(file.path)}">${escapeHtml(file.name)}</strong><span>${escapeHtml(file.path)}</span></div><dl><div><dt>Dimensions</dt><dd>${file.width} × ${file.height}</dd></div><div><dt>Size</dt><dd>${formatBytes(file.size)}</dd></div><div><dt>Captured</dt><dd>${escapeHtml(date)}</dd></div><div><dt>Camera</dt><dd>${escapeHtml(file.camera || "Not recorded")}</dd></div><div><dt>File identifier</dt><dd><code>${escapeHtml(file.hash)}</code></dd></div><div><dt>Other-drive copies</dt><dd>${file.backupCount}</dd></div></dl><fieldset><legend>Decision for ${escapeHtml(file.name)}</legend>${decisionButton(file.id, "keep", "Keep")}${decisionButton(file.id, "quarantine", "Quarantine")}${decisionButton(file.id, "review", "Mark for review")}</fieldset></article>`;
+  return `<article class="file-row ${file.decision} ${completed ? "completed" : ""}"><div class="file-path"><strong title="${escapeHtml(file.path)}">${escapeHtml(file.name)}</strong><span>${escapeHtml(file.path)}</span></div><dl><div><dt>Dimensions</dt><dd>${file.width} × ${file.height}</dd></div><div><dt>Size</dt><dd>${formatBytes(file.size)}</dd></div><div><dt>Captured</dt><dd>${escapeHtml(date)}</dd></div><div><dt>Camera</dt><dd>${escapeHtml(file.camera || "Not recorded")}</dd></div><div><dt>File identifier</dt><dd><code>${escapeHtml(file.hash)}</code></dd></div><div><dt>Other-drive copies</dt><dd>${file.backupCount}</dd></div></dl>${completed ? `<p class="move-status">Moved to quarantine. Restore it from the decision log to review it again.</p>` : ""}<fieldset ${completed ? "disabled" : ""}><legend>Decision for ${escapeHtml(file.name)}</legend>${decisionButton(file.id, "keep", "Keep", file.decision)}${decisionButton(file.id, "quarantine", "Quarantine", file.decision)}${decisionButton(file.id, "review", "Mark for review", file.decision)}</fieldset></article>`;
 }
 
-function decisionButton(id: string, value: string, label: string) {
-  const current = groups[activeGroup]?.files.find(file => file.id === id)?.decision;
+function decisionButton(id: string, value: string, label: string, current: FileDecision) {
   return `<button type="button" data-file="${escapeHtml(id)}" data-decision="${value}" aria-pressed="${current === value}">${label}</button>`;
 }
 
@@ -177,11 +181,13 @@ function bindDesk() {
     const next = button.dataset.decision as "keep" | "quarantine" | "review";
     if (file && next === "quarantine" && !canQuarantine(groups[activeGroup], file.id)) {
       notice = "Keep one copy in this group before marking another copy for quarantine.";
-      renderDesk();
+      renderDeskWithDecisionFocus(file.id, next, false);
       return;
     }
     if (file) file.decision = next;
-    persist(); renderDesk();
+    persist();
+    if (file) renderDeskWithDecisionFocus(file.id, next, true);
+    else renderDesk();
   }));
   document.querySelector("#keep-best")?.addEventListener("click", keepBest);
   document.querySelector("#mark-extras")?.addEventListener("click", markExtras);
@@ -189,6 +195,17 @@ function bindDesk() {
   document.querySelector("#restore-last")?.addEventListener("click", restoreLast);
   document.querySelector("#export-csv")?.addEventListener("click", exportCsv);
   document.querySelector("#import-csv")?.addEventListener("click", importCsv);
+}
+
+function renderDeskWithDecisionFocus(fileId: string, decision: FileDecision, advance: boolean) {
+  const actionable = groups[activeGroup].files.filter(file => !activeMoveSources(moves).has(file.path));
+  const current = actionable.findIndex(file => file.id === fileId);
+  const next = advance && current >= 0 && current + 1 < actionable.length ? actionable[current + 1] : actionable[current];
+  const nextDecision: FileDecision = next?.id === fileId ? decision : "keep";
+  renderDesk();
+  [...document.querySelectorAll<HTMLButtonElement>("[data-file]")]
+    .find(button => button.dataset.file === next?.id && button.dataset.decision === nextDecision)
+    ?.focus();
 }
 
 function persist() {
@@ -219,18 +236,28 @@ function markExtras() {
   const group = groups[activeGroup];
   if (group.kind !== "Exact bytes") { notice = "Only exact byte matches can be marked together. Review this group file by file."; renderDesk(); return; }
   const keep = group.files.find(file => file.decision === "keep") ?? group.files[0];
-  group.files.forEach(file => file.decision = file.id === keep.id ? "keep" : "quarantine");
-  notice = `${group.files.length - 1} exact copies added to the quarantine plan.`; persist(); renderDesk();
+  const completed = activeMoveSources(moves);
+  let added = 0;
+  group.files.forEach(file => {
+    if (completed.has(file.path)) return;
+    file.decision = file.id === keep.id ? "keep" : "quarantine";
+    if (file.decision === "quarantine") added += 1;
+  });
+  notice = added ? `${added} exact copies added to the quarantine plan.` : "These exact copies are already in quarantine.";
+  persist(); renderDesk();
 }
 
 async function runPlan() {
-  const selected = groups.flatMap(group => group.files).filter(file => file.decision === "quarantine");
+  if (planRunning) return;
+  const selected = pendingQuarantineFiles(groups, moves);
   if (!selected.length) return;
   if (!planHasKeptCopy()) { notice = "Keep one copy in every group before running the quarantine plan."; renderDesk(); return; }
   if (!confirm(`Move ${selected.length} files to quarantine? You can restore them from the decision log.`)) return;
+  planRunning = true;
   if (demo) {
     const stamp = new Date().toISOString();
-    moves.push(...selected.map((file, i) => ({ id: `demo-${i}`, source: file.path, destination: `/Sample drive/Proof Pile Quarantine/${file.name}`, movedAt: stamp, sha256: "d".repeat(64), quarantineRoot: "/Sample drive/Proof Pile Quarantine" })));
+    addCompletedMoves(selected.map((file, i) => ({ id: `demo-${stamp}-${i}`, source: file.path, destination: `/Sample drive/Proof Pile Quarantine/${file.name}`, movedAt: stamp, sha256: "d".repeat(64), quarantineRoot: "/Sample drive/Proof Pile Quarantine" })), selected);
+    planRunning = false;
     persist(); notice = `${selected.length} sample files moved to the demo quarantine. No files on your device changed.`; renderDesk(); return;
   }
   try {
@@ -239,17 +266,36 @@ async function runPlan() {
     if (!destination || Array.isArray(destination)) return;
     const { invoke } = await import("@tauri-apps/api/core");
     const completed = await invoke<MoveRecord[]>("execute_quarantine", { paths: selected.map(file => file.path), quarantineDir: destination });
-    moves.push(...completed);
-    persist(); notice = `${completed.length} file${completed.length === 1 ? "" : "s"} moved to quarantine. The decision log is ready to export.`; renderDesk();
+    const added = addCompletedMoves(completed, selected);
+    persist(); notice = `${added} file${added === 1 ? "" : "s"} moved to quarantine. The decision log is ready to export.`; renderDesk();
   } catch (error) { notice = `The plan did not run. ${plainError(error)} Choose a writable quarantine folder and try again.`; renderDesk(); }
+  finally { planRunning = false; }
+}
+
+function addCompletedMoves(completed: MoveRecord[], expected: PhotoGroup["files"]) {
+  const active = activeMoveSources(moves);
+  const selected = new Set(expected.map(file => file.path));
+  const added = completed.filter(move => {
+    if (!selected.has(move.source) || active.has(move.source)) return false;
+    active.add(move.source);
+    return true;
+  });
+  moves.push(...added);
+  return added.length;
 }
 
 async function restoreLast() {
   const move = [...moves].reverse().find(item => !item.restoredAt); if (!move) return;
   if (!(await confirmRestore(move))) return;
-  if (demo) { move.restoredAt = new Date().toISOString(); persist(); notice = `${move.source.split("/").pop()} restored in the demo.`; renderDesk(); return; }
-  try { const { invoke } = await import("@tauri-apps/api/core"); await invoke("restore_quarantined", { record: move }); move.restoredAt = new Date().toISOString(); persist(); notice = `${move.source.split("/").pop()} restored.`; renderDesk(); }
+  if (demo) { completeRestore(move); persist(); notice = `${move.source.split("/").pop()} restored in the demo.`; renderDesk(); return; }
+  try { const { invoke } = await import("@tauri-apps/api/core"); await invoke("restore_quarantined", { record: move }); completeRestore(move); persist(); notice = `${move.source.split("/").pop()} restored.`; renderDesk(); }
   catch (error) { notice = `The file was not restored. ${plainError(error)} Check both folders and try again.`; renderDesk(); }
+}
+
+function completeRestore(move: MoveRecord) {
+  move.restoredAt = new Date().toISOString();
+  const file = groups.flatMap(group => group.files).find(candidate => candidate.path === move.source);
+  if (file?.decision === "quarantine") file.decision = "review";
 }
 
 function confirmRestore(move: MoveRecord) {

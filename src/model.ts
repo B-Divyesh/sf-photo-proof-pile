@@ -94,10 +94,29 @@ export const sampleGroups = (): PhotoGroup[] => [
   }
 ];
 
-export function countPlan(groups: PhotoGroup[]) {
-  const files = groups.flatMap(group => group.files);
-  const selected = files.filter(file => file.decision === "quarantine");
+export function activeMoveSources(moves: MoveRecord[]) {
+  return new Set(moves.filter(move => !move.restoredAt).map(move => move.source));
+}
+
+export function pendingQuarantineFiles(groups: PhotoGroup[], moves: MoveRecord[] = []) {
+  const completed = activeMoveSources(moves);
+  return groups.flatMap(group => group.files).filter(file => file.decision === "quarantine" && !completed.has(file.path));
+}
+
+export function countPlan(groups: PhotoGroup[], moves: MoveRecord[] = []) {
+  const selected = pendingQuarantineFiles(groups, moves);
   return { files: selected.length, bytes: selected.reduce((sum, file) => sum + file.size, 0) };
+}
+
+/** Keep recovery history, but collapse impossible duplicate active moves from older saved reviews. */
+export function normalizeMoves(moves: MoveRecord[]) {
+  const active = new Set<string>();
+  return moves.filter(move => {
+    if (move.restoredAt) return true;
+    if (active.has(move.source)) return false;
+    active.add(move.source);
+    return true;
+  });
 }
 
 export function decisionCsv(groups: PhotoGroup[], moves: MoveRecord[] = []) {

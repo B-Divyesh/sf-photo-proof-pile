@@ -168,6 +168,8 @@ footer .fine { text-align: right; }
 .file-row { padding: 16px; border-left: 4px solid var(--line); background: color-mix(in srgb, var(--surface-2) 58%, transparent); }
 .file-row.keep { border-color: var(--pine); }
 .file-row.quarantine { border-color: var(--coral); background-image: repeating-linear-gradient(135deg, transparent 0 12px, rgb(166 58 50 / 7%) 12px 16px); }
+.file-row.completed { border-color: var(--blueprint); background-image: none; }
+.file-row .move-status { margin: 0 0 12px; color: var(--blueprint); font-size: .76rem; font-weight: 750; }
 .file-path { display: grid; gap: 2px; min-width: 0; margin-bottom: 12px; }
 .file-path strong, .file-path span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .file-path span { color: var(--muted); font-size: .74rem; }
@@ -179,6 +181,7 @@ footer .fine { text-align: right; }
 .file-row legend { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0,0,0,0); }
 .file-row fieldset button { min-height: 36px; padding: 5px 9px; border: 1px solid var(--line); background: var(--surface); cursor: pointer; font-size: .7rem; }
 .file-row fieldset button[aria-pressed="true"] { border-color: var(--ink); background: var(--ink); color: var(--canvas); }
+.file-row fieldset:disabled button { cursor: not-allowed; opacity: .62; }
 .group-actions { display: flex; gap: 12px; margin-top: 20px; }
 .plan-rail { padding: 20px; border-top: 4px solid var(--coral); background: var(--surface); }
 .plan-number { display: flex; align-items: baseline; gap: 8px; margin: 24px 0 8px; }
