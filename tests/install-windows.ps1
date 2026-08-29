@@ -8,7 +8,8 @@ $script:Started = $false
 function Invoke-RestMethod {
   [pscustomobject]@{ assets = @(
     [pscustomobject]@{ name = "Proof.Pile_0.1.1_x64_en-US.msi"; browser_download_url = "https://downloads.test/Proof.Pile_0.1.1_x64_en-US.msi" },
-    [pscustomobject]@{ name = "SHA256SUMS"; browser_download_url = "https://downloads.test/SHA256SUMS" }
+    [pscustomobject]@{ name = "SHA256SUMS"; browser_download_url = "https://downloads.test/SHA256SUMS" },
+    [pscustomobject]@{ name = "DESKTOP_SIGNATURES_VERIFIED.json"; browser_download_url = "https://downloads.test/DESKTOP_SIGNATURES_VERIFIED.json" }
   ) }
 }
 
@@ -16,6 +17,8 @@ function Invoke-WebRequest {
   param([string]$Uri, [string]$OutFile)
   if ($Uri.EndsWith("SHA256SUMS")) {
     [IO.File]::WriteAllText($OutFile, "$script:Expected  Proof.Pile_0.1.1_x64_en-US.msi`n")
+  } elseif ($Uri.EndsWith("DESKTOP_SIGNATURES_VERIFIED.json")) {
+    [IO.File]::WriteAllText($OutFile, '{"macos":"signed-and-notarized","windows":"authenticode-signed"}')
   } else {
     [IO.File]::WriteAllText($OutFile, $script:Payload)
   }

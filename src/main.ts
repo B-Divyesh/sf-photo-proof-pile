@@ -6,7 +6,7 @@ declare global { interface Window { __TAURI_INTERNALS__?: unknown } }
 const app = document.querySelector<HTMLDivElement>("#app")!;
 const isDesktop = Boolean(window.__TAURI_INTERNALS__);
 const PRODUCT = "photo-proof-pile";
-const VERSION = "0.1.13";
+const VERSION = "0.1.14";
 const LICENSE_KEY = `sb_license:${PRODUCT}`;
 const DEMO_KEY = "demo:photo-proof-pile:session";
 const REAL_KEY = "proof-pile:session";
@@ -47,7 +47,7 @@ function landing() {
   demo = false;
   const downloadControl = isMobileDevice()
     ? `<p class="mobile-download-note">The desktop app requires macOS, Windows, or Linux.</p>`
-    : `<button class="download-link" id="download-app" type="button">Download for ${platformName()}</button>`;
+    : `<button class="download-link" id="download-app" type="button">Check signed download for ${platformName()}</button>`;
   shell(`<main id="main" tabindex="-1">
     <section class="hero">
       <div class="hero-copy"><p class="eyebrow">Local duplicate-photo review</p><h1 tabindex="-1">Review photo copies before you remove them</h1><p class="lede">For people with photos across several drives who fear removing the only meaningful copy.</p><div class="hero-action"><a class="button primary route-link" href="/demo">Try it with sample data ${icon("arrow")}</a><span>Opens three ready-to-review groups.</span></div>${downloadControl}<ul class="fact-list"><li>${icon("shield")} Photos stay on this device</li><li>${icon("check")} Works without an account</li><li>${icon("check")} Free for 1,000 files; US$29 once for full libraries</li></ul></div>
@@ -478,7 +478,7 @@ async function verifySavedLicense() {
 
 async function showDownloads() {
   const existing = document.querySelector("dialog"); if (existing) existing.remove();
-  const dialog = document.createElement("dialog"); dialog.innerHTML = `<div class="download-dialog"><button class="dialog-close" aria-label="Close download window">×</button><p class="eyebrow">Desktop app</p><h2>Choose your download</h2><p id="release-state">Checking the latest release…</p><div id="release-links"></div><a href="https://github.com/B-Divyesh/sf-photo-proof-pile/releases" rel="external">Open all releases ↗</a><p class="fine" id="signature-state">Checking package signatures…</p></div>`; document.body.append(dialog); dialog.showModal(); dialog.querySelector(".dialog-close")?.addEventListener("click", () => dialog.close()); dialog.addEventListener("close", () => dialog.remove());
+  const dialog = document.createElement("dialog"); dialog.innerHTML = `<div class="download-dialog"><button class="dialog-close" aria-label="Close download window">×</button><p class="eyebrow">Desktop app</p><h2>Trusted desktop downloads</h2><p id="release-state">Checking the latest release…</p><div id="release-links"></div><p class="fine" id="signature-state">Checking package signatures…</p></div>`; document.body.append(dialog); dialog.showModal(); dialog.querySelector(".dialog-close")?.addEventListener("click", () => dialog.close()); dialog.addEventListener("close", () => dialog.remove());
   try {
     const releaseKey = `proof-pile:release:v${VERSION}`;
     let release = JSON.parse(localStorage.getItem(releaseKey) || "null"); if (!release || Date.now() - release.savedAt > 3_600_000) { const response = await fetch("https://api.github.com/repos/B-Divyesh/sf-photo-proof-pile/releases/latest"); if (!response.ok) throw new Error(); release = { data: await response.json(), savedAt: Date.now() }; localStorage.setItem(releaseKey, JSON.stringify(release)); }
@@ -486,17 +486,23 @@ async function showDownloads() {
     const signaturesVerified = assets.some(item => item.name === "DESKTOP_SIGNATURES_VERIFIED.json");
     const macArm = assets.find(item => /\.(dmg)$/i.test(item.name) && /(aarch64|arm64)/i.test(item.name));
     const macIntel = assets.find(item => /\.(dmg)$/i.test(item.name) && /(x86_64|x64|intel)/i.test(item.name));
-    const picks = [["Windows", /\.(msi|exe)$/i], ["Linux", /\.(AppImage|deb)$/i]] as const;
+    const windows = assets.find(item => /\.(msi|exe)$/i.test(item.name));
+    const linux = assets.find(item => /\.(AppImage|deb)$/i.test(item.name));
+    if (!signaturesVerified || !macArm || !macIntel || !windows || !linux) {
+      document.querySelector("#release-state")!.textContent = "Trusted downloads are being prepared.";
+      document.querySelector("#signature-state")!.textContent = "No package is offered until Windows and macOS signature checks pass.";
+      document.querySelector("#release-links")!.replaceChildren();
+      return;
+    }
     document.querySelector("#release-state")!.textContent = `${release.data.tag_name} is ready.`;
-    document.querySelector("#signature-state")!.textContent = signaturesVerified
-      ? "Windows is Authenticode signed. macOS is signed and notarized."
-      : "Current builds are unsigned. Your system may ask you to confirm the first launch.";
+    document.querySelector("#signature-state")!.textContent = "Windows is Authenticode signed. macOS is signed and notarized.";
     document.querySelector("#release-links")!.innerHTML = [
-      macArm ? `<a class="button quiet" href="${escapeHtml(macArm.browser_download_url)}">Download for macOS (Apple silicon)</a>` : "",
-      macIntel ? `<a class="button quiet" href="${escapeHtml(macIntel.browser_download_url)}">Download for macOS (Intel)</a>` : "",
-      ...picks.map(([label, regex]) => { const asset = assets.find(item => regex.test(item.name)); return asset ? `<a class="button quiet" href="${escapeHtml(asset.browser_download_url)}">Download for ${label}</a>` : ""; })
+      `<a class="button quiet" href="${escapeHtml(macArm.browser_download_url)}">Download for macOS (Apple silicon)</a>`,
+      `<a class="button quiet" href="${escapeHtml(macIntel.browser_download_url)}">Download for macOS (Intel)</a>`,
+      `<a class="button quiet" href="${escapeHtml(windows.browser_download_url)}">Download for Windows</a>`,
+      `<a class="button quiet" href="${escapeHtml(linux.browser_download_url)}">Download for Linux</a>`
     ].join("");
-  } catch { document.querySelector("#release-state")!.textContent = "Downloads are being published. Use the releases page to check again."; document.querySelector("#signature-state")!.textContent = "Signature status is not available."; }
+  } catch { document.querySelector("#release-state")!.textContent = "Trusted downloads are not published yet. Check again later."; document.querySelector("#signature-state")!.textContent = "No package was offered because signature status could not be checked."; }
 }
 
 addEventListener("popstate", () => route(true));

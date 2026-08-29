@@ -483,7 +483,7 @@ test("Android and iPhone visitors see truthful desktop availability", async ({ b
     await page.goto("/");
     await expect(page.getByText("The desktop app requires macOS, Windows, or Linux.")).toBeVisible();
     await expect(page.getByText(phone.wrongLabel)).toHaveCount(0);
-    await expect(page.getByRole("button", { name: /Download for/ })).toHaveCount(0);
+    await expect(page.getByRole("button", { name: /Check signed download/ })).toHaveCount(0);
     await context.close();
   }
 });
@@ -526,19 +526,20 @@ test("download picker offers both published macOS architectures", async ({ page 
       { name: "Proof.Pile_0.1.1_aarch64.dmg", browser_download_url: "https://example.test/arm.dmg" },
       { name: "Proof.Pile_0.1.1_x86_64.dmg", browser_download_url: "https://example.test/intel.dmg" },
       { name: "Proof.Pile_0.1.1_x64_en-US.msi", browser_download_url: "https://example.test/app.msi" },
+      { name: "Proof.Pile_0.1.1_amd64.AppImage", browser_download_url: "https://example.test/app.AppImage" },
       { name: "DESKTOP_SIGNATURES_VERIFIED.json", browser_download_url: "https://example.test/signatures.json" }
     ] })
   }));
   await page.goto("/");
   await page.evaluate(() => localStorage.setItem("proof-pile:release", JSON.stringify({ savedAt: Date.now(), data: { tag_name: "v0.1.0", assets: [] } })));
-  await page.getByRole("button", { name: /Download for/ }).click();
+  await page.getByRole("button", { name: /Check signed download/ }).click();
   await expect(page.getByText("v0.1.1 is ready.")).toBeVisible();
   await expect(page.getByRole("link", { name: "Download for macOS (Apple silicon)" })).toHaveAttribute("href", "https://example.test/arm.dmg");
   await expect(page.getByRole("link", { name: "Download for macOS (Intel)" })).toHaveAttribute("href", "https://example.test/intel.dmg");
   await expect(page.getByText("Windows is Authenticode signed. macOS is signed and notarized.")).toBeVisible();
 });
 
-test("@claim:unsigned-builds labels packages without verified signatures", async ({ page }) => {
+test("@claim:verified-downloads-only refuses packages without verified signatures", async ({ page }) => {
   await page.route("https://api.github.com/repos/B-Divyesh/sf-photo-proof-pile/releases/latest", route => route.fulfill({
     status: 200,
     contentType: "application/json",
@@ -549,9 +550,11 @@ test("@claim:unsigned-builds labels packages without verified signatures", async
     ] })
   }));
   await page.goto("/");
-  await page.getByRole("button", { name: /Download for/ }).click();
-  await expect(page.getByText("v0.1.13 is ready.")).toBeVisible();
-  await expect(page.getByText("Current builds are unsigned. Your system may ask you to confirm the first launch.")).toBeVisible();
+  await page.getByRole("button", { name: /Check signed download/ }).click();
+  await expect(page.getByText("Trusted downloads are being prepared.")).toBeVisible();
+  await expect(page.getByText("No package is offered until Windows and macOS signature checks pass.")).toBeVisible();
+  await expect(page.getByRole("link", { name: /Download for/ })).toHaveCount(0);
+  await expect(page.getByRole("link", { name: /releases/i })).toHaveCount(0);
 });
 
 test("routes load without console errors and Back restores the previous scroll position", async ({ page }) => {

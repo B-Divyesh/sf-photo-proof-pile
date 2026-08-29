@@ -1,1 +1,1 @@
-Review photo copies, quarantine extras, and keep a reversible decision log.
+Review photo copies, quarantine extras, and restore moves from a local decision log.

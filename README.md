@@ -27,7 +27,7 @@ The app stores a returned license under `sb_license:photo-proof-pile` and checks
 
 ## Install
 
-Download the macOS, Windows, or Linux package from the [releases page](https://github.com/B-Divyesh/sf-photo-proof-pile/releases). The download dialog identifies packages without verified signatures as unsigned. Your operating system may ask you to confirm the first launch.
+Use **Check signed download** on the website. The dialog offers packages only after Windows and macOS signature checks pass. It offers nothing when that proof is missing.
 
 Linux users can run:
 
@@ -41,7 +41,7 @@ Windows users can run in PowerShell:
 irm https://photo-proof-pile.sociobot.in/install.ps1 | iex
 ```
 
-Both scripts compare the downloaded package with the published verification file before installing it.
+Both scripts require the same signature proof. They also compare the downloaded package with the published verification file before installing it.
 
 ## Develop and verify
 

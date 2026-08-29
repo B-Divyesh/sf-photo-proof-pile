@@ -67,15 +67,19 @@ describe("review model", () => {
     expect(main).toContain(`const VERSION = "${version}"`);
   });
 
-  it("publishes reviewed desktop source without certificates and verifies signatures when configured", () => {
+  it("blocks release publication until trusted desktop signatures are independently verified", () => {
     const workflow = readFileSync(new URL("../.github/workflows/release.yml", import.meta.url), "utf8");
-    expect(workflow).toContain("Build package without a signing certificate");
-    expect(workflow).toContain("env.HAS_APPLE_CERTIFICATE != 'true'");
-    expect(workflow).toContain("env.HAS_WINDOWS_CERTIFICATE != 'true'");
+    expect(workflow).toContain("Require trusted Windows and macOS signing credentials");
+    expect(workflow).toContain("needs: validate-signing");
+    expect(workflow).toContain("Refusing to build or publish untrusted desktop packages.");
+    expect(workflow).not.toContain("Build package without a signing certificate");
     expect(workflow).toContain("Get-AuthenticodeSignature");
     expect(workflow).toContain("xcrun stapler validate");
+    expect(workflow).toContain("Independently verify downloaded Authenticode signatures");
+    expect(workflow).toContain("Independently verify downloaded signatures and notarization");
+    expect(workflow).toContain("needs: [prepare-release, build, verify-windows-release, verify-macos-release]");
     expect(workflow).toContain("DESKTOP_SIGNATURES_VERIFIED.json");
-    expect(workflow).not.toContain("needs: validate-signing");
+    expect(workflow).toContain(".macos == \"signed-and-notarized\" and .windows == \"authenticode-signed\"");
   });
 
   it("releases only the matching version tag and records that tag's immutable commit", () => {
