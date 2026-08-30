@@ -1,0 +1,47 @@
+[01] npm run test:e2e -- --grep @claim:demo-isolated
+PASS
+[02] npm run test:e2e -- --grep @claim:match-evidence
+PASS
+[03] npm run test:e2e -- --grep @claim:csv-export
+PASS
+[04] npm run test:e2e -- --grep @claim:reversible-plan
+PASS
+[05] npm run test:claim:review-before-move
+PASS
+[06] npm run test:e2e -- --grep @claim:local-privacy
+PASS
+[07] npm run test:e2e -- --grep @claim:no-ad-tracking
+PASS
+[08] cargo test --manifest-path src-tauri/Cargo.toml --no-default-features claim_native_local_privacy
+PASS
+[09] npm run test:e2e -- --grep @claim:license-request-privacy
+PASS
+[10] npm run test:e2e -- --grep @claim:no-account
+PASS
+[11] cargo test --manifest-path src-tauri/Cargo.toml --no-default-features claim_free_scan_limit
+PASS
+[12] npm run test:e2e -- --grep @claim:free-safety-tools
+PASS
+[13] npm run test:e2e -- --grep @claim:paid-license
+PASS
+[14] npm run test:e2e -- --grep @claim:paid-checkout
+PASS
+[15] cargo test --manifest-path src-tauri/Cargo.toml --no-default-features claim_licensed_scan_limit
+PASS
+[16] npm run test:e2e -- --grep @claim:offline-reload
+PASS
+[17] cargo test --manifest-path src-tauri/Cargo.toml --no-default-features claim_native_matching
+PASS
+[18] cargo test --manifest-path src-tauri/Cargo.toml --no-default-features claim_scan_scope
+PASS
+[19] cargo test --manifest-path src-tauri/Cargo.toml --no-default-features claim_cross_drive_safety
+PASS
+[20] npm run test:unit -- --testNamePattern @claim:installer-checksum
+PASS
+[21] npm run test:unit -- --testNamePattern @claim:windows-installer-checksum
+PASS
+[22] npm run test:e2e -- --grep @claim:checksummed-downloads-only
+PASS
+[23] npm run test:unit -- --testNamePattern @claim:package-signing-status
+PASS
+claims=23 passed

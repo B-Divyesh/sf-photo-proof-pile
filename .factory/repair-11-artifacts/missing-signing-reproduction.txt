@@ -1,0 +1,9 @@
+Missing required signing secret: APPLE_CERTIFICATE
+Missing required signing secret: APPLE_CERTIFICATE_PASSWORD
+Missing required signing secret: APPLE_SIGNING_IDENTITY
+Missing required signing secret: APPLE_ID
+Missing required signing secret: APPLE_PASSWORD
+Missing required signing secret: APPLE_TEAM_ID
+Missing required signing secret: WINDOWS_CERT_PFX
+Missing required signing secret: WINDOWS_CERTIFICATE_PASSWORD
+Refusing to build or publish untrusted desktop packages.

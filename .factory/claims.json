@@ -134,23 +134,30 @@
   },
   {
     "id": "installer-checksum",
-    "claim": "The Linux installer requires verified Windows and macOS signatures and matches the package to the published SHA-256 verification file before installing it.",
+    "claim": "The Linux installer matches the package to the published SHA-256 verification file before installing it.",
     "where": "README",
     "test": "npm run test:unit -- --testNamePattern @claim:installer-checksum",
-    "sandbox": "mock trusted and untrusted release metadata plus matching and mismatched package bytes; assert untrusted or mismatched packages are never installed"
+    "sandbox": "mock available and unavailable release metadata plus matching and mismatched package bytes; assert missing or mismatched packages are never installed"
   },
   {
     "id": "windows-installer-checksum",
-    "claim": "The Windows installer requires verified Windows and macOS signatures and matches the package to the published SHA-256 verification file before opening it.",
+    "claim": "The Windows installer matches the package to the published SHA-256 verification file before opening it.",
     "where": "README",
     "test": "npm run test:unit -- --testNamePattern @claim:windows-installer-checksum",
-    "sandbox": "inspect the shipped PowerShell installer contract; assert signature status and package verification both happen before msiexec can start"
+    "sandbox": "inspect the shipped PowerShell installer contract; assert package verification happens before msiexec can start"
   },
   {
-    "id": "verified-downloads-only",
-    "claim": "The download dialog offers packages only after Windows and macOS signature checks and the full platform matrix pass.",
+    "id": "checksummed-downloads-only",
+    "claim": "The download dialog offers packages only after the full desktop package set, SHA-256 verification file, and package-status file are published.",
     "where": "README and download dialog",
-    "test": "npm run test:e2e -- --grep @claim:verified-downloads-only",
-    "sandbox": "mock complete releases with and without the verified-signatures marker; assert only the signed release exposes package links"
+    "test": "npm run test:e2e -- --grep @claim:checksummed-downloads-only",
+    "sandbox": "mock complete and incomplete releases; assert only the release with macOS, Windows, Linux, checksum, manifest, and package-status assets exposes package links"
+  },
+  {
+    "id": "package-signing-status",
+    "claim": "Without operator certificates, releases record macOS and Windows packages as unsigned.",
+    "where": "README and release workflow",
+    "test": "npm run test:unit -- --testNamePattern @claim:package-signing-status",
+    "sandbox": "run the release signing-status resolver with every certificate input empty and assert it exits successfully with unsigned macOS and Windows statuses"
   }
 ]

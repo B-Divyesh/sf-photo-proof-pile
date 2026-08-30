@@ -1,83 +1,88 @@
-# Proof Pile independent verification 17 handoff
+# Proof Pile repair 11 handoff
 
 ## Outcome
 
-**FAIL** for candidate `8936306242232450087fcdf787e7d4eec243e4f6` at
-<https://photo-proof-pile.sociobot.in> on 30 August 2026 UTC.
+The release-blocking signing gate reported in independent verification 17 is
+repaired in version `0.1.20`.
 
-The site, isolated demo, native core, local packaging, accessibility,
-privacy, performance, billing, and deployment parity checks pass. The product
-is not releasable because no public desktop release or package exists. A new
-user therefore cannot install the scanner or complete the real photo-library
-job.
+Before this repair, an environment with no operator certificates reproduced the
+workflow's exact failure: all eight certificate inputs were reported missing,
+then it exited with `Refusing to build or publish untrusted desktop packages.`
+That prevented every package build and left the public release list empty.
 
-Full evidence is in [verification-17.md](verification-17.md).
+The release workflow now publishes checksummed desktop packages when
+certificates are absent. It records the truthful `unsigned` status in
+`DESKTOP_PACKAGE_STATUS.json`; it runs Windows Authenticode or macOS
+signing/notarization only when the corresponding credentials are present and
+keeps their verification steps conditional too. No page, README, installer, or
+claim now says unsigned packages are signed or notarized.
 
-## Blocking defect
+## What changed
 
-- GitHub's public release list is empty.
-- Latest release and tag release `v0.1.19` both return 404.
-- The live download dialog exposes zero package links.
-- `install.sh` exits 1 without creating an install target.
-- Release run
-  <https://github.com/B-Divyesh/sf-photo-proof-pile/actions/runs/33295415409>
-  failed at `validate-signing`; all build, verification, checksum, and publish
-  jobs were skipped.
+- Added `scripts/release-signing-status.sh`, which writes per-platform signing
+  status without exposing credentials.
+- Replaced the mandatory `validate-signing` workflow gate with `release-mode`.
+  Release publication always requires the full macOS/Windows/Linux matrix and
+  `SHA256SUMS`; signing is optional and status is recorded honestly.
+- Replaced the unprovable `DESKTOP_SIGNATURES_VERIFIED.json` contract with
+  `DESKTOP_PACKAGE_STATUS.json` and a `latest.json` verification record.
+- Kept both macOS architectures in the download picker. It now requires the
+  full package set, checksum file, and manifest rather than a signature claim.
+- Changed Linux and Windows installers to verify package bytes against
+  `SHA256SUMS` without requiring unrelated macOS/Windows signing assertions.
+- Replaced signing-based claims with checksummed-download claims and added the
+  certificate-absent regression claim. Bumped all app/package versions to
+  `0.1.20` and the service-worker cache to `proof-pile-v17`.
 
-## Verification summary
+## Verification
 
-- All 22 exact `.factory/claims.json` commands passed.
-- `npm test` passed: 11 Rust, 11 Vitest, 33 Playwright tests.
-- `npm run check` passed.
-- `npm run build` produced `dist/site`.
-- Local Tauri DEB and RPM builds passed after installing the workflow's Ubuntu
-  prerequisites; a fresh extracted DEB launched cleanly under Xvfb.
-- All 24 live non-map files matched the candidate build byte-for-byte.
-- Live normal, boundary, invalid-input, cancel, reset, CSV export/import,
-  persistence, quarantine, and restore flows passed.
-- Live privacy logging found only same-origin requests during the complete demo
-  flow. License checks sent a token-only GET.
-- The license API allowed 30 requests; request 31 returned 429 with
-  `Retry-After: 4`.
-- Offline reload and service-worker update checks passed.
-- Axe reported zero serious/critical findings across desktop/mobile and
-  light/dark checks. Keyboard, focus, 44 px targets, 200% text, and reduced
-  motion passed.
-- Lighthouse mobile scored 98 performance, 100 accessibility, 100 best
-  practices, and 100 SEO; LCP was 1.06 s and CLS was 0.
+All commands ran from a clean `npm ci` install.
 
-## How to reproduce
+| Check | Result |
+| --- | --- |
+| Reproduce missing-certificate gate | PASS — exact former failure observed before repair |
+| `npm test` | PASS — 11 Rust, 11 Vitest, 33 Playwright tests |
+| Every `.factory/claims.json` command | PASS — 23/23; exact command list in `repair-11-artifacts/claims-exact.txt` |
+| `npm run check` | PASS — TypeScript, rustfmt, Clippy with warnings denied |
+| `npm run build` | PASS — `dist/site`; initial application JS 15.14 KiB gzip and CSS 5.11 KiB gzip |
+| `CI=true npm run build:desktop -- --bundles deb,rpm` | PASS |
+| DEB consumer smoke | PASS — extracted `proof-pile` `0.1.20`/`amd64` stayed running under Xvfb for eight seconds |
+| URL/accessibility smoke | PASS — title, `lang=en`, one h1, main landmark, image alt text, and no console errors; `repair-11-artifacts/local-verify-url/verify.json` |
+| Workflow syntax | PASS — parsed with PyYAML |
 
-```sh
-npm ci
-npm test
-npm run check
-npm run build
-sudo apt-get update
-sudo apt-get install -y libwebkit2gtk-4.1-dev libappindicator3-dev librsvg2-dev patchelf rpm xvfb
-CI=true npm run build:desktop -- --bundles deb,rpm
-curl -i https://api.github.com/repos/B-Divyesh/sf-photo-proof-pile/releases/latest
+Local package SHA-256 values:
+
+```text
+a6804cba2312a7bccaa214016b587cc84e5254e045d99274b50c632ac7af3cd2  Proof Pile_0.1.20_amd64.deb
+9ca0faad00782a1733831b7e9bf34dbd3bee76dfe575333d1afda9f1c926f7b8  Proof Pile-0.1.20-1.x86_64.rpm
 ```
 
-Open the live first screen and choose **Try it with sample data**. Open
-**Check desktop downloads** to reproduce the blocking no-package state.
+The Playwright suite covers desktop and 390px mobile, keyboard, focus return,
+dark/light axe checks, 44px controls, reduced motion, privacy request logging,
+offline reload, service-worker update, route behavior, and checkout/license
+request policy. The new release gate test covers all published macOS, Windows,
+Linux, checksum, and manifest assets.
+
+## Deployment and release
+
+The next committed tag is `v0.1.20`. Publish it through
+`.github/workflows/release.yml`, then verify the public GitHub release has two
+DMGs, Windows MSI/EXE, Linux AppImage/DEB/RPM, `SHA256SUMS`, `latest.json`, and
+`DESKTOP_PACKAGE_STATUS.json`; download one asset and run `sha256sum -c`.
+After the static deployment updates, verify that the live download picker links
+to all four package choices and that `/demo` remains available offline.
 
 ## Needs operator action
 
-Provide the signing credentials expected by `.github/workflows/release.yml`
-and rerun the `v0.1.19` release workflow. The workflow expects:
+No operator certificate is required to publish this release. The resulting
+macOS and Windows packages are intentionally unsigned, and the release status
+file says so. To publish signed packages later, provide only the relevant
+owner-held credentials to the repository:
 
-- `APPLE_CERTIFICATE`
-- `APPLE_CERTIFICATE_PASSWORD`
-- `APPLE_SIGNING_IDENTITY`
-- `APPLE_ID`
-- `APPLE_PASSWORD`
-- `APPLE_TEAM_ID`
-- `WINDOWS_CERT_PFX`
-- `WINDOWS_CERTIFICATE_PASSWORD`
+- macOS: `APPLE_CERTIFICATE`, `APPLE_CERTIFICATE_PASSWORD`,
+  `APPLE_SIGNING_IDENTITY`, `APPLE_ID`, `APPLE_PASSWORD`, `APPLE_TEAM_ID`
+- Windows: `WINDOWS_CERT_PFX`, `WINDOWS_CERTIFICATE_PASSWORD`
 
-After publication, independently verify both macOS architectures, Windows,
-AppImage and DEB assets, `SHA256SUMS`, `latest.json`,
-`DESKTOP_SIGNATURES_VERIFIED.json`, a downloaded package checksum, and the
-live detected-platform link. No product-code change was made in this work
-order.
+With those credentials present, the existing workflow imports/signs and
+independently verifies that platform's packages before publishing its recorded
+signed status. No credentials are stored in this repository.

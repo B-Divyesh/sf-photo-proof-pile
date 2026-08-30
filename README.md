@@ -27,7 +27,7 @@ The app stores a returned license under `sb_license:photo-proof-pile` and checks
 
 ## Install
 
-Use **Check desktop downloads** on the website. The dialog offers packages only after Windows and macOS signature checks pass. It offers nothing when that proof is missing.
+Use **Check desktop downloads** on the website. The dialog offers packages only after the full desktop package set, SHA-256 verification file, and package-status file are published. This release's packages are unsigned because operator certificates are not available. Your operating system may ask you to confirm the first launch.
 
 Linux users can run:
 
@@ -41,7 +41,7 @@ Windows users can run in PowerShell:
 irm https://photo-proof-pile.sociobot.in/install.ps1 | iex
 ```
 
-Both scripts require the same signature proof. They also compare the downloaded package with the published verification file before installing it.
+Both scripts compare the downloaded package with the published SHA-256 verification file before installing it. A matching checksum proves the downloaded bytes match the release; it does not add a publisher signature.
 
 ## Develop and verify
 

@@ -505,7 +505,7 @@ test("Android and iPhone visitors receive desktop download guidance without a co
     const context = await browser.newContext({ userAgent: phone.userAgent, viewport: { width: 390, height: 844 } });
     const page = await context.newPage();
     await page.goto("/");
-    await expect(page.getByText("Open this page on a desktop computer to check signed downloads.")).toBeVisible();
+    await expect(page.getByText("Open this page on a desktop computer to check desktop packages.")).toBeVisible();
     await expect(page.getByText(phone.wrongLabel)).toHaveCount(0);
     await expect(page.getByRole("button", { name: "Check desktop downloads" })).toHaveCount(0);
     await context.close();
@@ -565,7 +565,7 @@ test("download picker offers both published macOS architectures", async ({ page 
       { name: "Proof.Pile_0.1.1_amd64.AppImage", browser_download_url: "https://example.test/app.AppImage" },
       { name: "SHA256SUMS", browser_download_url: "https://example.test/SHA256SUMS" },
       { name: "latest.json", browser_download_url: "https://example.test/latest.json" },
-      { name: "DESKTOP_SIGNATURES_VERIFIED.json", browser_download_url: "https://example.test/signatures.json" }
+      { name: "DESKTOP_PACKAGE_STATUS.json", browser_download_url: "https://example.test/package-status.json" }
     ] }])
   }));
   await page.goto("/");
@@ -574,26 +574,26 @@ test("download picker offers both published macOS architectures", async ({ page 
   await expect(page.getByText("v0.1.1 is ready.")).toBeVisible();
   await expect(page.getByRole("link", { name: "Download for macOS (Apple silicon)" })).toHaveAttribute("href", "https://example.test/arm.dmg");
   await expect(page.getByRole("link", { name: "Download for macOS (Intel)" })).toHaveAttribute("href", "https://example.test/intel.dmg");
-  await expect(page.getByText("Windows is Authenticode signed. macOS is signed and notarized.")).toBeVisible();
+  await expect(page.getByText("Each package is paired with an SHA-256 checksum. The release package-status file says whether macOS or Windows was signed.")).toBeVisible();
 });
 
-test("@claim:verified-downloads-only refuses an untrusted release and offers only a signed release", async ({ page }) => {
+test("@claim:checksummed-downloads-only offers packages only after the full checksummed set is published", async ({ page }) => {
   await page.route("https://api.github.com/repos/B-Divyesh/sf-photo-proof-pile/releases?per_page=1", route => route.fulfill({
     status: 200,
     contentType: "application/json",
-    body: JSON.stringify([{ tag_name: "v0.1.19", assets: [
-      { name: "Proof.Pile_0.1.19_aarch64.dmg", browser_download_url: "https://example.test/arm.dmg" },
-      { name: "Proof.Pile_0.1.19_x64.dmg", browser_download_url: "https://example.test/intel.dmg" },
-      { name: "Proof.Pile_0.1.19_x64_en-US.msi", browser_download_url: "https://example.test/app.msi" },
-      { name: "Proof.Pile_0.1.19_amd64.AppImage", browser_download_url: "https://example.test/app.AppImage" },
-      { name: "SHA256SUMS", browser_download_url: "https://example.test/SHA256SUMS" },
-      { name: "latest.json", browser_download_url: "https://example.test/latest.json" }
+    body: JSON.stringify([{ tag_name: "v0.1.20", assets: [
+      { name: "Proof.Pile_0.1.20_aarch64.dmg", browser_download_url: "https://example.test/arm.dmg" },
+      { name: "Proof.Pile_0.1.20_x64.dmg", browser_download_url: "https://example.test/intel.dmg" },
+      { name: "Proof.Pile_0.1.20_x64_en-US.msi", browser_download_url: "https://example.test/app.msi" },
+      { name: "Proof.Pile_0.1.20_amd64.AppImage", browser_download_url: "https://example.test/app.AppImage" },
+      { name: "latest.json", browser_download_url: "https://example.test/latest.json" },
+      { name: "DESKTOP_PACKAGE_STATUS.json", browser_download_url: "https://example.test/package-status.json" }
     ] }])
   }));
   await page.goto("/");
   await page.getByRole("button", { name: "Check desktop downloads" }).click();
-  await expect(page.getByText("Signed downloads are being prepared.")).toBeVisible();
-  await expect(page.getByText("No package is offered until Windows and macOS signature checks pass.")).toBeVisible();
+  await expect(page.getByText("Desktop packages are being prepared.")).toBeVisible();
+  await expect(page.getByText("No package is offered until the checksum, package-status, and full desktop package set are published.")).toBeVisible();
   await expect(page.getByRole("link", { name: /Download for/ })).toHaveCount(0);
   await page.getByRole("button", { name: "Close download window" }).click();
   await page.evaluate(() => localStorage.clear());
@@ -601,19 +601,19 @@ test("@claim:verified-downloads-only refuses an untrusted release and offers onl
   await page.route("https://api.github.com/repos/B-Divyesh/sf-photo-proof-pile/releases?per_page=1", route => route.fulfill({
     status: 200,
     contentType: "application/json",
-    body: JSON.stringify([{ tag_name: "v0.1.19", assets: [
-      { name: "Proof.Pile_0.1.19_aarch64.dmg", browser_download_url: "https://example.test/arm.dmg" },
-      { name: "Proof.Pile_0.1.19_x64.dmg", browser_download_url: "https://example.test/intel.dmg" },
-      { name: "Proof.Pile_0.1.19_x64_en-US.msi", browser_download_url: "https://example.test/app.msi" },
-      { name: "Proof.Pile_0.1.19_amd64.AppImage", browser_download_url: "https://example.test/app.AppImage" },
+    body: JSON.stringify([{ tag_name: "v0.1.20", assets: [
+      { name: "Proof.Pile_0.1.20_aarch64.dmg", browser_download_url: "https://example.test/arm.dmg" },
+      { name: "Proof.Pile_0.1.20_x64.dmg", browser_download_url: "https://example.test/intel.dmg" },
+      { name: "Proof.Pile_0.1.20_x64_en-US.msi", browser_download_url: "https://example.test/app.msi" },
+      { name: "Proof.Pile_0.1.20_amd64.AppImage", browser_download_url: "https://example.test/app.AppImage" },
       { name: "SHA256SUMS", browser_download_url: "https://example.test/SHA256SUMS" },
       { name: "latest.json", browser_download_url: "https://example.test/latest.json" },
-      { name: "DESKTOP_SIGNATURES_VERIFIED.json", browser_download_url: "https://example.test/signatures.json" }
+      { name: "DESKTOP_PACKAGE_STATUS.json", browser_download_url: "https://example.test/package-status.json" }
     ] }])
   }));
   await page.getByRole("button", { name: "Check desktop downloads" }).click();
-  await expect(page.getByText("v0.1.19 is ready.")).toBeVisible();
-  await expect(page.getByText("Windows is Authenticode signed. macOS is signed and notarized.")).toBeVisible();
+  await expect(page.getByText("v0.1.20 is ready.")).toBeVisible();
+  await expect(page.getByText("Each package is paired with an SHA-256 checksum. The release package-status file says whether macOS or Windows was signed.")).toBeVisible();
   await expect(page.getByRole("link", { name: /Download for/ })).toHaveCount(4);
   await expect(page.getByRole("link", { name: "Download for Linux" })).toHaveAttribute("href", "https://example.test/app.AppImage");
   await page.getByRole("button", { name: "Close download window" }).click();

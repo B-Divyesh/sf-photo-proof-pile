@@ -1,5 +1,8 @@
 import { describe, expect, it } from "vitest";
-import { readFileSync } from "node:fs";
+import { mkdtempSync, readFileSync, rmSync } from "node:fs";
+import { spawnSync } from "node:child_process";
+import { tmpdir } from "node:os";
+import { join } from "node:path";
 import { countPlan, decisionCsv, formatBytes, movesFromDecisionCsv, normalizeMoves, sampleGroups } from "../src/model";
 
 describe("review model", () => {
@@ -67,20 +70,47 @@ describe("review model", () => {
     expect(main).toContain(`const VERSION = "${version}"`);
   });
 
-  it("blocks release publication until trusted desktop signatures are independently verified", () => {
+  it("@claim:package-signing-status publishes checksummed unsigned packages when operator certificates are absent", () => {
+    const root = mkdtempSync(join(tmpdir(), "proof-pile-signing-status-"));
+    const output = join(root, "status.txt");
+    try {
+      const result = spawnSync("bash", ["scripts/release-signing-status.sh"], {
+        cwd: process.cwd(),
+        encoding: "utf8",
+        env: {
+          ...process.env,
+          GITHUB_OUTPUT: output,
+          APPLE_CERTIFICATE: "",
+          APPLE_CERTIFICATE_PASSWORD: "",
+          APPLE_SIGNING_IDENTITY: "",
+          APPLE_ID: "",
+          APPLE_PASSWORD: "",
+          APPLE_TEAM_ID: "",
+          WINDOWS_CERT_PFX: "",
+          WINDOWS_CERTIFICATE_PASSWORD: ""
+        }
+      });
+      expect(result.status, `${result.stdout}\n${result.stderr}`).toBe(0);
+      expect(readFileSync(output, "utf8")).toBe("macos=unsigned\nwindows=unsigned\n");
+    } finally {
+      rmSync(root, { recursive: true, force: true });
+    }
+
     const workflow = readFileSync(new URL("../.github/workflows/release.yml", import.meta.url), "utf8");
-    expect(workflow).toContain("Require trusted Windows and macOS signing credentials");
-    expect(workflow).toContain("needs: validate-signing");
-    expect(workflow).toContain("Refusing to build or publish untrusted desktop packages.");
-    expect(workflow).not.toContain("Build package without a signing certificate");
-    expect(workflow).not.toContain("unsigned");
+    expect(workflow).toContain("release-mode:");
+    expect(workflow).toContain("bash scripts/release-signing-status.sh");
+    expect(workflow).not.toContain("validate-signing:");
+    expect(workflow).not.toContain("Refusing to build or publish untrusted desktop packages.");
+    expect(workflow).toContain("needs.release-mode.outputs.windows == 'authenticode-signed'");
+    expect(workflow).toContain("needs.release-mode.outputs.macos == 'signed-and-notarized'");
     expect(workflow).toContain("Get-AuthenticodeSignature");
     expect(workflow).toContain("xcrun stapler validate");
     expect(workflow).toContain("Independently verify downloaded Authenticode signatures");
     expect(workflow).toContain("Independently verify downloaded signatures and notarization");
-    expect(workflow).toContain("needs: [prepare-release, build, verify-windows-release, verify-macos-release]");
-    expect(workflow).toContain("DESKTOP_SIGNATURES_VERIFIED.json");
-    expect(workflow).toContain('.macos == "signed-and-notarized" and .windows == "authenticode-signed"');
+    expect(workflow).toContain("needs: [prepare-release, build, verify-windows-release, verify-macos-release, release-mode]");
+    expect(workflow).toContain("DESKTOP_PACKAGE_STATUS.json");
+    expect(workflow).not.toContain("DESKTOP_SIGNATURES_VERIFIED.json");
+    expect(workflow).toContain(".verification.checksums == \"sha256\"");
   });
 
   it("releases only the matching version tag and records that tag's immutable commit", () => {
