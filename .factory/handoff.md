@@ -77,10 +77,12 @@ All commands below ran in this checkout on 30 August 2026 UTC.
   custom domain was Ready and HTTPS returned 200.
 - Live deployment identity: PASS. The live HTML references
   `/assets/index-B20K_llJ.js` and `/assets/index-9kPWVZ_p.css`, exactly the
-  current `dist/site` asset names. Live root/demo URL verification had zero
-  console errors. A live 390 px license-return check had the expected invalid
-  license notice, no overflow, and no console errors. A fresh live `/demo`
-  service-worker context reloaded offline with all three sample groups.
+  current `dist/site` asset names; all 27 deployable files (excluding the
+  deployment-only static config) matched the live bytes by SHA-256. Live
+  root/demo URL verification had zero console errors. A live 390 px
+  license-return check had the expected invalid license notice, no overflow,
+  and no console errors. A fresh live `/demo` service-worker context reloaded
+  offline with all three sample groups.
 
 ## Known gaps / operator action
 
