@@ -3,7 +3,7 @@
 ## Outcome
 
 The release-blocking signing gate reported in independent verification 17 is
-repaired in version `0.1.21`.
+repaired in version `0.1.22`.
 
 Before this repair, an environment with no operator certificates reproduced the
 workflow's exact failure: all eight certificate inputs were reported missing,
@@ -33,7 +33,7 @@ notarized.
   `SHA256SUMS` without requiring unrelated macOS/Windows signing assertions.
 - Replaced signing-based claims with checksummed-download claims and added the
   certificate-absent regression claim. Bumped all app/package versions to
-  `0.1.21` and the service-worker cache to `proof-pile-v18`.
+  `0.1.22` and the service-worker cache to `proof-pile-v19`.
 
 ## Verification
 
@@ -45,17 +45,17 @@ All commands ran from a clean `npm ci` install.
 | `npm test` | PASS — 11 Rust, 11 Vitest, 33 Playwright tests |
 | Every `.factory/claims.json` command | PASS — 23/23; exact command list in `repair-11-artifacts/claims-exact.txt` |
 | `npm run check` | PASS — TypeScript, rustfmt, Clippy with warnings denied |
-| `npm run build` | PASS — `dist/site`; initial application JS 15.14 KiB gzip and CSS 5.11 KiB gzip |
+| `npm run build` | PASS — `dist/site`; initial application JS 13.65 KiB gzip and CSS 5.11 KiB gzip |
 | `CI=true npm run build:desktop -- --bundles deb,rpm` | PASS |
-| DEB consumer smoke | PASS — extracted `proof-pile` `0.1.21`/`amd64` stayed running under Xvfb for eight seconds |
+| DEB/RPM consumer smoke | PASS — `proof-pile` `0.1.22` (`amd64` DEB and `x86_64` RPM); extracted DEB stayed running under Xvfb for eight seconds (the timeout exit is expected) |
 | URL/accessibility smoke | PASS — title, `lang=en`, one h1, main landmark, image alt text, and no console errors; `repair-11-artifacts/local-verify-url/verify.json` |
 | Workflow syntax | PASS — parsed with PyYAML |
 
 Local package SHA-256 values:
 
 ```text
-71e207bf8731fd1ba17a6a185bd97bfa37f317122ceeb6a048d91405ff55ca66  Proof Pile_0.1.21_amd64.deb
-ee985a2ea8976e5e9feb0bec1725fcb6eb257ce6d9ebe5823f0e17c76d158e89  Proof Pile-0.1.21-1.x86_64.rpm
+aa8414db60a1e4dde784d94c55cfca9bd38144fa392a137c55de3c6c05223d4c  Proof Pile_0.1.22_amd64.deb
+b68c54a3352fa957321e5ab587b4ea073d4f6ed5ae186d11cf65cced04440754  Proof Pile-0.1.22-1.x86_64.rpm
 ```
 
 The Playwright suite covers desktop and 390px mobile, keyboard, focus return,
@@ -68,12 +68,14 @@ Linux, checksum, and manifest assets.
 
 The initial `v0.1.20` release attempt proved the former missing-certificate
 gate was gone, but a nonempty invalid Apple credential caused Tauri's
-`security import` to fail. `release-mode` now also requires the explicit
-operator variable `DESKTOP_SIGNING_ENABLED=true` before it uses any signing
-credential, so unknown or placeholder values publish an unsigned release
-instead of blocking it.
+`security import` to fail. The first explicit-opt-in attempt (`v0.1.21`) still
+passed Apple variables to its unsigned macOS build step. In `v0.1.22`, that
+build is a separate step with no Apple environment at all. `release-mode` also
+requires the explicit operator variable `DESKTOP_SIGNING_ENABLED=true` before
+it uses any signing credential, so unknown or placeholder values publish an
+unsigned release instead of blocking it.
 
-The next committed tag is `v0.1.21`. Publish it through
+The next committed tag is `v0.1.22`. Publish it through
 `.github/workflows/release.yml`, then verify the public GitHub release has two
 DMGs, Windows MSI/EXE, Linux AppImage/DEB/RPM, `SHA256SUMS`, `latest.json`, and
 `DESKTOP_PACKAGE_STATUS.json`; download one asset and run `sha256sum -c`.

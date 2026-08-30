@@ -6,7 +6,7 @@ on:
   workflow_dispatch:
     inputs:
       tag:
-        description: Existing version tag to release (for example, v0.1.21)
+        description: Existing version tag to release (for example, v0.1.22)
         required: true
         type: string
 
@@ -135,8 +135,8 @@ jobs:
         if: matrix.platform == 'windows-latest'
         shell: pwsh
         run: ./tests/install-windows.ps1
-      - name: Build macOS package
-        if: startsWith(matrix.platform, 'macos')
+      - name: Build signed macOS package
+        if: startsWith(matrix.platform, 'macos') && needs.release-mode.outputs.macos == 'signed-and-notarized'
         uses: tauri-apps/tauri-action@v0
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -150,6 +150,18 @@ jobs:
           tagName: v__VERSION__
           releaseName: Proof Pile v__VERSION__
           releaseBody: Desktop packages for local duplicate-photo review.
+          releaseDraft: true
+          prerelease: false
+          args: ${{ matrix.args }}
+      - name: Build unsigned macOS package
+        if: startsWith(matrix.platform, 'macos') && needs.release-mode.outputs.macos == 'unsigned'
+        uses: tauri-apps/tauri-action@v0
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tagName: v__VERSION__
+          releaseName: Proof Pile v__VERSION__
+          releaseBody: Desktop packages for local duplicate-photo review. Every package has a SHA-256 checksum.
           releaseDraft: true
           prerelease: false
           args: ${{ matrix.args }}

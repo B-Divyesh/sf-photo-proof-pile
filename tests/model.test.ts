@@ -126,6 +126,10 @@ describe("review model", () => {
     expect(workflow).not.toContain("Refusing to build or publish untrusted desktop packages.");
     expect(workflow).toContain("needs.release-mode.outputs.windows == 'authenticode-signed'");
     expect(workflow).toContain("needs.release-mode.outputs.macos == 'signed-and-notarized'");
+    expect(workflow).toContain("Build unsigned macOS package");
+    const unsignedMacBuild = workflow.split("- name: Build unsigned macOS package")[1]?.split("- name: Build Windows package")[0] || "";
+    expect(unsignedMacBuild).toContain("needs.release-mode.outputs.macos == 'unsigned'");
+    expect(unsignedMacBuild).not.toContain("APPLE_CERTIFICATE");
     expect(workflow).toContain("Get-AuthenticodeSignature");
     expect(workflow).toContain("xcrun stapler validate");
     expect(workflow).toContain("Independently verify downloaded Authenticode signatures");
