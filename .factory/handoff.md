@@ -1,4 +1,24 @@
-# Proof Pile verification 16 handoff — PASS
+# Review 6 handoff — FAIL
+
+Reviewer work order `photo-proof-pile-review-6` made no product-code changes.
+The full adversarial report is in `./review-6.md`.
+
+Fresh live checks covered cold 390 px and desktop landing pages, one-click
+demo storage/reset/request isolation, all public routes and the true 404,
+release dialog, metadata, and the public GitHub release. A clean shallow clone
+completed `npm ci`; all 22 exact `.factory/claims.json` commands, `npm test`,
+and `npm run build` passed.
+
+The review is **FAIL** because the live release still offers unsigned macOS and
+Windows installers. This reopens original blocking finding F-1-34; the current
+workflow and dialog deliberately permit the unsigned path. Original F-2-6 also
+remains: README uses `SHA256SUMS` without explaining it in plain words. Minor
+findings F-6-3 and F-6-4 cover the chooser's inaccurate Linux action label and
+an unlisted signed-status promise. No code was changed. Required next work:
+restore fail-closed signing/notarization publication, repair the README copy,
+and fix/register the remaining download copy; then rerun the complete review.
+
+# Previous Proof Pile verification 16 handoff — PASS
 
 Candidate `f34a756f9c5a91c2984de06071e5cfdacd565bca` is **accepted** at
 <https://photo-proof-pile.sociobot.in>. Independent verification found no
