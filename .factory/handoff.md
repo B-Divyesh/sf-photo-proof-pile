@@ -3,7 +3,7 @@
 ## Outcome
 
 The release-blocking signing gate reported in independent verification 17 is
-repaired in version `0.1.20`.
+repaired in version `0.1.21`.
 
 Before this repair, an environment with no operator certificates reproduced the
 workflow's exact failure: all eight certificate inputs were reported missing,
@@ -13,9 +13,10 @@ That prevented every package build and left the public release list empty.
 The release workflow now publishes checksummed desktop packages when
 certificates are absent. It records the truthful `unsigned` status in
 `DESKTOP_PACKAGE_STATUS.json`; it runs Windows Authenticode or macOS
-signing/notarization only when the corresponding credentials are present and
-keeps their verification steps conditional too. No page, README, installer, or
-claim now says unsigned packages are signed or notarized.
+signing/notarization only after an operator explicitly enables it with complete
+corresponding credentials, and keeps verification steps conditional too. No
+page, README, installer, or claim now says unsigned packages are signed or
+notarized.
 
 ## What changed
 
@@ -32,7 +33,7 @@ claim now says unsigned packages are signed or notarized.
   `SHA256SUMS` without requiring unrelated macOS/Windows signing assertions.
 - Replaced signing-based claims with checksummed-download claims and added the
   certificate-absent regression claim. Bumped all app/package versions to
-  `0.1.20` and the service-worker cache to `proof-pile-v17`.
+  `0.1.21` and the service-worker cache to `proof-pile-v18`.
 
 ## Verification
 
@@ -46,15 +47,15 @@ All commands ran from a clean `npm ci` install.
 | `npm run check` | PASS — TypeScript, rustfmt, Clippy with warnings denied |
 | `npm run build` | PASS — `dist/site`; initial application JS 15.14 KiB gzip and CSS 5.11 KiB gzip |
 | `CI=true npm run build:desktop -- --bundles deb,rpm` | PASS |
-| DEB consumer smoke | PASS — extracted `proof-pile` `0.1.20`/`amd64` stayed running under Xvfb for eight seconds |
+| DEB consumer smoke | PASS — extracted `proof-pile` `0.1.21`/`amd64` stayed running under Xvfb for eight seconds |
 | URL/accessibility smoke | PASS — title, `lang=en`, one h1, main landmark, image alt text, and no console errors; `repair-11-artifacts/local-verify-url/verify.json` |
 | Workflow syntax | PASS — parsed with PyYAML |
 
 Local package SHA-256 values:
 
 ```text
-a6804cba2312a7bccaa214016b587cc84e5254e045d99274b50c632ac7af3cd2  Proof Pile_0.1.20_amd64.deb
-9ca0faad00782a1733831b7e9bf34dbd3bee76dfe575333d1afda9f1c926f7b8  Proof Pile-0.1.20-1.x86_64.rpm
+71e207bf8731fd1ba17a6a185bd97bfa37f317122ceeb6a048d91405ff55ca66  Proof Pile_0.1.21_amd64.deb
+ee985a2ea8976e5e9feb0bec1725fcb6eb257ce6d9ebe5823f0e17c76d158e89  Proof Pile-0.1.21-1.x86_64.rpm
 ```
 
 The Playwright suite covers desktop and 390px mobile, keyboard, focus return,
@@ -65,7 +66,14 @@ Linux, checksum, and manifest assets.
 
 ## Deployment and release
 
-The next committed tag is `v0.1.20`. Publish it through
+The initial `v0.1.20` release attempt proved the former missing-certificate
+gate was gone, but a nonempty invalid Apple credential caused Tauri's
+`security import` to fail. `release-mode` now also requires the explicit
+operator variable `DESKTOP_SIGNING_ENABLED=true` before it uses any signing
+credential, so unknown or placeholder values publish an unsigned release
+instead of blocking it.
+
+The next committed tag is `v0.1.21`. Publish it through
 `.github/workflows/release.yml`, then verify the public GitHub release has two
 DMGs, Windows MSI/EXE, Linux AppImage/DEB/RPM, `SHA256SUMS`, `latest.json`, and
 `DESKTOP_PACKAGE_STATUS.json`; download one asset and run `sha256sum -c`.
@@ -83,6 +91,7 @@ owner-held credentials to the repository:
   `APPLE_SIGNING_IDENTITY`, `APPLE_ID`, `APPLE_PASSWORD`, `APPLE_TEAM_ID`
 - Windows: `WINDOWS_CERT_PFX`, `WINDOWS_CERTIFICATE_PASSWORD`
 
-With those credentials present, the existing workflow imports/signs and
+After validating those credentials, set the repository variable
+`DESKTOP_SIGNING_ENABLED` to `true`. The workflow then imports/signs and
 independently verifies that platform's packages before publishing its recorded
 signed status. No credentials are stored in this repository.

@@ -7,11 +7,11 @@ set -euo pipefail
 macos="unsigned"
 windows="unsigned"
 
-if [[ -n "${APPLE_CERTIFICATE:-}" && -n "${APPLE_CERTIFICATE_PASSWORD:-}" && -n "${APPLE_SIGNING_IDENTITY:-}" && -n "${APPLE_ID:-}" && -n "${APPLE_PASSWORD:-}" && -n "${APPLE_TEAM_ID:-}" ]]; then
+if [[ "${DESKTOP_SIGNING_ENABLED:-}" == "true" && -n "${APPLE_CERTIFICATE:-}" && -n "${APPLE_CERTIFICATE_PASSWORD:-}" && -n "${APPLE_SIGNING_IDENTITY:-}" && -n "${APPLE_ID:-}" && -n "${APPLE_PASSWORD:-}" && -n "${APPLE_TEAM_ID:-}" ]]; then
   macos="signed-and-notarized"
 fi
 
-if [[ -n "${WINDOWS_CERT_PFX:-}" && -n "${WINDOWS_CERTIFICATE_PASSWORD:-}" ]]; then
+if [[ "${DESKTOP_SIGNING_ENABLED:-}" == "true" && -n "${WINDOWS_CERT_PFX:-}" && -n "${WINDOWS_CERTIFICATE_PASSWORD:-}" ]]; then
   windows="authenticode-signed"
 fi
 

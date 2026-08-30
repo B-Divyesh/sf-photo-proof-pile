@@ -581,11 +581,11 @@ test("@claim:checksummed-downloads-only offers packages only after the full chec
   await page.route("https://api.github.com/repos/B-Divyesh/sf-photo-proof-pile/releases?per_page=1", route => route.fulfill({
     status: 200,
     contentType: "application/json",
-    body: JSON.stringify([{ tag_name: "v0.1.20", assets: [
-      { name: "Proof.Pile_0.1.20_aarch64.dmg", browser_download_url: "https://example.test/arm.dmg" },
-      { name: "Proof.Pile_0.1.20_x64.dmg", browser_download_url: "https://example.test/intel.dmg" },
-      { name: "Proof.Pile_0.1.20_x64_en-US.msi", browser_download_url: "https://example.test/app.msi" },
-      { name: "Proof.Pile_0.1.20_amd64.AppImage", browser_download_url: "https://example.test/app.AppImage" },
+    body: JSON.stringify([{ tag_name: "v0.1.21", assets: [
+      { name: "Proof.Pile_0.1.21_aarch64.dmg", browser_download_url: "https://example.test/arm.dmg" },
+      { name: "Proof.Pile_0.1.21_x64.dmg", browser_download_url: "https://example.test/intel.dmg" },
+      { name: "Proof.Pile_0.1.21_x64_en-US.msi", browser_download_url: "https://example.test/app.msi" },
+      { name: "Proof.Pile_0.1.21_amd64.AppImage", browser_download_url: "https://example.test/app.AppImage" },
       { name: "latest.json", browser_download_url: "https://example.test/latest.json" },
       { name: "DESKTOP_PACKAGE_STATUS.json", browser_download_url: "https://example.test/package-status.json" }
     ] }])
@@ -601,18 +601,18 @@ test("@claim:checksummed-downloads-only offers packages only after the full chec
   await page.route("https://api.github.com/repos/B-Divyesh/sf-photo-proof-pile/releases?per_page=1", route => route.fulfill({
     status: 200,
     contentType: "application/json",
-    body: JSON.stringify([{ tag_name: "v0.1.20", assets: [
-      { name: "Proof.Pile_0.1.20_aarch64.dmg", browser_download_url: "https://example.test/arm.dmg" },
-      { name: "Proof.Pile_0.1.20_x64.dmg", browser_download_url: "https://example.test/intel.dmg" },
-      { name: "Proof.Pile_0.1.20_x64_en-US.msi", browser_download_url: "https://example.test/app.msi" },
-      { name: "Proof.Pile_0.1.20_amd64.AppImage", browser_download_url: "https://example.test/app.AppImage" },
+    body: JSON.stringify([{ tag_name: "v0.1.21", assets: [
+      { name: "Proof.Pile_0.1.21_aarch64.dmg", browser_download_url: "https://example.test/arm.dmg" },
+      { name: "Proof.Pile_0.1.21_x64.dmg", browser_download_url: "https://example.test/intel.dmg" },
+      { name: "Proof.Pile_0.1.21_x64_en-US.msi", browser_download_url: "https://example.test/app.msi" },
+      { name: "Proof.Pile_0.1.21_amd64.AppImage", browser_download_url: "https://example.test/app.AppImage" },
       { name: "SHA256SUMS", browser_download_url: "https://example.test/SHA256SUMS" },
       { name: "latest.json", browser_download_url: "https://example.test/latest.json" },
       { name: "DESKTOP_PACKAGE_STATUS.json", browser_download_url: "https://example.test/package-status.json" }
     ] }])
   }));
   await page.getByRole("button", { name: "Check desktop downloads" }).click();
-  await expect(page.getByText("v0.1.20 is ready.")).toBeVisible();
+  await expect(page.getByText("v0.1.21 is ready.")).toBeVisible();
   await expect(page.getByText("Each package is paired with an SHA-256 checksum. The release package-status file says whether macOS or Windows was signed.")).toBeVisible();
   await expect(page.getByRole("link", { name: /Download for/ })).toHaveCount(4);
   await expect(page.getByRole("link", { name: "Download for Linux" })).toHaveAttribute("href", "https://example.test/app.AppImage");

@@ -80,6 +80,7 @@ describe("review model", () => {
         env: {
           ...process.env,
           GITHUB_OUTPUT: output,
+          DESKTOP_SIGNING_ENABLED: "",
           APPLE_CERTIFICATE: "",
           APPLE_CERTIFICATE_PASSWORD: "",
           APPLE_SIGNING_IDENTITY: "",
@@ -92,6 +93,27 @@ describe("review model", () => {
       });
       expect(result.status, `${result.stdout}\n${result.stderr}`).toBe(0);
       expect(readFileSync(output, "utf8")).toBe("macos=unsigned\nwindows=unsigned\n");
+
+      const signedOutput = join(root, "signed-status.txt");
+      const signedResult = spawnSync("bash", ["scripts/release-signing-status.sh"], {
+        cwd: process.cwd(),
+        encoding: "utf8",
+        env: {
+          ...process.env,
+          GITHUB_OUTPUT: signedOutput,
+          DESKTOP_SIGNING_ENABLED: "true",
+          APPLE_CERTIFICATE: "operator-certificate",
+          APPLE_CERTIFICATE_PASSWORD: "operator-password",
+          APPLE_SIGNING_IDENTITY: "Developer ID Application",
+          APPLE_ID: "operator@example.test",
+          APPLE_PASSWORD: "operator-app-password",
+          APPLE_TEAM_ID: "TEAMID",
+          WINDOWS_CERT_PFX: "operator-certificate",
+          WINDOWS_CERTIFICATE_PASSWORD: "operator-password"
+        }
+      });
+      expect(signedResult.status, `${signedResult.stdout}\n${signedResult.stderr}`).toBe(0);
+      expect(readFileSync(signedOutput, "utf8")).toBe("macos=signed-and-notarized\nwindows=authenticode-signed\n");
     } finally {
       rmSync(root, { recursive: true, force: true });
     }
@@ -99,6 +121,7 @@ describe("review model", () => {
     const workflow = readFileSync(new URL("../.github/workflows/release.yml", import.meta.url), "utf8");
     expect(workflow).toContain("release-mode:");
     expect(workflow).toContain("bash scripts/release-signing-status.sh");
+    expect(workflow).toContain("DESKTOP_SIGNING_ENABLED: ${{ vars.DESKTOP_SIGNING_ENABLED }}");
     expect(workflow).not.toContain("validate-signing:");
     expect(workflow).not.toContain("Refusing to build or publish untrusted desktop packages.");
     expect(workflow).toContain("needs.release-mode.outputs.windows == 'authenticode-signed'");

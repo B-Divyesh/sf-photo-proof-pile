@@ -6,7 +6,7 @@ on:
   workflow_dispatch:
     inputs:
       tag:
-        description: Existing version tag to release (for example, v0.1.20)
+        description: Existing version tag to release (for example, v0.1.21)
         required: true
         type: string
 
@@ -25,6 +25,7 @@ jobs:
         id: status
         shell: bash
         env:
+          DESKTOP_SIGNING_ENABLED: ${{ vars.DESKTOP_SIGNING_ENABLED }}
           APPLE_CERTIFICATE: ${{ secrets.APPLE_CERTIFICATE }}
           APPLE_CERTIFICATE_PASSWORD: ${{ secrets.APPLE_CERTIFICATE_PASSWORD }}
           APPLE_SIGNING_IDENTITY: ${{ secrets.APPLE_SIGNING_IDENTITY }}
