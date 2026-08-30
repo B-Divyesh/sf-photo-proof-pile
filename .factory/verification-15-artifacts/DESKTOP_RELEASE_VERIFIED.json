@@ -1,0 +1,9 @@
+{
+  "source_commit": "f7726242ecbf6aff35187fde4d55ed44114c59e1",
+  "matrix": "complete",
+  "checksums": "sha256",
+  "signatures": {
+    "macos": "unsigned",
+    "windows": "unsigned"
+  }
+}

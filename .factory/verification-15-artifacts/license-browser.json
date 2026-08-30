@@ -1,0 +1,24 @@
+{
+  "navigationStatus": 200,
+  "finalUrl": "https://photo-proof-pile.sociobot.in/",
+  "requests": [
+    {
+      "url": "https://api.sociobot.in/api/v1/products/photo-proof-pile/verify?license=verification-15-browser-token",
+      "method": "GET",
+      "body": null,
+      "headers": {
+        "sec-ch-ua-platform": "\"Linux\"",
+        "referer": "https://photo-proof-pile.sociobot.in/",
+        "user-agent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/145.0.7632.6 Safari/537.36",
+        "sec-ch-ua": "\"Not:A-Brand\";v=\"99\", \"HeadlessChrome\";v=\"145\", \"Chromium\";v=\"145\"",
+        "sec-ch-ua-mobile": "?0"
+      }
+    }
+  ],
+  "errors": [
+    "Access to fetch at 'https://api.sociobot.in/api/v1/products/photo-proof-pile/verify?license=verification-15-browser-token' from origin 'https://photo-proof-pile.sociobot.in' has been blocked by CORS policy: No 'Access-Control-Allow-Origin' header is present on the requested resource.",
+    "Failed to load resource: net::ERR_FAILED"
+  ],
+  "notice": "Skip to main content\nPP\nProof Pile\nDemo\nHow it works\nPrivacy\n\nLOCAL DUPLICATE-PHOTO REVIEW\n\nReview photo copies before you remove them\n\nFor people with photos across several drives who fear removing the only meaningful copy.\n\nTry it with sample data\nOpens three ready-to-review groups.\nCheck download for Linux\nPhotos stay on this device\nWorks without an account\nFree for 1,000 files; US$29 once for full libraries\nEach group keeps its file locations, dates, sizes, and match details.\n\nTHE REVIEW DESK\n\nSee why files match\n\nCompare file locations, image sizes, dates, and copies on other drives before making a plan.\n\nExact bytes\n3 copies · 2 drives\nHow photo cleanup works\n01\nScan your folders\n\nChoose photo folders on each connected drive. The app reads files where they are.\n\nStart with groups, not a delete list.\n02\nReview the evidence\n\nKeep one copy and mark extras. Every path and difference remains visible.\n\nCompare each copy and its metadata.\n03\nQuarantine, then verify\n\nMove extras to a folder you choose. Restore them from the decision log.\n\nMove reviewed files, then restore if needed.\n\nPRIVACY AND LIMITS\n\nYour photos are not uploaded\n\nCopies on other drives are matching files, not tested backups.\n\nKeep a tested backup.\n\nA matching copy can still live on a failing drive. Open important backups before cleanup.\n\nDESKTOP LICENSE\n\nReview a full library\n\nThe free app scans 1,000 files at a time. A license removes that scan limit.\n\nUS$29 one-time purchase\n\nBuy via Sociobot checkout ↗\nRestore a purchase\n\nSociobot checkout takes payment. For refunds, email support@sociobot.in.\n\nReview photo copies before you remove them\n\nReview duplicate photos before moving extra copies.\n\nPrivacy\nTerms\nBuilt by Param Factory ↗\n\nv0.1.17",
+  "storedToken": "verification-15-browser-token"
+}

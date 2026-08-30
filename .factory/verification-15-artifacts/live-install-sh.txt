@@ -1,0 +1,1 @@
+Installed Proof Pile at /tmp/proof-pile-verification-15.7fvTnb/bin/proof-pile.AppImage

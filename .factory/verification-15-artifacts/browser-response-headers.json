@@ -1,0 +1,80 @@
+[
+  {
+    "url": "https://photo-proof-pile.sociobot.in/",
+    "status": 200,
+    "headers": {
+      "cache-control": "public, must-revalidate, max-age=30",
+      "content-encoding": "br",
+      "content-security-policy": "default-src 'self'; img-src 'self' data: blob:; style-src 'self'; script-src 'self'; connect-src 'self' https://api.github.com https://api.sociobot.in; object-src 'none'; base-uri 'self'; frame-ancestors 'none'",
+      "content-type": "text/html",
+      "date": "Sun, 30 Aug 2026 02:45:16 GMT",
+      "etag": "\"96776839\"",
+      "last-modified": "Sun, 30 Aug 2026 01:45:05 GMT",
+      "permissions-policy": "camera=(), microphone=(), geolocation=()",
+      "referrer-policy": "strict-origin-when-cross-origin",
+      "strict-transport-security": "max-age=10886400; includeSubDomains; preload",
+      "vary": "Accept-Encoding",
+      "x-content-type-options": "nosniff",
+      "x-dns-prefetch-control": "off",
+      "x-xss-protection": "1; mode=block"
+    }
+  },
+  {
+    "url": "https://photo-proof-pile.sociobot.in/sw.js",
+    "status": 200,
+    "headers": {
+      "cache-control": "public, must-revalidate, max-age=30",
+      "content-encoding": "br",
+      "content-security-policy": "default-src 'self'; img-src 'self' data: blob:; style-src 'self'; script-src 'self'; connect-src 'self' https://api.github.com https://api.sociobot.in; object-src 'none'; base-uri 'self'; frame-ancestors 'none'",
+      "content-type": "text/javascript",
+      "date": "Sun, 30 Aug 2026 02:45:16 GMT",
+      "etag": "\"96776839\"",
+      "last-modified": "Sun, 30 Aug 2026 01:45:05 GMT",
+      "permissions-policy": "camera=(), microphone=(), geolocation=()",
+      "referrer-policy": "strict-origin-when-cross-origin",
+      "strict-transport-security": "max-age=10886400; includeSubDomains; preload",
+      "vary": "Accept-Encoding",
+      "x-content-type-options": "nosniff",
+      "x-dns-prefetch-control": "off",
+      "x-xss-protection": "1; mode=block"
+    }
+  },
+  {
+    "url": "https://photo-proof-pile.sociobot.in/assets/index-DHC-IFsa.js",
+    "status": 200,
+    "headers": {
+      "cache-control": "public, max-age=31536000, immutable",
+      "content-encoding": "br",
+      "content-security-policy": "default-src 'self'; img-src 'self' data: blob:; style-src 'self'; script-src 'self'; connect-src 'self' https://api.github.com https://api.sociobot.in; object-src 'none'; base-uri 'self'; frame-ancestors 'none'",
+      "content-type": "text/javascript",
+      "date": "Sun, 30 Aug 2026 02:45:16 GMT",
+      "etag": "\"96776839\"",
+      "last-modified": "Sun, 30 Aug 2026 01:45:05 GMT",
+      "permissions-policy": "camera=(), microphone=(), geolocation=()",
+      "referrer-policy": "strict-origin-when-cross-origin",
+      "vary": "Accept-Encoding",
+      "x-content-type-options": "nosniff",
+      "x-dns-prefetch-control": "off",
+      "x-xss-protection": "1; mode=block"
+    }
+  },
+  {
+    "url": "https://photo-proof-pile.sociobot.in/verification-15-missing",
+    "status": 404,
+    "headers": {
+      "cache-control": "public, must-revalidate, max-age=30",
+      "content-length": "2576",
+      "content-security-policy": "default-src 'self'; img-src 'self' data: blob:; style-src 'self'; script-src 'self'; connect-src 'self' https://api.github.com https://api.sociobot.in; object-src 'none'; base-uri 'self'; frame-ancestors 'none'",
+      "content-type": "text/html",
+      "date": "Sun, 30 Aug 2026 02:45:16 GMT",
+      "etag": "\"96776839\"",
+      "last-modified": "Sun, 30 Aug 2026 01:45:05 GMT",
+      "permissions-policy": "camera=(), microphone=(), geolocation=()",
+      "referrer-policy": "strict-origin-when-cross-origin",
+      "strict-transport-security": "max-age=10886400; includeSubDomains; preload",
+      "x-content-type-options": "nosniff",
+      "x-dns-prefetch-control": "off",
+      "x-xss-protection": "1; mode=block"
+    }
+  }
+]

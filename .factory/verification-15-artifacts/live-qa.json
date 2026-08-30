@@ -1,0 +1,284 @@
+{
+  "routes": [
+    {
+      "route": "/",
+      "status": 200,
+      "title": "Proof Pile — Review photo copies before cleanup",
+      "lang": "en",
+      "h1": [
+        "Review photo copies before you remove them"
+      ],
+      "mains": 1,
+      "missingAlt": 0,
+      "canonical": "https://photo-proof-pile.sociobot.in/"
+    },
+    {
+      "route": "/demo",
+      "status": 200,
+      "title": "Demo — Proof Pile",
+      "lang": "en",
+      "h1": [
+        "Review a sample photo pile"
+      ],
+      "mains": 1,
+      "missingAlt": 0,
+      "canonical": "https://photo-proof-pile.sociobot.in/demo"
+    },
+    {
+      "route": "/?demo=1",
+      "status": 200,
+      "title": "Demo — Proof Pile",
+      "lang": "en",
+      "h1": [
+        "Review a sample photo pile"
+      ],
+      "mains": 1,
+      "missingAlt": 0,
+      "canonical": "https://photo-proof-pile.sociobot.in/demo"
+    },
+    {
+      "route": "/app",
+      "status": 200,
+      "title": "Proof Pile — Review photo copies",
+      "lang": "en",
+      "h1": [
+        "Choose folders to scan"
+      ],
+      "mains": 1,
+      "missingAlt": 0,
+      "canonical": "https://photo-proof-pile.sociobot.in/app"
+    },
+    {
+      "route": "/privacy",
+      "status": 200,
+      "title": "Privacy — Proof Pile",
+      "lang": "en",
+      "h1": [
+        "Privacy without photo uploads"
+      ],
+      "mains": 1,
+      "missingAlt": 0,
+      "canonical": "https://photo-proof-pile.sociobot.in/privacy"
+    },
+    {
+      "route": "/terms",
+      "status": 200,
+      "title": "Terms — Proof Pile",
+      "lang": "en",
+      "h1": [
+        "Terms for careful photo cleanup"
+      ],
+      "mains": 1,
+      "missingAlt": 0,
+      "canonical": "https://photo-proof-pile.sociobot.in/terms"
+    },
+    {
+      "route": "/verification-15-missing",
+      "status": 404,
+      "title": "Page not found — Proof Pile",
+      "lang": "en",
+      "h1": [
+        "This page was not found"
+      ],
+      "mains": 1,
+      "missingAlt": 0,
+      "canonical": "https://photo-proof-pile.sociobot.in/404"
+    }
+  ],
+  "axe": [
+    {
+      "route": "/",
+      "colorScheme": "light",
+      "seriousCritical": []
+    },
+    {
+      "route": "/demo",
+      "colorScheme": "light",
+      "seriousCritical": []
+    },
+    {
+      "route": "/privacy",
+      "colorScheme": "light",
+      "seriousCritical": []
+    },
+    {
+      "route": "/terms",
+      "colorScheme": "light",
+      "seriousCritical": []
+    },
+    {
+      "route": "/verification-15-missing",
+      "colorScheme": "light",
+      "seriousCritical": []
+    },
+    {
+      "route": "/",
+      "colorScheme": "dark",
+      "seriousCritical": []
+    },
+    {
+      "route": "/demo",
+      "colorScheme": "dark",
+      "seriousCritical": []
+    },
+    {
+      "route": "/privacy",
+      "colorScheme": "dark",
+      "seriousCritical": []
+    },
+    {
+      "route": "/terms",
+      "colorScheme": "dark",
+      "seriousCritical": []
+    },
+    {
+      "route": "/verification-15-missing",
+      "colorScheme": "dark",
+      "seriousCritical": []
+    }
+  ],
+  "errors": [],
+  "expected404Console": [
+    "console https://photo-proof-pile.sociobot.in/verification-15-missing: Failed to load resource: the server responded with a status of 404 ()",
+    "console https://photo-proof-pile.sociobot.in/verification-15-missing: Failed to load resource: the server responded with a status of 404 ()",
+    "console https://photo-proof-pile.sociobot.in/verification-15-missing: Failed to load resource: the server responded with a status of 404 ()"
+  ],
+  "checks": {
+    "firstRead": {
+      "heading": "Review photo copies before you remove them",
+      "body": "For people with photos across several drives who fear removing the only meaningful copy.",
+      "action": "Try it with sample data",
+      "actionTop": 556.765625,
+      "viewportHeight": 900,
+      "explanation": "Opens three ready-to-review groups.",
+      "facts": [
+        "Photos stay on this device",
+        "Works without an account",
+        "Free for 1,000 files; US$29 once for full libraries"
+      ]
+    },
+    "endToEnd": {
+      "selectedBefore": 0,
+      "selectedAfter": 1,
+      "focus": {
+        "outlineWidth": "3px",
+        "outlineColor": "rgb(49, 95, 137)"
+      },
+      "confirmMessage": "Move 2 files to /Sample drive/Proof Pile Quarantine? You can restore them from the decision log.",
+      "csvRows": 9,
+      "invalidCsvRejected": true,
+      "reloadRecovery": true,
+      "importedRecoveryRestored": true,
+      "requests": [
+        {
+          "url": "https://photo-proof-pile.sociobot.in/demo",
+          "method": "GET",
+          "resourceType": "document"
+        },
+        {
+          "url": "https://photo-proof-pile.sociobot.in/assets/index-DHC-IFsa.js",
+          "method": "GET",
+          "resourceType": "script"
+        },
+        {
+          "url": "https://photo-proof-pile.sociobot.in/assets/index-9kPWVZ_p.css",
+          "method": "GET",
+          "resourceType": "stylesheet"
+        },
+        {
+          "url": "https://photo-proof-pile.sociobot.in/samples/lake-a.svg",
+          "method": "GET",
+          "resourceType": "image"
+        },
+        {
+          "url": "https://photo-proof-pile.sociobot.in/samples/birthday.svg",
+          "method": "GET",
+          "resourceType": "image"
+        },
+        {
+          "url": "https://photo-proof-pile.sociobot.in/samples/dog.svg",
+          "method": "GET",
+          "resourceType": "image"
+        },
+        {
+          "url": "https://photo-proof-pile.sociobot.in/demo",
+          "method": "GET",
+          "resourceType": "document"
+        },
+        {
+          "url": "https://photo-proof-pile.sociobot.in/assets/index-DHC-IFsa.js",
+          "method": "GET",
+          "resourceType": "script"
+        },
+        {
+          "url": "https://photo-proof-pile.sociobot.in/assets/index-9kPWVZ_p.css",
+          "method": "GET",
+          "resourceType": "stylesheet"
+        },
+        {
+          "url": "https://photo-proof-pile.sociobot.in/samples/lake-a.svg",
+          "method": "GET",
+          "resourceType": "image"
+        },
+        {
+          "url": "https://photo-proof-pile.sociobot.in/samples/birthday.svg",
+          "method": "GET",
+          "resourceType": "image"
+        },
+        {
+          "url": "https://photo-proof-pile.sociobot.in/samples/dog.svg",
+          "method": "GET",
+          "resourceType": "image"
+        }
+      ]
+    },
+    "reducedMotion": {
+      "transitionDuration": "1e-05s",
+      "animationName": "none"
+    },
+    "serviceWorker": {
+      "controller": true,
+      "active": "activated",
+      "waiting": null,
+      "caches": [
+        "proof-pile-v14"
+      ],
+      "offlineStatus": 200
+    },
+    "mobile/": {
+      "normalWidth": 390,
+      "zoomWidth": 390,
+      "undersized": []
+    },
+    "mobile/demo": {
+      "normalWidth": 390,
+      "zoomWidth": 390,
+      "undersized": []
+    },
+    "mobile/app": {
+      "normalWidth": 390,
+      "zoomWidth": 390,
+      "undersized": []
+    },
+    "mobile/privacy": {
+      "normalWidth": 390,
+      "zoomWidth": 390,
+      "undersized": []
+    },
+    "mobile/terms": {
+      "normalWidth": 390,
+      "zoomWidth": 390,
+      "undersized": []
+    },
+    "mobile/404.html": {
+      "normalWidth": 390,
+      "zoomWidth": 390,
+      "undersized": []
+    },
+    "release": {
+      "state": "v0.1.17 is ready.",
+      "linuxHref": "https://github.com/B-Divyesh/sf-photo-proof-pile/releases/download/v0.1.17/Proof.Pile_0.1.17_amd64.AppImage",
+      "unsignedWarning": "macOS and Windows builds are unsigned. Your system will ask you to confirm the first launch."
+    }
+  }
+}
