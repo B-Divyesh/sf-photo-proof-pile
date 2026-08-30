@@ -6,7 +6,7 @@ declare global { interface Window { __TAURI_INTERNALS__?: unknown } }
 const app = document.querySelector<HTMLDivElement>("#app")!;
 const isDesktop = Boolean(window.__TAURI_INTERNALS__);
 const PRODUCT = "photo-proof-pile";
-const VERSION = "0.1.18";
+const VERSION = "0.1.19";
 const LICENSE_KEY = `sb_license:${PRODUCT}`;
 const DEMO_KEY = "demo:photo-proof-pile:session";
 const REAL_KEY = "proof-pile:session";
@@ -54,8 +54,8 @@ function shell(content: string) {
 function landing() {
   demo = false;
   const downloadControl = isMobileDevice()
-    ? `<p class="mobile-download-note">Open this page on a desktop computer to check downloads.</p>`
-    : `<button class="download-link" id="download-app" type="button">Check download for ${platformName()}</button>`;
+    ? `<p class="mobile-download-note">Open this page on a desktop computer to check signed downloads.</p>`
+    : `<button class="download-link" id="download-app" type="button">Check desktop downloads</button>`;
   shell(`<main id="main" tabindex="-1">
     <section class="hero">
       <div class="hero-copy"><p class="eyebrow">Local duplicate-photo review</p><h1 tabindex="-1">Review photo copies before you remove them</h1><p class="lede">For people with photos across several drives who fear removing the only meaningful copy.</p><div class="hero-action"><a class="button primary route-link" href="/demo">Try it with sample data ${icon("arrow")}</a><span>Opens three ready-to-review groups.</span></div>${downloadControl}<ul class="fact-list"><li>${icon("shield")} Photos stay on this device</li><li>${icon("check")} Works without an account</li><li>${icon("check")} Free for 1,000 files; US$29 once for full libraries</li></ul></div>
@@ -80,14 +80,6 @@ function pricing() {
 function bindLanding() {
   document.querySelector("#restore-license")?.addEventListener("click", showLicenseDialog);
   document.querySelector("#download-app")?.addEventListener("click", showDownloads);
-}
-
-function platformName() {
-  const platform = navigator.userAgent.toLowerCase();
-  if (platform.includes("mac")) return "macOS";
-  if (platform.includes("win")) return "Windows";
-  if (platform.includes("linux")) return "Linux";
-  return "your computer";
 }
 
 function isMobileDevice() {
@@ -539,9 +531,8 @@ async function showDownloads() {
   const dialog = document.createElement("dialog"); dialog.innerHTML = `<div class="download-dialog"><button class="dialog-close" aria-label="Close download window">×</button><p class="eyebrow">Desktop app</p><h2>Desktop downloads</h2><p id="release-state">Checking the latest release…</p><div id="release-links"></div><p class="fine" id="signature-state">Checking release verification…</p></div>`; document.body.append(dialog); dialog.showModal(); dialog.querySelector(".dialog-close")?.addEventListener("click", () => dialog.close()); dialog.addEventListener("close", () => dialog.remove());
   try {
     const releaseKey = `proof-pile:release:v${VERSION}`;
-    let release = JSON.parse(localStorage.getItem(releaseKey) || "null"); if (!release || Date.now() - release.savedAt > 3_600_000) { const response = await fetch("https://api.github.com/repos/B-Divyesh/sf-photo-proof-pile/releases?per_page=1"); if (!response.ok) throw new Error(); const releases = await response.json(); if (!Array.isArray(releases) || !releases[0]) throw new Error(); release = { data: releases[0], savedAt: Date.now() }; localStorage.setItem(releaseKey, JSON.stringify(release)); }
+    let release = JSON.parse(localStorage.getItem(releaseKey) || "null"); if (!release || Date.now() - release.savedAt > 3_600_000) { const response = await fetch("https://api.github.com/repos/B-Divyesh/sf-photo-proof-pile/releases/latest"); if (!response.ok) throw new Error(); const releaseData = await response.json(); if (!releaseData?.assets) throw new Error(); release = { data: releaseData, savedAt: Date.now() }; localStorage.setItem(releaseKey, JSON.stringify(release)); }
     const assets = release.data.assets as { name: string; browser_download_url: string }[];
-    const releaseVerified = assets.some(item => item.name === "DESKTOP_RELEASE_VERIFIED.json");
     const signaturesVerified = assets.some(item => item.name === "DESKTOP_SIGNATURES_VERIFIED.json");
     const checksums = assets.some(item => item.name === "SHA256SUMS");
     const manifest = assets.some(item => item.name === "latest.json");
@@ -549,23 +540,25 @@ async function showDownloads() {
     const macIntel = assets.find(item => /\.(dmg)$/i.test(item.name) && /(x86_64|x64|intel)/i.test(item.name));
     const windows = assets.find(item => /\.(msi|exe)$/i.test(item.name));
     const linux = assets.find(item => /\.(AppImage|deb)$/i.test(item.name));
-    if (!releaseVerified || !checksums || !manifest || !macArm || !macIntel || !windows || !linux) {
-      document.querySelector("#release-state")!.textContent = "Downloads are being prepared.";
-      document.querySelector("#signature-state")!.textContent = "No package is offered until the complete matrix and checksums pass.";
+    if (!signaturesVerified || !checksums || !manifest || !macArm || !macIntel || !windows || !linux) {
+      document.querySelector("#release-state")!.textContent = "Signed downloads are being prepared.";
+      document.querySelector("#signature-state")!.textContent = "No package is offered until Windows and macOS signature checks pass.";
       document.querySelector("#release-links")!.replaceChildren();
       return;
     }
     document.querySelector("#release-state")!.textContent = `${release.data.tag_name} is ready.`;
-    document.querySelector("#signature-state")!.textContent = signaturesVerified
-      ? "Windows is Authenticode signed. macOS is signed and notarized."
-      : "macOS and Windows builds are unsigned. Your system will ask you to confirm the first launch.";
+    document.querySelector("#signature-state")!.textContent = "Windows is Authenticode signed. macOS is signed and notarized.";
     document.querySelector("#release-links")!.innerHTML = [
       `<a class="button quiet" href="${escapeHtml(macArm.browser_download_url)}">Download for macOS (Apple silicon)</a>`,
       `<a class="button quiet" href="${escapeHtml(macIntel.browser_download_url)}">Download for macOS (Intel)</a>`,
       `<a class="button quiet" href="${escapeHtml(windows.browser_download_url)}">Download for Windows</a>`,
       `<a class="button quiet" href="${escapeHtml(linux.browser_download_url)}">Download for Linux</a>`
     ].join("");
-  } catch { document.querySelector("#release-state")!.textContent = "Downloads are not published yet. Check again later."; document.querySelector("#signature-state")!.textContent = "No package was offered because release verification could not be checked."; }
+  } catch {
+    document.querySelector("#release-state")!.textContent = "Downloads are not published yet. Check again later.";
+    document.querySelector("#release-links")!.innerHTML = `<a class="text-link" href="https://github.com/B-Divyesh/sf-photo-proof-pile/releases" rel="external" aria-label="View release status on GitHub (external site)">View release status on GitHub ↗</a>`;
+    document.querySelector("#signature-state")!.textContent = "No package was offered because release verification could not be checked.";
+  }
 }
 
 addEventListener("popstate", () => route(true));
