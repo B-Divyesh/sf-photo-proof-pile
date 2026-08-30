@@ -472,7 +472,7 @@ test("review decision controls meet the 44px target baseline on desktop and phon
   }
 });
 
-test("Android and iPhone visitors receive desktop download guidance without a compatibility claim", async ({ browser }) => {
+test("Android and iPhone visitors receive download guidance without an unlisted compatibility claim", async ({ browser }) => {
   const phones = [
     { userAgent: "Mozilla/5.0 (Linux; Android 14; Pixel 7) AppleWebKit/537.36 Mobile Safari/537.36", wrongLabel: "Download for Linux" },
     { userAgent: "Mozilla/5.0 (iPhone; CPU iPhone OS 15_0 like Mac OS X) AppleWebKit/605.1.15 Mobile/15E148 Safari/604.1", wrongLabel: "Download for macOS" }
@@ -481,9 +481,9 @@ test("Android and iPhone visitors receive desktop download guidance without a co
     const context = await browser.newContext({ userAgent: phone.userAgent, viewport: { width: 390, height: 844 } });
     const page = await context.newPage();
     await page.goto("/");
-    await expect(page.getByText("Open this page on a desktop computer to check signed downloads.")).toBeVisible();
+    await expect(page.getByText("Open this page on a desktop computer to check downloads.")).toBeVisible();
     await expect(page.getByText(phone.wrongLabel)).toHaveCount(0);
-    await expect(page.getByRole("button", { name: /Check signed download/ })).toHaveCount(0);
+    await expect(page.getByRole("button", { name: /Check download/ })).toHaveCount(0);
     await context.close();
   }
 });
@@ -511,6 +511,18 @@ test("the 390px review keeps all content available at 200% text size", async ({ 
   }
 });
 
+test("the standalone 404 header reflows at 390px with 200% text", async ({ page }) => {
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page.goto("/404.html");
+  await page.locator("html").evaluate(element => { element.style.fontSize = "34px"; });
+  await expect(page.getByRole("heading", { level: 1, name: "This page was not found" })).toBeVisible();
+  expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBeLessThanOrEqual(390);
+  for (const action of await page.locator("header a, footer a").all()) {
+    const box = await action.boundingBox();
+    expect((box?.x ?? 391) + (box?.width ?? 0)).toBeLessThanOrEqual(390);
+  }
+});
+
 test("the skip link moves keyboard focus to main", async ({ page }) => {
   await page.goto("/");
   await page.getByRole("link", { name: "Skip to main content" }).focus();
@@ -535,52 +547,49 @@ test("download picker offers both published macOS architectures", async ({ page 
   }));
   await page.goto("/");
   await page.evaluate(() => localStorage.setItem("proof-pile:release", JSON.stringify({ savedAt: Date.now(), data: { tag_name: "v0.1.0", assets: [] } })));
-  await page.getByRole("button", { name: /Check signed download/ }).click();
+  await page.getByRole("button", { name: /Check download/ }).click();
   await expect(page.getByText("v0.1.1 is ready.")).toBeVisible();
   await expect(page.getByRole("link", { name: "Download for macOS (Apple silicon)" })).toHaveAttribute("href", "https://example.test/arm.dmg");
   await expect(page.getByRole("link", { name: "Download for macOS (Intel)" })).toHaveAttribute("href", "https://example.test/intel.dmg");
   await expect(page.getByText("Windows is Authenticode signed. macOS is signed and notarized.")).toBeVisible();
 });
 
-test("@claim:verified-downloads-only refuses an untrusted release and offers only a signed release", async ({ page }) => {
+test("@claim:verified-downloads-only offers a complete unsigned release and refuses an incomplete one", async ({ page }) => {
   await page.route("https://api.github.com/repos/B-Divyesh/sf-photo-proof-pile/releases?per_page=1", route => route.fulfill({
     status: 200,
     contentType: "application/json",
-    body: JSON.stringify([{ tag_name: "v0.1.16", assets: [
-      { name: "Proof.Pile_0.1.16_aarch64.dmg", browser_download_url: "https://example.test/arm.dmg" },
-      { name: "Proof.Pile_0.1.16_x64.dmg", browser_download_url: "https://example.test/intel.dmg" },
-      { name: "Proof.Pile_0.1.16_x64_en-US.msi", browser_download_url: "https://example.test/app.msi" },
-      { name: "Proof.Pile_0.1.16_amd64.AppImage", browser_download_url: "https://example.test/app.AppImage" },
+    body: JSON.stringify([{ tag_name: "v0.1.17", assets: [
+      { name: "Proof.Pile_0.1.17_aarch64.dmg", browser_download_url: "https://example.test/arm.dmg" },
+      { name: "Proof.Pile_0.1.17_x64.dmg", browser_download_url: "https://example.test/intel.dmg" },
+      { name: "Proof.Pile_0.1.17_x64_en-US.msi", browser_download_url: "https://example.test/app.msi" },
+      { name: "Proof.Pile_0.1.17_amd64.AppImage", browser_download_url: "https://example.test/app.AppImage" },
       { name: "SHA256SUMS", browser_download_url: "https://example.test/SHA256SUMS" },
-      { name: "latest.json", browser_download_url: "https://example.test/latest.json" }
+      { name: "latest.json", browser_download_url: "https://example.test/latest.json" },
+      { name: "DESKTOP_RELEASE_VERIFIED.json", browser_download_url: "https://example.test/release.json" }
     ] }])
   }));
   await page.goto("/");
-  await page.getByRole("button", { name: /Check signed download/ }).click();
-  await expect(page.getByText("Signed downloads are being prepared.")).toBeVisible();
-  await expect(page.getByText("No package is offered until Windows and macOS signature checks pass.")).toBeVisible();
-  await expect(page.getByRole("link", { name: /Download for/ })).toHaveCount(0);
+  await page.getByRole("button", { name: /Check download/ }).click();
+  await expect(page.getByText("v0.1.17 is ready.")).toBeVisible();
+  await expect(page.getByRole("link", { name: "Download for Linux" })).toHaveAttribute("href", "https://example.test/app.AppImage");
+  await expect(page.getByText("macOS and Windows builds are unsigned. Your system will ask you to confirm the first launch.")).toBeVisible();
   await page.getByRole("button", { name: "Close download window" }).click();
   await page.evaluate(() => localStorage.clear());
   await page.unroute("https://api.github.com/repos/B-Divyesh/sf-photo-proof-pile/releases?per_page=1");
   await page.route("https://api.github.com/repos/B-Divyesh/sf-photo-proof-pile/releases?per_page=1", route => route.fulfill({
     status: 200,
     contentType: "application/json",
-    body: JSON.stringify([{ tag_name: "v0.1.16", assets: [
-      { name: "Proof.Pile_0.1.16_aarch64.dmg", browser_download_url: "https://example.test/arm.dmg" },
-      { name: "Proof.Pile_0.1.16_x64.dmg", browser_download_url: "https://example.test/intel.dmg" },
-      { name: "Proof.Pile_0.1.16_x64_en-US.msi", browser_download_url: "https://example.test/app.msi" },
-      { name: "Proof.Pile_0.1.16_amd64.AppImage", browser_download_url: "https://example.test/app.AppImage" },
-      { name: "SHA256SUMS", browser_download_url: "https://example.test/SHA256SUMS" },
-      { name: "latest.json", browser_download_url: "https://example.test/latest.json" },
-      { name: "DESKTOP_SIGNATURES_VERIFIED.json", browser_download_url: "https://example.test/signatures.json" }
+    body: JSON.stringify([{ tag_name: "v0.1.13", assets: [
+      { name: "Proof.Pile_0.1.13_aarch64.dmg", browser_download_url: "https://example.test/app.dmg" },
+      { name: "Proof.Pile_0.1.13_x64_en-US.msi", browser_download_url: "https://example.test/app.msi" },
+      { name: "Proof.Pile_0.1.13_amd64.deb", browser_download_url: "https://example.test/app.deb" }
     ] }])
   }));
-  await page.getByRole("button", { name: /Check signed download/ }).click();
-  await expect(page.getByText("v0.1.16 is ready.")).toBeVisible();
-  await expect(page.getByText("Windows is Authenticode signed. macOS is signed and notarized.")).toBeVisible();
-  await expect(page.getByRole("link", { name: /Download for/ })).toHaveCount(4);
-  await expect(page.getByRole("link", { name: "Download for Linux" })).toHaveAttribute("href", "https://example.test/app.AppImage");
+  await page.getByRole("button", { name: /Check download/ }).click();
+  await expect(page.getByText("Downloads are being prepared.")).toBeVisible();
+  await expect(page.getByText("No package is offered until the complete matrix and checksums pass.")).toBeVisible();
+  await expect(page.getByRole("link", { name: /Download for/ })).toHaveCount(0);
+  await expect(page.getByRole("link", { name: /releases/i })).toHaveCount(0);
 });
 
 test("routes load without console errors and Back restores the previous scroll position", async ({ page }) => {
