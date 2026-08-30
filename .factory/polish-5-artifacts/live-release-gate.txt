@@ -1,0 +1,15 @@
+Checked: 2026-08-30 UTC
+
+GET https://api.github.com/repos/B-Divyesh/sf-photo-proof-pile/releases
+[]
+
+GET https://github.com/B-Divyesh/sf-photo-proof-pile/releases/download/v0.1.15/Proof.Pile_0.1.15_x64_en-US.msi
+HTTP 404
+
+GET https://github.com/B-Divyesh/sf-photo-proof-pile/releases/download/v0.1.15/Proof.Pile_0.1.15_aarch64.dmg
+HTTP 404
+
+Live install.sh exit: 1
+A trusted Linux release is not published yet. Nothing was installed.
+
+The v0.1.15 release was changed to a private draft. Its twelve assets remain recoverable by the repository owner, but none is publicly downloadable.

@@ -1,187 +1,164 @@
-# Review 5 handoff — FAIL — 29 August 2026
-
-Reviewer-only documentation was added in commit pending. No product source,
-configuration, release assets, or deployment settings were changed.
-
-- Report: `.factory/review-5.md`.
-- Fresh clone: `/tmp/proof-pile-review-5.qfG7rw`; `npm ci` completed with 66
-  packages and no reported vulnerabilities.
-- Every one of the 22 exact `.factory/claims.json` commands passed.
-- `npm test` (10 Rust, 11 Vitest, 30 Playwright), `npm run check`, and
-  `npm run build` passed; the build produced `dist/site`.
-- Cold desktop and 390 px mobile checks confirmed a clear first screen,
-  populated one-click demo, isolation/reset behavior, same-origin demo
-  requests, route structure, metadata, links, and designed true 404.
-
-Open findings:
-
-1. **F-5-1 / recurring F-1-34 (blocking):** live v0.1.15 publicly offers
-   unsigned Windows and macOS packages. Remove unsigned distribution and
-   require independently verified Authenticode plus Apple signing/notarization
-   before publishing downloads.
-2. **F-5-2 (minor):** the mobile sentence “The desktop app requires macOS,
-   Windows, or Linux” has no claims.json entry/test. Register it with a
-   platform-matrix test or replace it with non-claim guidance.
-
-The retained historical handoff below describes earlier work and should not be
-read as closure of this review's recurring unsigned-distribution finding.
-
----
-
-# Independent verification 13 handoff — PASS — 29 August 2026
-
-Candidate `e05605f301ebc105f7574c1a911216581086e46d` is **accepted** at
-<https://photo-proof-pile.sociobot.in>. Fresh verification found no Severity 1,
-2, or 3 product defects. The previous deployment-only failure is closed.
-
-- First-read and one-click demo gates pass.
-- All 22 exact `.factory/claims.json` commands pass after `npm ci`.
-- `npm test`, `npm run check`, and `npm run build` pass.
-- Live desktop/mobile, keyboard, axe, privacy, headers, offline reload, and
-  response caching checks pass.
-- The billing verifier allows 30 requests from one client; request 31 returns
-  429 with `Retry-After: 4`, and service recovers after that interval.
-- Public v0.1.15 has the full Linux/Windows/two-architecture macOS matrix. The
-  live Linux installer downloaded a checksum-matched AppImage, which passed an
-  eight-second Xvfb smoke test.
-- Live HTML, service worker, JS, and CSS match the fresh candidate build byte
-  for byte. Candidate changes after release source `c9e1d6e` are documentation
-  only.
-- Lighthouse mobile: performance 92, accessibility 100, best practices 100,
-  SEO 100; LCP 1.2 s, CLS 0, 137 KiB transferred.
-
-Full report: `.factory/verification-13.md`. Fresh evidence is in
-`.factory/verification-artifacts-13/`.
-
-Known operator action remains unchanged: macOS and Windows builds are
-truthfully unsigned. Add the Apple notarization and Windows Authenticode
-secrets named in `.github/workflows/release.yml` to remove first-launch
-warnings. This is allowed by the work order and does not block acceptance.
-
----
-
-# Proof Pile repair 8 handoff — 29 August 2026
+# Proof Pile polish 5 handoff — 30 August 2026
 
 ## Outcome
 
-Release blocker fixed and deployed. Proof Pile v0.1.15 is publicly installable
-for Linux, Windows, macOS Apple silicon, and macOS Intel. The live download
-dialog resolves to those assets, and the published Linux installer downloads a
-checksum-matched AppImage.
+Round 5 is repaired, pushed, deployed, and cold-checked at
+<https://photo-proof-pile.sociobot.in>. The cumulative finding map is in
+`.factory/polish-5.md`.
 
-The root cause was the release workflow's unconditional signing preflight. The
-repository has no Apple or Windows signing secrets, so the preflight skipped
-all four package builds, including Linux. The workflow now builds every target
-without certificates, signs when owner credentials are present, records the
-truthful status in `latest.json`, and publishes only after the matrix and
-checksums pass.
+The review's blocking safety defect is closed fail-safe. Proof Pile no longer
+publishes or links untrusted desktop packages. The previous v0.1.15 release is
+a private GitHub draft; its public MSI and DMG URLs return 404. The browser,
+shell installer, and PowerShell installer require a complete matrix,
+`SHA256SUMS`, `latest.json`, and `DESKTOP_SIGNATURES_VERIFIED.json` before they
+offer or write a package.
 
-This follows the work order's desktop rule to ship unsigned macOS and Windows
-packages when certificates are unavailable and state that clearly. The site,
-README, and PowerShell installer warn that those two packages are unsigned.
-No package is described as signed unless CI emits
-`DESKTOP_SIGNATURES_VERIFIED.json` after native signature checks.
+The public product remains the same Tauri 2 desktop app plus its static site.
+Its archival light-table visual identity was preserved.
 
-## Source, release, and deployment
+## Source and deployment
 
-- Repair commit and release source:
-  `c9e1d6eab6ccc36da27507a1dff854ac5bb22b3f`
-- Release tag: `v0.1.15`
-- Public release:
-  <https://github.com/B-Divyesh/sf-photo-proof-pile/releases/tag/v0.1.15>
-- Successful release workflow:
-  <https://github.com/B-Divyesh/sf-photo-proof-pile/actions/runs/33278280973>
-- Static deployment ID: `8d962e16-4ada-401c-98bc-b20f348cc375`
-- Live site: <https://photo-proof-pile.sociobot.in>
-- Release marker binds the package matrix to commit
-  `c9e1d6eab6ccc36da27507a1dff854ac5bb22b3f`.
+- Reviewed candidate: `e05605f301ebc105f7574c1a911216581086e46d`
+- Review base: `a00798f9776aa2a33c821552c344bf642cf4bb79`
+- Repair implementation commit: `395628297e9331e8ead19279abd7858d60288f5a`
+- Product version: `0.1.16`
+- Branch: `main`
+- Static deployment ID: `c91cb9c6-8f16-4a3e-b8c3-fd39718b40f0`
+- Live URL: <https://photo-proof-pile.sociobot.in>
+- Demo: <https://photo-proof-pile.sociobot.in/demo> or `/?demo=1`
+- Release-gate run:
+  <https://github.com/B-Divyesh/sf-photo-proof-pile/actions/runs/33282734730>
 
-## Finding closure and regression coverage
+## What changed
 
-- Removed the credential preflight that prevented every package build.
-- Kept conditional Authenticode and Apple signing/notarization checks for a
-  future run with owner credentials.
-- Added `DESKTOP_RELEASE_VERIFIED.json`. CI writes it only after all four build
-  jobs succeed; it records source commit, matrix state, checksum scheme, and
-  truthful per-platform signature state.
-- `latest.json` contains canonical v0.1.15 URLs for two DMGs, MSI/EXE, AppImage,
-  and DEB. `SHA256SUMS` covers all package assets and the release marker.
-- The browser requires the full matrix, `latest.json`, `SHA256SUMS`, and the
-  completed release marker before showing any download.
-- Both one-line installers require the completed release marker and verify the
-  selected package against `SHA256SUMS` before opening or installing it.
-- `tests/model.test.ts` prevents restoration of the signing deadlock and checks
-  the conditional-signing/release-verification contract.
-- `tests/app.spec.ts` proves a complete unsigned release is usable with a clear
-  warning and an incomplete release exposes no package.
-- `tests/installer.test.ts` and `tests/install-windows.ps1` prove incomplete or
-  checksum-mismatched releases never reach installation.
+- Reinstated a credential preflight that requires the full Apple signing and
+  notarization set plus the Windows Authenticode certificate before any
+  package build starts.
+- Removed all unsigned Windows/macOS build and publication paths.
+- Added independent Windows and macOS checks against downloaded release
+  packages before checksums, marker creation, and publication.
+- Made `DESKTOP_SIGNATURES_VERIFIED.json` mandatory. Its accepted states are
+  exactly `authenticode-signed` for Windows and `signed-and-notarized` for
+  macOS.
+- Made the browser and both installers fail closed when that marker, the full
+  platform matrix, or checksum data is missing.
+- Changed the phone-only operating-system claim to the action guidance “Open
+  this page on a desktop computer to check signed downloads.”
+- Strengthened the installer and verified-download claim records and tests.
+- Advanced package/site/404/service-worker identity to 0.1.16/v13.
+- Updated the verb-first 90-character catalog description and full copy audit.
+- Withdrew v0.1.15 from public access by changing it to a private draft. The
+  twelve assets were not deleted and remain recoverable by the owner.
 
-## Clean-clone verification
+## Verification evidence
 
-A fresh local clone of repair commit `c9e1d6e` was used.
+Evidence is stored in `.factory/polish-5-artifacts/`.
 
-- `npm ci`: passed; 66 packages installed and zero audit vulnerabilities.
-- Every exact command in `.factory/claims.json`: 22 of 22 passed separately.
-- Claim registration audit: 22 IDs, each with exactly one matching test tag.
-- `npm test`: passed — 10 Rust tests, 11 Vitest tests, 30 Playwright tests.
-- `npm run check`: passed — TypeScript, Rust format, and strict Clippy.
-- `npm run build`: passed and produced `dist/site`.
-- `actionlint 1.7.12 .github/workflows/release.yml`: passed.
-- Initial JavaScript: 42,810 bytes raw / 15,000 bytes gzip total.
-- CSS: 18,563 bytes raw / 5,094 bytes gzip.
-- Hero WebP: 29,922 bytes.
+- Fresh remote clone at implementation commit `395628297e9`:
+  - `npm ci`: 66 packages, zero vulnerabilities.
+  - All 22 exact `.factory/claims.json` commands passed separately.
+  - Claim audit: 22 IDs and 22 unique test tags, one tag per claim.
+  - `npm test`: 10 Rust, 11 Vitest, and 30 Playwright tests passed.
+  - `npm run check`: passed.
+  - `npm run build`: passed and produced `dist/site`.
+  - `actionlint 1.7.12 .github/workflows/release.yml`: passed.
+- Desktop build:
+  - `CI=true npm run build:desktop -- --bundles deb,rpm`: passed.
+  - DEB: `proof-pile` 0.1.16 amd64, SHA-256
+    `3227a1a514de2de074b596474765966c7ce37ddd6acc2854142fe1024da1db75`.
+  - RPM SHA-256:
+    `22cfce15efaa469b60557545322bf2d03c9e6096bb6527cf4e7fe0a43ce8f48a`.
+  - Native executable stayed running for the full intentional eight-second
+    Xvfb smoke window; stderr was empty.
+- Release safety:
+  - Actions run `33282734730` stopped at `validate-signing`; prepare, matrix,
+    verification, checksums, and publication jobs were all skipped.
+  - Anonymous GitHub releases API returned `[]`.
+  - Old v0.1.15 MSI and DMG asset URLs returned 404.
+  - Live `install.sh` exited 1 with “Nothing was installed.”
+  - Live download dialog exposed zero links and stated why.
+- Cold live browser QA:
+  - `/`, `/demo`, `/?demo=1`, `/app`, `/privacy`, and `/terms` returned 200;
+    an unknown route returned the designed 404.
+  - Every route had its correct title, description, canonical, one h1, one
+    main, skip link, and Privacy/Terms links.
+  - The one-click demo opened three populated groups. Direct `?demo=1`, reset,
+    and Start for real kept demo session storage separate from real storage.
+  - Quarantine confirmation/cancel/apply, nine-row CSV export, restore-dialog
+    focus, route focus, hash navigation, and Back scroll restoration passed.
+  - Ordinary use made no off-origin request. The explicit download check used
+    only the allow-listed GitHub API.
+  - Offline `/demo` reload returned 200 with all three groups from service
+    worker cache `proof-pile-v13`.
+  - No unexpected browser console or page errors were recorded.
+- Accessibility and mobile:
+  - The worker URL verifier passed `/` and `/demo` with title, `lang=en`, one
+    h1/main, complete alt text, labeled buttons, and no console errors.
+  - Playwright axe found zero serious or critical issues on `/`, `/demo`,
+    `/privacy`, `/terms`, and the 404 in light and dark, plus mobile.
+  - At 390 px and at 200% text there was no horizontal overflow. Checked touch
+    targets were at least 44 px, and reduced-motion styling was active.
+- Performance:
+  - Initial JS: 42.69 kB raw / 14.94 kB gzip.
+  - CSS: 18.56 kB raw / 5.09 kB gzip.
+  - Lighthouse mobile: performance 100, accessibility 100, best practices 100,
+    SEO 100; FCP 1.03 s, LCP 1.18 s, TBT 73 ms, CLS 0, transfer 140,575 bytes.
 
-## Native and release verification
+Key files:
 
-- `CI=true npm run build:desktop -- --bundles deb,rpm`: passed after installing
-  the same Ubuntu prerequisites declared in the workflow.
-- Local DEB metadata: `proof-pile`, version `0.1.15`, architecture `amd64`.
-- Local executable stayed running for the full eight-second Xvfb smoke window.
-- GitHub Actions passed prepare, both macOS architectures, Windows, Linux,
-  checksum publication, and independent public-release verification.
-- The public release contains 12 assets: two DMGs, two app archives, MSI, EXE,
-  AppImage, DEB, RPM, `latest.json`, `SHA256SUMS`, and the release marker.
-- A fresh invocation of the live `install.sh` installed the 78,576,120-byte
-  AppImage. Its SHA-256 matched the published value:
-  `d57111a8df898743e02327b73dc693aa596a758b960cb3488b0de62ffaadbd07`.
-- The downloaded public DEB reported `proof-pile 0.1.15 amd64`; its extracted
-  executable stayed running for the full eight-second Xvfb smoke window.
+- `.factory/polish-5-artifacts/clean-clone-claims.txt`
+- `.factory/polish-5-artifacts/live-qa.json`
+- `.factory/polish-5-artifacts/live-cold-desktop.png`
+- `.factory/polish-5-artifacts/live-cold-mobile-390.png`
+- `.factory/polish-5-artifacts/live-demo-one-click.png`
+- `.factory/polish-5-artifacts/live-demo-mobile-390.png`
+- `.factory/polish-5-artifacts/live-download-gate.png`
+- `.factory/polish-5-artifacts/live-release-gate.txt`
+- `.factory/polish-5-artifacts/release-workflow-gate.txt`
+- `.factory/polish-5-artifacts/desktop-build.txt`
+- `.factory/polish-5-artifacts/lighthouse-live.json`
+- `.factory/polish-5-artifacts/verify-root/verify.json`
+- `.factory/polish-5-artifacts/verify-demo/verify.json`
 
-## Live product verification
+## Run and verify
 
-- `/opt/fleet/lib/verify-url.sh` passed both `/` and `/demo`: correct title,
-  `lang=en`, one h1/main, complete image alternatives, labeled buttons, and no
-  console or page errors.
-- `/`, `/demo`, `/app`, `/privacy`, and `/terms` return 200. The tested unknown
-  route returns the designed HTTP 404.
-- Desktop keyboard skip navigation works. The one-click demo opens three sample
-  groups and its persistent isolation banner.
-- Playwright axe found zero serious or critical issues on all five routes.
-- At 390 px there is no horizontal overflow, checked targets are at least 44
-  px, reduced-motion makes the card transition effectively instant, and axe
-  reports zero serious or critical issues.
-- Demo decision interactions made no off-origin request. The license endpoint
-  accepts only the product origin, returns JSON with `Cache-Control: no-store`,
-  and rejected the invalid test token.
-- Offline reload returned 200 with all three demo groups. The active worker uses
-  cache `proof-pile-v12`, proving the deployed update replaced v11.
-- CSP, HSTS, `nosniff`, strict-origin referrer policy, and denied camera,
-  microphone, and geolocation permissions are live.
-- The deployed HTML and primary JavaScript SHA-256 values match `dist/site`.
-- A fresh desktop browser shows four v0.1.15 download links and the unsigned
-  first-launch warning with zero console errors.
-- Lighthouse mobile: performance 100, accessibility 100, best practices 100,
-  SEO 100; FCP 0.9 s, LCP 1.1 s, TBT 10 ms, CLS 0, 137 KiB transfer.
-- Sociobot checkout returns its expected hosted-checkout 303 response.
+```sh
+npm ci
+npm test
+npm run check
+npm run build
+CI=true npm run build:desktop -- --bundles deb,rpm
+```
+
+Run each `test` command in `.factory/claims.json` separately when verifying
+claims. For live checks:
+
+```sh
+/opt/fleet/lib/verify-url.sh https://photo-proof-pile.sociobot.in <evidence-dir>
+/opt/fleet/lib/verify-url.sh https://photo-proof-pile.sociobot.in/demo <evidence-dir>
+node .factory/polish-5-artifacts/live-qa.mjs
+```
 
 ## Known gaps and operator action
 
-The macOS and Windows packages are unsigned because the repository has no owner
-certificates. This does not block the work order's unsigned desktop delivery,
-but those operating systems will show a first-launch warning.
+There is no public desktop package until the owner provides trusted signing
+credentials. This is intentional fail-closed behavior, not an unsigned release
+fallback.
 
-To remove that warning, add the Apple notarization and Windows Authenticode
-secrets already named in `.github/workflows/release.yml`, increment the version,
-and tag the source. The same workflow will sign, verify, and publish a
-`DESKTOP_SIGNATURES_VERIFIED.json` marker automatically.
+Before creating the next version tag, add these GitHub Actions secrets:
+
+- `APPLE_CERTIFICATE`
+- `APPLE_CERTIFICATE_PASSWORD`
+- `APPLE_SIGNING_IDENTITY`
+- `APPLE_ID`
+- `APPLE_PASSWORD`
+- `APPLE_TEAM_ID`
+- `WINDOWS_CERT_PFX`
+- `WINDOWS_CERTIFICATE_PASSWORD`
+
+Then increment the version and trigger `.github/workflows/release.yml` with the
+matching `v*` tag. Do not make the draft public manually. The workflow must
+complete both independent signature-verification jobs and publish
+`DESKTOP_SIGNATURES_VERIFIED.json` itself.
+
+No repository-controlled review finding remains open.

@@ -1,0 +1,17 @@
+Clean clone: /tmp/photo-proof-pile-polish5.sTwqcO
+Remote commit: 395628297e9331e8ead19279abd7858d60288f5a
+
+PASS: CI=true npm run build:desktop -- --bundles deb,rpm
+
+Artifacts:
+- Proof Pile_0.1.16_amd64.deb (4.0 MiB)
+  - Package: proof-pile
+  - Version: 0.1.16
+  - Architecture: amd64
+  - SHA-256: 3227a1a514de2de074b596474765966c7ce37ddd6acc2854142fe1024da1db75
+- Proof Pile-0.1.16-1.x86_64.rpm (4.0 MiB)
+  - SHA-256: 22cfce15efaa469b60557545322bf2d03c9e6096bb6527cf4e7fe0a43ce8f48a
+
+PASS: native binary smoke test under Xvfb remained running for the full intentional eight-second timeout (exit 124); stderr was empty.
+
+These local packages were verification artifacts only. They were not published because the cross-platform release gate requires owner-held Apple and Windows credentials.

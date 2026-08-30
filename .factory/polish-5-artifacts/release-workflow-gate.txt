@@ -1,0 +1,15 @@
+GitHub Actions run: 33282734730
+URL: https://github.com/B-Divyesh/sf-photo-proof-pile/actions/runs/33282734730
+Source: 395628297e9331e8ead19279abd7858d60288f5a
+Created: 2026-08-30T00:11:39Z
+Completed: 2026-08-30T00:11:48Z
+
+validate-signing: failure at “Require trusted Windows and macOS signing credentials”
+prepare-release: skipped
+build: skipped
+verify-macos-release: skipped
+verify-windows-release: skipped
+checksums: skipped
+verify-release: skipped
+
+Expected result: the repository has no owner signing secrets, so the workflow refused every build and publication job before creating or uploading a package.

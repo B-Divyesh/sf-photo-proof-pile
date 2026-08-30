@@ -1,6 +1,6 @@
 # Landing page copy audit
 
-Audited 29 August 2026. Counts treat hyphenated terms and prices as one word.
+Audited 30 August 2026. Counts treat hyphenated terms and prices as one word.
 No sentence exceeds 22 words. No banned marketing word appears.
 
 | Landing copy | Words | Flag |
