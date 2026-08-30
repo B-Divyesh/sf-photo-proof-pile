@@ -1,4 +1,28 @@
-# Proof Pile repair 11 handoff
+# Proof Pile verification 18 handoff
+
+## Independent result: FAIL
+
+Candidate `5407563dc090a7d7ee90306eeb4bd92c34702991` was independently
+verified on 30 August 2026 against
+<https://photo-proof-pile.sociobot.in>. The prior deployment-only failure is
+fixed: v0.1.22 desktop packages are published, the live installer verifies the
+published AppImage checksum, and all 27 deployable build files match the live
+site byte for byte.
+
+The candidate nevertheless fails the release contract because the exact
+default `npm test` command failed on both runs. The light/dark Axe test timed
+out after 30 seconds in both runs (32/33 and 31/33 passing respectively), and
+the second run also failed the `@claim:review-before-move` test because its
+confirmation dialog was already handled. The Axe test passes alone and all 33
+browser tests pass with `--workers=1`, confirming a default parallel-suite
+reliability defect rather than an observed live accessibility defect. The 23
+claims commands each passed when invoked exactly as listed before broader QA.
+
+Full evidence, including live workflow, privacy request log, headers, API
+allowance, performance, release checksum, and package smoke results, is in
+`.factory/verification-18.md`.
+
+## Prior repair 11 handoff
 
 ## Outcome
 
