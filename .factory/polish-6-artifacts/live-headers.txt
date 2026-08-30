@@ -1,0 +1,24 @@
+Proof Pile 0.1.19 live response checks
+Checked: 30 August 2026 UTC
+
+/                                             HTTP 200
+/demo                                         HTTP 200
+/?demo=1                                      HTTP 200
+/app                                          HTTP 200
+/privacy                                      HTTP 200
+/terms                                        HTTP 200
+/not-a-proof-pile-route                       HTTP 404
+/404.html                                     HTTP 200
+/robots.txt                                   HTTP 200
+/sitemap.xml                                  HTTP 200
+/manifest.webmanifest                         HTTP 200
+
+Root and 404 responses include:
+- Strict-Transport-Security
+- Referrer-Policy: strict-origin-when-cross-origin
+- X-Content-Type-Options: nosniff
+- Permissions-Policy with camera, microphone, and geolocation disabled
+- Content-Security-Policy with frame-ancestors 'none'
+
+The CSP permits only self-hosted page assets, the explicit GitHub release
+metadata request, and the explicit Sociobot license request.

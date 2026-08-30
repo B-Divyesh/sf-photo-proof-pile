@@ -1,0 +1,14 @@
+Proof Pile 0.1.19 live Lighthouse mobile summary
+Checked: 30 August 2026 UTC
+
+Performance: 100
+Accessibility: 100
+Best practices: 100
+SEO: 100
+First contentful paint: 908 ms
+Largest contentful paint: 1,133 ms
+Total blocking time: 14 ms
+Cumulative layout shift: 0
+Transferred bytes: 140,830
+
+Full report: lighthouse-live.json

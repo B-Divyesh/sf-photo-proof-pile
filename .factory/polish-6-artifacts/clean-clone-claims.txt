@@ -1,0 +1,45 @@
+Proof Pile 0.1.19 clean-clone verification
+Checked: 30 August 2026 UTC
+Source: local Git clone with --no-local at c5be1f3e32796334a94cdefa95ee08adf7449aac
+
+npm ci
+PASS — 66 packages installed, 67 audited, 0 vulnerabilities.
+
+Every exact command in .factory/claims.json
+PASS @claim:demo-isolated
+PASS @claim:match-evidence
+PASS @claim:csv-export
+PASS @claim:reversible-plan
+PASS @claim:review-before-move
+PASS @claim:local-privacy
+PASS @claim:no-ad-tracking
+PASS @claim:native-local-privacy
+PASS @claim:license-request-privacy
+PASS @claim:no-account
+PASS @claim:free-scan-limit
+PASS @claim:free-safety-tools
+PASS @claim:paid-license
+PASS @claim:paid-checkout
+PASS @claim:licensed-scan-limit
+PASS @claim:offline-reload
+PASS @claim:native-matching
+PASS @claim:scan-scope
+PASS @claim:cross-drive-safety
+PASS @claim:installer-checksum
+PASS @claim:windows-installer-checksum
+PASS @claim:verified-downloads-only
+RESULT — 22/22 passed separately; 22 unique tags each occur exactly once.
+
+npm test
+PASS — 11 Rust, 11 Vitest, and 33 Playwright tests.
+
+npm run check
+PASS — TypeScript, rustfmt, and strict Clippy.
+
+npm run build
+PASS — dist/site produced.
+JavaScript: 39.52 + 2.48 + 1.30 kB raw; 15.15 kB gzip total.
+CSS: 18.64 kB raw; 5.11 kB gzip.
+
+actionlint 1.7.12 .github/workflows/release.yml
+PASS.

@@ -1,0 +1,28 @@
+Proof Pile 0.1.19 public release gate
+Checked: 30 August 2026 UTC
+
+Unauthenticated GitHub releases API: []
+Unauthenticated /releases/latest: HTTP 404
+Live download dialog: zero package links; shows the calm unavailable state and a release-status link.
+Live install.sh: exit 1 with “A trusted Linux release is not published yet. Nothing was installed.”
+Files written by the refused installer: 0
+
+Authenticated release state:
+- v0.1.18: private draft
+- v0.1.17: private draft
+- every older retained release: private draft
+- v0.1.19: no release object was created
+
+GitHub Actions run 33295415409:
+https://github.com/B-Divyesh/sf-photo-proof-pile/actions/runs/33295415409
+- validate-signing: failed because owner signing credentials are absent
+- prepare-release: skipped
+- build: skipped
+- verify-windows-release: skipped
+- verify-macos-release: skipped
+- checksums: skipped
+- verify-release: skipped
+
+Repository Actions secret metadata reported total_count: 0. Secret values were
+not requested or read. The workflow therefore stopped before it created or
+uploaded any package, which is the required fail-closed result.
