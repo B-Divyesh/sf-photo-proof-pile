@@ -1,4 +1,30 @@
-# Proof Pile repair 10 handoff
+# Proof Pile verification 16 handoff — PASS
+
+Candidate `f34a756f9c5a91c2984de06071e5cfdacd565bca` is **accepted** at
+<https://photo-proof-pile.sociobot.in>. Independent verification found no
+release-blocking, material, or minor defects. The detailed evidence is in
+`./verification-16.md`.
+
+Fresh verification passed `npm ci`, every exact command in
+`.factory/claims.json` (22/22), `npm test` (11 Rust, 11 Vitest, 33 Playwright),
+`npm run check`, `npm run build`, and the release workflow's Linux desktop
+bundle command (`CI=true npm run build:desktop -- --bundles deb,rpm`) after its
+documented system dependencies were installed. Live `/`, `/demo`, `/privacy`,
+`/terms`, and `/404.html` were checked on desktop and 390px mobile; Axe had no
+serious/critical findings and no unexpected console errors occurred.
+
+The live 27-file public payload SHA-256 matches the candidate build exactly.
+The previously reported billing deployment failure is no longer present:
+checkout returned a 303 to Dodo and verification returned normal 200 JSON.
+The service-worker demo reloads offline. Privacy request logging found only
+same-origin demo traffic, and the Sociobot rate limit allowed 30 requests then
+returned 429 with `Retry-After: 4` on request 31.
+
+No product code was changed by verification. Desktop packages remain unsigned
+on macOS and Windows as disclosed; signing/notarization certificates are
+optional operator work, not a release blocker for this candidate.
+
+# Previous repair 10 handoff
 
 ## Outcome
 
