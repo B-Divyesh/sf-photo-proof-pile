@@ -394,6 +394,30 @@ test("a fresh invalid license verdict is reused without another request", async 
   expect(checks).toBe(0);
 });
 
+test("keeps a returned license active when billing verification has a network outage", async ({ page }) => {
+  const pageErrors: Error[] = [];
+  page.on("pageerror", error => pageErrors.push(error));
+  await page.route("https://api.sociobot.in/api/v1/products/photo-proof-pile/verify?license=outage-token", route => route.abort("failed"));
+
+  await page.goto("/?license=outage-token");
+
+  await expect(page).toHaveURL("/");
+  await expect(page.getByText("License checks are temporarily unavailable. Try again later. Your returned license stays active for now.")).toBeVisible();
+  expect(await page.evaluate(() => localStorage.getItem("sb_license:photo-proof-pile"))).toBe("outage-token");
+  expect(pageErrors).toEqual([]);
+});
+
+test("does not save a pasted token when the billing service returns 503", async ({ page }) => {
+  await page.route("https://api.sociobot.in/api/v1/products/photo-proof-pile/verify?license=unverified-token", route => route.fulfill({ status: 503, contentType: "text/html", body: "Service unavailable" }));
+  await page.goto("/");
+  await page.getByRole("button", { name: "Restore a purchase" }).click();
+  await page.getByLabel("License token").fill("unverified-token");
+  await page.getByRole("button", { name: "Verify license" }).click();
+
+  await expect(page.getByText("License checks are temporarily unavailable. Try again later. Your saved license was not changed.")).toBeVisible();
+  expect(await page.evaluate(() => localStorage.getItem("sb_license:photo-proof-pile"))).toBeNull();
+});
+
 test("@claim:paid-checkout shows the price, opens hosted checkout, and stores a returned license", async ({ page }) => {
   let checkoutRequests = 0;
   let verifyRequests = 0;
@@ -558,11 +582,11 @@ test("@claim:verified-downloads-only offers a complete unsigned release and refu
   await page.route("https://api.github.com/repos/B-Divyesh/sf-photo-proof-pile/releases?per_page=1", route => route.fulfill({
     status: 200,
     contentType: "application/json",
-    body: JSON.stringify([{ tag_name: "v0.1.17", assets: [
-      { name: "Proof.Pile_0.1.17_aarch64.dmg", browser_download_url: "https://example.test/arm.dmg" },
-      { name: "Proof.Pile_0.1.17_x64.dmg", browser_download_url: "https://example.test/intel.dmg" },
-      { name: "Proof.Pile_0.1.17_x64_en-US.msi", browser_download_url: "https://example.test/app.msi" },
-      { name: "Proof.Pile_0.1.17_amd64.AppImage", browser_download_url: "https://example.test/app.AppImage" },
+    body: JSON.stringify([{ tag_name: "v0.1.18", assets: [
+      { name: "Proof.Pile_0.1.18_aarch64.dmg", browser_download_url: "https://example.test/arm.dmg" },
+      { name: "Proof.Pile_0.1.18_x64.dmg", browser_download_url: "https://example.test/intel.dmg" },
+      { name: "Proof.Pile_0.1.18_x64_en-US.msi", browser_download_url: "https://example.test/app.msi" },
+      { name: "Proof.Pile_0.1.18_amd64.AppImage", browser_download_url: "https://example.test/app.AppImage" },
       { name: "SHA256SUMS", browser_download_url: "https://example.test/SHA256SUMS" },
       { name: "latest.json", browser_download_url: "https://example.test/latest.json" },
       { name: "DESKTOP_RELEASE_VERIFIED.json", browser_download_url: "https://example.test/release.json" }
@@ -570,7 +594,7 @@ test("@claim:verified-downloads-only offers a complete unsigned release and refu
   }));
   await page.goto("/");
   await page.getByRole("button", { name: /Check download/ }).click();
-  await expect(page.getByText("v0.1.17 is ready.")).toBeVisible();
+  await expect(page.getByText("v0.1.18 is ready.")).toBeVisible();
   await expect(page.getByRole("link", { name: "Download for Linux" })).toHaveAttribute("href", "https://example.test/app.AppImage");
   await expect(page.getByText("macOS and Windows builds are unsigned. Your system will ask you to confirm the first launch.")).toBeVisible();
   await page.getByRole("button", { name: "Close download window" }).click();

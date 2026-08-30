@@ -726,10 +726,20 @@ pub fn run() {
 mod tests {
     use super::*;
     use image::{ImageBuffer, Rgb};
-    use std::env;
+    use std::{
+        env, process,
+        sync::atomic::{AtomicU64, Ordering},
+    };
+
+    static TEMP_DIRECTORY_SEQUENCE: AtomicU64 = AtomicU64::new(0);
 
     fn temp_dir(name: &str) -> PathBuf {
-        let path = env::temp_dir().join(format!("proof-pile-{name}-{}", now_epoch()));
+        let sequence = TEMP_DIRECTORY_SEQUENCE.fetch_add(1, Ordering::Relaxed);
+        let path = env::temp_dir().join(format!(
+            "proof-pile-{name}-{}-{}-{sequence}",
+            process::id(),
+            now_epoch()
+        ));
         fs::create_dir_all(&path).unwrap();
         path
     }
@@ -793,6 +803,15 @@ mod tests {
             decision: "quarantine".into(),
             kept_copy_path: kept_copy.to_string_lossy().to_string(),
         }
+    }
+
+    #[test]
+    fn test_temp_directories_are_unique_for_parallel_claims() {
+        let first = temp_dir("parallel");
+        let second = temp_dir("parallel");
+        assert_ne!(first, second);
+        let _ = fs::remove_dir_all(first);
+        let _ = fs::remove_dir_all(second);
     }
 
     #[test]

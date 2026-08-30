@@ -57,7 +57,11 @@ No sentence exceeds 22 words. No banned marketing word appears.
 | Review duplicate photos before moving extra copies. | 7 | Product description |
 | Terms | 1 | Legal navigation |
 | Built by Param Factory ↗ | 4 | Attribution |
-| v0.1.17 | 1 | Release identity |
+| License checks are temporarily unavailable. | 5 | Service recovery notice |
+| Try again later. | 3 | Service recovery action |
+| Your returned license stays active for now. | 8 | Service recovery notice |
+| Your free review stays available. | 6 | Service recovery notice |
+| v0.1.18 | 1 | Release identity |
 
 ## Download dialog copy
 
@@ -81,6 +85,9 @@ No sentence exceeds 22 words. No banned marketing word appears.
 | Downloads are not published yet. | 5 | Error state |
 | Check again later. | 3 | Error next step |
 | No package was offered because release verification could not be checked. | 10 | Error explanation |
+| License checks are busy. | 4 | License recovery notice |
+| Try again in a few minutes. | 6 | License recovery action |
+| Your saved license was not changed. | 7 | License recovery notice |
 
 ## Terminology
 

@@ -1,72 +1,80 @@
-# Proof Pile independent verification 15 handoff — FAIL
+# Proof Pile repair 10 handoff
 
 ## Outcome
 
-Candidate `b12e0a1c18afff887c7b93b4a98cc1537e429c77` was independently tested
-against <https://photo-proof-pile.sociobot.in> on 30 August 2026 UTC.
+Repairing verifier report 15 produced Proof Pile `0.1.18`. The reported live
+billing outage was reproduced first: both production endpoints returned the
+Azure 503 page at 03:00 UTC. At 03:15 UTC the same checkout endpoint returned
+the expected hosted Dodo 303 redirect and invalid-license verification returned
+200 JSON with `Access-Control-Allow-Origin` for the product origin and
+`Cache-Control: no-store`.
 
-**FAIL.** The core app, demo, claims, local builds, deployment parity,
-accessibility, privacy behavior, offline support, performance, and public
-desktop distribution passed. The live Sociobot billing service did not:
-checkout and license verification repeatedly returned HTTP 503 through the
-final 02:47:45Z probe. New buyers cannot purchase the advertised US$29 license,
-and browser verification logs CORS/network errors on the generic 503 response.
+The app now also has an explicit safe recovery path for a future billing
+outage. A returned checkout license stays optimistically active while a
+background check is unavailable; an unverified license pasted by hand is not
+stored. The UI gives a plain retry message instead of a misleading token error.
 
-The full report is `.factory/verification-15.md`. Evidence is under
-`.factory/verification-15-artifacts/`. No product code was changed.
+## Changes
 
-## Verification summary
+- Centralized license verification response parsing and retry-state copy in
+  `src/main.ts`.
+- Preserved an optimistic checkout-return unlock during a failed CORS/network
+  verification, while retaining cached invalid verdicts as locked.
+- Added browser regressions for a failed network/CORS-style returned-license
+  check and a 503 during manual license restoration.
+- Made Rust test temp directories unique by process, epoch, and atomic
+  sequence. This fixes the native local-privacy claim's intermittent parallel
+  cleanup collision and adds a direct uniqueness test.
+- Bumped the synchronized web, Tauri, Cargo, static 404, service-worker, and
+  test release identities to `0.1.18`.
+- Updated the landing-copy audit for the new service-recovery states.
 
-- All 22 exact `.factory/claims.json` commands: PASS.
-- First-read and one-click sample demo gate: PASS.
-- `npm ci`: PASS; 66 packages, zero vulnerabilities.
-- `npm test`: PASS; 10 Rust, 11 Vitest, 31 Playwright tests.
-- `npm run check`: PASS.
-- `npm run build`: PASS; `dist/site` produced.
+## Verification
+
+All commands below ran in this checkout on 30 August 2026 UTC.
+
+- `npm ci`: PASS — 66 packages, zero audit vulnerabilities.
+- `npm run check`: PASS — TypeScript, rustfmt, strict Clippy.
+- `npm test`: PASS — 11 Rust tests, 11 Vitest tests, 33 Playwright tests.
+- Every exact command in `.factory/claims.json`: PASS — 22/22, individually.
+- `npm run build`: PASS — `dist/site` produced. Raw JS is 43,341 bytes across
+  three chunks; CSS is 18,563 bytes; there are no web fonts.
 - `CI=true npm run build:desktop -- --bundles deb,rpm`: PASS after installing
-  the workflow's documented Linux packages.
-- Live end-to-end quarantine/export/import/restore and invalid recovery: PASS.
-- Desktop, 390 px mobile, 200% text, keyboard, focus, reduced motion, and axe:
-  PASS; zero serious/critical axe findings.
-- Service-worker update and offline `/demo` reload: PASS.
-- Browser request log: demo flow same-origin only; no tracking or photo upload.
-- Security/caching headers: PASS.
-- Rate limit: 30 successful license requests; request 31 returned 429 with
-  `Retry-After: 3`.
-- Deployment parity: 27/27 public build files matched byte for byte.
-- Lighthouse mobile: 99 performance, 100 accessibility, 100 best practices,
-  100 SEO; LCP 1.13 s, TBT 100 ms, CLS 0.
-- Public v0.1.17 release: PASS; all seven workflow jobs and all ten public
-  checksum entries passed. Public AppImage and local DEB smoke tests passed.
-- Live checkout/license service: **FAIL — HTTP 503**.
+  the same Linux dependencies named by the release workflow. Generated
+  `Proof Pile_0.1.18_amd64.deb` (4,106,072 bytes) and
+  `Proof Pile-0.1.18-1.x86_64.rpm` (4,106,532 bytes).
+- Extracted-DEB consumer smoke: PASS — the packaged binary ran in Xvfb for the
+  intended eight-second timeout window with empty stderr.
+- `/opt/fleet/lib/verify-url.sh` on local `/` and `/demo`: PASS — correct
+  title, `lang=en`, one h1, main landmark, complete image alt text, labelled
+  buttons, and no browser errors.
+- Playwright Axe integration: PASS — zero serious or critical findings in
+  light/dark `/`, `/demo`, `/privacy`, `/terms`, and 404; the 390 px demo scan
+  also passed. The standalone Axe CLI could not start its bundled ChromeDriver
+  because it only supports Chrome 152 while the worker ships Chromium 145; the
+  repository's Playwright Axe integration uses that supplied browser directly.
+- Browser coverage: PASS — desktop and 390 px mobile, 200% text, visible focus,
+  skip link, group arrow keys, dialogs, reduced motion, offline demo reload,
+  service-worker flow, route/back behavior, and no unexpected console errors.
+- Privacy: PASS — claim tests record same-origin demo traffic only; the license
+  request remains a bodyless token-only GET.
+- Live billing recovery check: PASS at 03:15 UTC — checkout was HTTP 303 to
+  `checkout.dodopayments.com`; invalid verification was HTTP 200 with the
+  product origin's CORS header and `Cache-Control: no-store`.
 
-## Defects
+## Deployment and release
 
-### Severity 1 — release blocking
+The repair commit and `v0.1.18` release tag are to be pushed to `main` next.
+The existing release workflow builds unsigned macOS/Windows packages when the
+optional signing secrets are absent, plus Linux packages and checksums. Static
+deployment uses the repository's existing static-app configuration and should
+be verified after the `main` push by checking the live footer version and the
+same billing endpoints.
 
-1. The one-time purchase path is unavailable. The checkout endpoint returns
-   503 rather than hosted checkout. License verification also returns 503 and
-   its generic response lacks CORS headers.
+## Known gaps / operator action
 
-No Severity 2 or Severity 3 defects were found.
-
-## How to reproduce the blocker
-
-```sh
-curl -i https://api.sociobot.in/api/v1/products/photo-proof-pile/checkout
-curl -i -H 'Origin: https://photo-proof-pile.sociobot.in' \
-  'https://api.sociobot.in/api/v1/products/photo-proof-pile/verify?license=invalid'
-```
-
-Both returned 503 at the end of this verification. Before acceptance, restore
-the API, verify checkout returns its hosted redirect, verify the license call
-returns CORS-enabled `Cache-Control: no-store` JSON, and rerun the documented
-30-request allowance / 429 / `Retry-After` recovery check.
-
-## Needs operator action
-
-- Restore or restart the Sociobot API deployment and diagnose why the service
-  became unavailable during verification.
-- Retest the live checkout and verify endpoints from the product origin.
-- Apple and Windows signing credentials remain optional operator work. The
-  current unsigned packages are allowed by contract and clearly disclosed.
+- No product defect remains from verifier report 15. The Sociobot outage was
+  external to this repository and was healthy at the final live check.
+- Apple notarization and Windows Authenticode remain optional operator work;
+  the release workflow and product disclosure support unsigned builds when
+  those credentials are absent.

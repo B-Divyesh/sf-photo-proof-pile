@@ -6,7 +6,7 @@ declare global { interface Window { __TAURI_INTERNALS__?: unknown } }
 const app = document.querySelector<HTMLDivElement>("#app")!;
 const isDesktop = Boolean(window.__TAURI_INTERNALS__);
 const PRODUCT = "photo-proof-pile";
-const VERSION = "0.1.17";
+const VERSION = "0.1.18";
 const LICENSE_KEY = `sb_license:${PRODUCT}`;
 const DEMO_KEY = "demo:photo-proof-pile:session";
 const REAL_KEY = "proof-pile:session";
@@ -19,6 +19,14 @@ let licenseActive = Boolean(localStorage.getItem(LICENSE_KEY));
 let licenseNotice = "";
 let planRunning = false;
 const scrollPositions = new Map<string, number>();
+
+type LicenseVerdict = { valid: boolean; reason?: string; expires_at?: string | null };
+
+class LicenseServiceError extends Error {
+  constructor(readonly kind: "unavailable" | "rate-limited" | "invalid-response") {
+    super(kind);
+  }
+}
 
 const escapeHtml = (value: unknown) => String(value).replace(/[&<>'"]/g, character => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", "'": "&#39;", '"': "&quot;" })[character]!);
 const safeThumbnail = (value?: string) => value?.startsWith("data:image/webp;base64,") || value?.startsWith("/samples/") ? value : "/favicon.svg";
@@ -391,6 +399,36 @@ function readCsvFile() {
 
 function plainError(error: unknown) { return String(error).replace(/^Error:\s*/, ""); }
 
+function licenseVerificationUrl(token: string) {
+  return `https://api.sociobot.in/api/v1/products/${PRODUCT}/verify?license=${encodeURIComponent(token)}`;
+}
+
+function licenseServiceMessage(error: unknown) {
+  if (error instanceof LicenseServiceError && error.kind === "rate-limited") return "License checks are busy. Try again in a few minutes.";
+  return "License checks are temporarily unavailable. Try again later.";
+}
+
+async function verifyLicenseToken(token: string): Promise<LicenseVerdict> {
+  let response: Response;
+  try {
+    response = await fetch(licenseVerificationUrl(token));
+  } catch {
+    // A CORS failure caused by a failed billing service is indistinguishable
+    // from a disconnected browser. Neither is a reason to revoke local work.
+    throw new LicenseServiceError("unavailable");
+  }
+  if (response.status === 429) throw new LicenseServiceError("rate-limited");
+  if (!response.ok) throw new LicenseServiceError("unavailable");
+  let verdict: unknown;
+  try {
+    verdict = await response.json();
+  } catch {
+    throw new LicenseServiceError("invalid-response");
+  }
+  if (!verdict || typeof verdict !== "object" || typeof (verdict as LicenseVerdict).valid !== "boolean") throw new LicenseServiceError("invalid-response");
+  return verdict as LicenseVerdict;
+}
+
 function legalPage(kind: "privacy" | "terms") {
   const privacy = `<main id="main" class="prose-page" tabindex="-1"><p class="eyebrow">Policy</p><h1 tabindex="-1">Privacy without photo uploads</h1><p>Last updated 29 August 2026.</p><h2>Your photos stay local</h2><p>The desktop app reads selected folders on your device. It does not upload photos, thumbnails, paths, file identifiers, or decision logs.</p><h2>Data stored on your device</h2><p>The app stores review choices and recovery records, your license token, and cached license status. Demo choices stay only in this browser tab.</p><h2>License checks</h2><p>License verification sends only the license token to the Sociobot billing API.</p><h2>Website requests</h2><p>The download page may request release details from GitHub. We do not run advertising or tracking scripts.</p><h2>Remove your data</h2><p>Reset the demo or clear this site's storage. Desktop quarantine files remain where you chose to place them.</p><p>Questions: <a href="mailto:privacy@sociobot.in">privacy@sociobot.in</a></p></main>`;
   const terms = `<main id="main" class="prose-page" tabindex="-1"><p class="eyebrow">Terms</p><h1 tabindex="-1">Terms for careful photo cleanup</h1><p>Last updated 29 August 2026.</p><h2>Use and responsibility</h2><p>Proof Pile helps you review and move files. You remain responsible for your files and backups.</p><h2>Quarantine folders</h2><p>The app moves chosen files to a quarantine folder. Do not empty that folder until you test important backups.</p><h2>License</h2><p>The free tier scans up to 1,000 files at once. A US$29 one-time license removes that scan limit.</p><h2>Payments and refunds</h2><p>Sociobot checkout takes payment. For refunds, email <a href="mailto:support@sociobot.in?subject=Proof%20Pile%20refund">support@sociobot.in</a>.</p><h2>Warranty</h2><p>The software is provided as is. Keep verified backups before changing a photo library.</p><p>Questions: <a href="mailto:support@sociobot.in">support@sociobot.in</a></p></main>`;
@@ -456,8 +494,16 @@ function showLicenseDialog() {
     const token = dialog.querySelector<HTMLInputElement>("input")!.value.trim(); const result = dialog.querySelector<HTMLElement>("#license-result")!;
     if (!token) { result.textContent = "Enter the token from your receipt."; return; }
     result.textContent = "Checking this license…";
-    try { const response = await fetch(`https://api.sociobot.in/api/v1/products/${PRODUCT}/verify?license=${encodeURIComponent(token)}`); if (!response.ok) throw new Error("The license service did not respond."); const verdict = await response.json(); if (!verdict.valid) throw new Error("This license is not active."); localStorage.setItem(LICENSE_KEY, token); localStorage.setItem(`${LICENSE_KEY}:verified`, JSON.stringify({ valid: true, checkedAt: Date.now() })); licenseActive = true; result.textContent = "License verified. Full-library scans are active."; }
-    catch (error) { result.textContent = `${plainError(error)} Check the token and your connection.`; }
+    try {
+      const verdict = await verifyLicenseToken(token);
+      if (!verdict.valid) { result.textContent = "This license is not active. Check the token and try again."; return; }
+      localStorage.setItem(LICENSE_KEY, token);
+      localStorage.setItem(`${LICENSE_KEY}:verified`, JSON.stringify({ ...verdict, checkedAt: Date.now() }));
+      licenseActive = true;
+      result.textContent = "License verified. Full-library scans are active.";
+    } catch (error) {
+      result.textContent = `${licenseServiceMessage(error)} Your saved license was not changed.`;
+    }
   });
 }
 
@@ -472,8 +518,20 @@ async function verifySavedLicense() {
     if (!cached.valid) licenseNotice = "This license is no longer active. Enter another license.";
     return;
   }
-  try { const response = await fetch(`https://api.sociobot.in/api/v1/products/${PRODUCT}/verify?license=${encodeURIComponent(token)}`); if (!response.ok) throw new Error(); const verdict = await response.json(); localStorage.setItem(`${LICENSE_KEY}:verified`, JSON.stringify({ ...verdict, checkedAt: Date.now() })); licenseActive = Boolean(verdict.valid); if (!verdict.valid) licenseNotice = "This license is no longer active. Enter another license."; }
-  catch { licenseActive = Boolean(cached?.valid); }
+  try {
+    const verdict = await verifyLicenseToken(token);
+    localStorage.setItem(`${LICENSE_KEY}:verified`, JSON.stringify({ ...verdict, checkedAt: Date.now() }));
+    licenseActive = Boolean(verdict.valid);
+    if (!verdict.valid) licenseNotice = "This license is no longer active. Enter another license.";
+  } catch (error) {
+    // A checkout return is stored and unlocked before its background check.
+    // Keep that local unlock during a service outage; a later valid/invalid
+    // response still reconciles it, and a cached invalid verdict stays locked.
+    licenseActive = cached ? Boolean(cached.valid) : Boolean(token);
+    licenseNotice = licenseActive
+      ? `${licenseServiceMessage(error)} Your returned license stays active for now.`
+      : `${licenseServiceMessage(error)} Your free review stays available.`;
+  }
 }
 
 async function showDownloads() {
