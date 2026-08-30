@@ -555,10 +555,10 @@ test("the skip link moves keyboard focus to main", async ({ page }) => {
 });
 
 test("download picker offers both published macOS architectures", async ({ page }) => {
-  await page.route("https://api.github.com/repos/B-Divyesh/sf-photo-proof-pile/releases/latest", route => route.fulfill({
+  await page.route("https://api.github.com/repos/B-Divyesh/sf-photo-proof-pile/releases?per_page=1", route => route.fulfill({
     status: 200,
     contentType: "application/json",
-    body: JSON.stringify({ tag_name: "v0.1.1", assets: [
+    body: JSON.stringify([{ tag_name: "v0.1.1", assets: [
       { name: "Proof.Pile_0.1.1_aarch64.dmg", browser_download_url: "https://example.test/arm.dmg" },
       { name: "Proof.Pile_0.1.1_x86_64.dmg", browser_download_url: "https://example.test/intel.dmg" },
       { name: "Proof.Pile_0.1.1_x64_en-US.msi", browser_download_url: "https://example.test/app.msi" },
@@ -566,7 +566,7 @@ test("download picker offers both published macOS architectures", async ({ page 
       { name: "SHA256SUMS", browser_download_url: "https://example.test/SHA256SUMS" },
       { name: "latest.json", browser_download_url: "https://example.test/latest.json" },
       { name: "DESKTOP_SIGNATURES_VERIFIED.json", browser_download_url: "https://example.test/signatures.json" }
-    ] })
+    ] }])
   }));
   await page.goto("/");
   await page.evaluate(() => localStorage.setItem("proof-pile:release", JSON.stringify({ savedAt: Date.now(), data: { tag_name: "v0.1.0", assets: [] } })));
@@ -578,17 +578,17 @@ test("download picker offers both published macOS architectures", async ({ page 
 });
 
 test("@claim:verified-downloads-only refuses an untrusted release and offers only a signed release", async ({ page }) => {
-  await page.route("https://api.github.com/repos/B-Divyesh/sf-photo-proof-pile/releases/latest", route => route.fulfill({
+  await page.route("https://api.github.com/repos/B-Divyesh/sf-photo-proof-pile/releases?per_page=1", route => route.fulfill({
     status: 200,
     contentType: "application/json",
-    body: JSON.stringify({ tag_name: "v0.1.19", assets: [
+    body: JSON.stringify([{ tag_name: "v0.1.19", assets: [
       { name: "Proof.Pile_0.1.19_aarch64.dmg", browser_download_url: "https://example.test/arm.dmg" },
       { name: "Proof.Pile_0.1.19_x64.dmg", browser_download_url: "https://example.test/intel.dmg" },
       { name: "Proof.Pile_0.1.19_x64_en-US.msi", browser_download_url: "https://example.test/app.msi" },
       { name: "Proof.Pile_0.1.19_amd64.AppImage", browser_download_url: "https://example.test/app.AppImage" },
       { name: "SHA256SUMS", browser_download_url: "https://example.test/SHA256SUMS" },
       { name: "latest.json", browser_download_url: "https://example.test/latest.json" }
-    ] })
+    ] }])
   }));
   await page.goto("/");
   await page.getByRole("button", { name: "Check desktop downloads" }).click();
@@ -597,11 +597,11 @@ test("@claim:verified-downloads-only refuses an untrusted release and offers onl
   await expect(page.getByRole("link", { name: /Download for/ })).toHaveCount(0);
   await page.getByRole("button", { name: "Close download window" }).click();
   await page.evaluate(() => localStorage.clear());
-  await page.unroute("https://api.github.com/repos/B-Divyesh/sf-photo-proof-pile/releases/latest");
-  await page.route("https://api.github.com/repos/B-Divyesh/sf-photo-proof-pile/releases/latest", route => route.fulfill({
+  await page.unroute("https://api.github.com/repos/B-Divyesh/sf-photo-proof-pile/releases?per_page=1");
+  await page.route("https://api.github.com/repos/B-Divyesh/sf-photo-proof-pile/releases?per_page=1", route => route.fulfill({
     status: 200,
     contentType: "application/json",
-    body: JSON.stringify({ tag_name: "v0.1.19", assets: [
+    body: JSON.stringify([{ tag_name: "v0.1.19", assets: [
       { name: "Proof.Pile_0.1.19_aarch64.dmg", browser_download_url: "https://example.test/arm.dmg" },
       { name: "Proof.Pile_0.1.19_x64.dmg", browser_download_url: "https://example.test/intel.dmg" },
       { name: "Proof.Pile_0.1.19_x64_en-US.msi", browser_download_url: "https://example.test/app.msi" },
@@ -609,7 +609,7 @@ test("@claim:verified-downloads-only refuses an untrusted release and offers onl
       { name: "SHA256SUMS", browser_download_url: "https://example.test/SHA256SUMS" },
       { name: "latest.json", browser_download_url: "https://example.test/latest.json" },
       { name: "DESKTOP_SIGNATURES_VERIFIED.json", browser_download_url: "https://example.test/signatures.json" }
-    ] })
+    ] }])
   }));
   await page.getByRole("button", { name: "Check desktop downloads" }).click();
   await expect(page.getByText("v0.1.19 is ready.")).toBeVisible();
@@ -618,8 +618,8 @@ test("@claim:verified-downloads-only refuses an untrusted release and offers onl
   await expect(page.getByRole("link", { name: "Download for Linux" })).toHaveAttribute("href", "https://example.test/app.AppImage");
   await page.getByRole("button", { name: "Close download window" }).click();
   await page.evaluate(() => localStorage.clear());
-  await page.unroute("https://api.github.com/repos/B-Divyesh/sf-photo-proof-pile/releases/latest");
-  await page.route("https://api.github.com/repos/B-Divyesh/sf-photo-proof-pile/releases/latest", route => route.fulfill({ status: 404, contentType: "application/json", body: '{"message":"Not Found"}' }));
+  await page.unroute("https://api.github.com/repos/B-Divyesh/sf-photo-proof-pile/releases?per_page=1");
+  await page.route("https://api.github.com/repos/B-Divyesh/sf-photo-proof-pile/releases?per_page=1", route => route.fulfill({ status: 200, contentType: "application/json", body: "[]" }));
   await page.getByRole("button", { name: "Check desktop downloads" }).click();
   await expect(page.getByText("Downloads are not published yet. Check again later.")).toBeVisible();
   await expect(page.getByRole("link", { name: "View release status on GitHub (external site)" })).toHaveAttribute("href", "https://github.com/B-Divyesh/sf-photo-proof-pile/releases");
