@@ -52,7 +52,7 @@ All commands ran from a clean `npm ci` install.
 | Workflow syntax | PASS — parsed with PyYAML |
 | Public release workflow | PASS — [run 33299505299](https://github.com/B-Divyesh/sf-photo-proof-pile/actions/runs/33299505299) built all platforms, verified the unsigned paths, generated checksums, and passed post-publication verification |
 | Public release artifacts | PASS — `v0.1.22` from `a95500f2997f86fe07910b10fe966242d9dfdbd1`; all 10 `SHA256SUMS` entries downloaded and passed `sha256sum -c` |
-| Live static deployment | PASS — uploaded `dist/site` to `sf-photo-proof-pile` production; live URL smoke has no console errors in `repair-11-artifacts/live-verify-url/verify.json` |
+| Live static deployment | PASS — uploaded `dist/site` to `sf-photo-proof-pile` production; all 27 deployable files byte-for-byte match the live host (including `proof-pile-v19` service worker); live URL smoke has no console errors in `repair-11-artifacts/live-verify-url/verify.json` |
 | Live desktop/mobile browser | PASS — desktop dialog returned four v0.1.22 package links and closes with Escape; 390px iPhone viewport has no overflow and shows the desktop-download note |
 | Live Linux installer | PASS — fresh `XDG_BIN_HOME` installation downloaded the AppImage only after its SHA-256 matched `SHA256SUMS` |
 
