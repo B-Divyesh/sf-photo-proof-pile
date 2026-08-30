@@ -1,99 +1,71 @@
-# Proof Pile polish 6 handoff
+# Proof Pile independent verification 17 handoff
 
 ## Outcome
 
-Proof Pile `0.1.19` is deployed at
-<https://photo-proof-pile.sociobot.in>. Every finding in reviews 1–6 is mapped
-to its repair and evidence in [polish-6.md](polish-6.md).
+**FAIL** for candidate `8936306242232450087fcdf787e7d4eec243e4f6` at
+<https://photo-proof-pile.sociobot.in> on 30 August 2026 UTC.
 
-The release path now fails closed. The site and both one-line installers offer
-no package unless the release contains `DESKTOP_SIGNATURES_VERIFIED.json`, the
-complete platform matrix, the release manifest, and the published verification
-file. Windows packages must pass Authenticode checks; both macOS builds must
-pass signing, Gatekeeper, and notarization checks before publication.
+The site, isolated demo, native core, local packaging, accessibility,
+privacy, performance, billing, and deployment parity checks pass. The product
+is not releasable because no public desktop release or package exists. A new
+user therefore cannot install the scanner or complete the real photo-library
+job.
 
-The previously public v0.1.17 and v0.1.18 packages are private drafts. The
-unauthenticated GitHub release list is empty, `/releases/latest` returns 404,
-the live dialog exposes zero package links, and the live Linux installer exits
-without writing a file.
+Full evidence is in [verification-17.md](verification-17.md).
 
-## Changes
+## Blocking defect
 
-- Restored the hard signing gate and independent post-upload verification in
-  `.github/workflows/release.yml`.
-- Required trusted signature proof in the website, Linux installer, and
-  Windows installer; removed all unsigned fallback behavior.
-- Changed the first-screen action to **Check desktop downloads** and kept the
-  general all-platform chooser behavior.
-- Changed the GitHub browser lookup to the public release-list endpoint so an
-  unavailable release produces a calm state without a console 404.
-- Rewrote the README checksum sentence in plain words and removed the unlisted
-  signed-build reporting promise.
-- Updated all related claims and regression tests, synchronized version
-  identity to `0.1.19`, and refreshed the service-worker cache.
-- Updated the verb-first, 88-character catalog description.
-- Preserved the contact-sheet visual system and the desktop-app/static-site
-  artifact and deployment classes.
+- GitHub's public release list is empty.
+- Latest release and tag release `v0.1.19` both return 404.
+- The live download dialog exposes zero package links.
+- `install.sh` exits 1 without creating an install target.
+- Release run
+  <https://github.com/B-Divyesh/sf-photo-proof-pile/actions/runs/33295415409>
+  failed at `validate-signing`; all build, verification, checksum, and publish
+  jobs were skipped.
 
-Implementation commits are `c43d88f` and `c5be1f3`; both are pushed to
-`origin/main`. Tag `v0.1.19` points to `c5be1f3`.
+## Verification summary
 
-## Verification
+- All 22 exact `.factory/claims.json` commands passed.
+- `npm test` passed: 11 Rust, 11 Vitest, 33 Playwright tests.
+- `npm run check` passed.
+- `npm run build` produced `dist/site`.
+- Local Tauri DEB and RPM builds passed after installing the workflow's Ubuntu
+  prerequisites; a fresh extracted DEB launched cleanly under Xvfb.
+- All 24 live non-map files matched the candidate build byte-for-byte.
+- Live normal, boundary, invalid-input, cancel, reset, CSV export/import,
+  persistence, quarantine, and restore flows passed.
+- Live privacy logging found only same-origin requests during the complete demo
+  flow. License checks sent a token-only GET.
+- The license API allowed 30 requests; request 31 returned 429 with
+  `Retry-After: 4`.
+- Offline reload and service-worker update checks passed.
+- Axe reported zero serious/critical findings across desktop/mobile and
+  light/dark checks. Keyboard, focus, 44 px targets, 200% text, and reduced
+  motion passed.
+- Lighthouse mobile scored 98 performance, 100 accessibility, 100 best
+  practices, and 100 SEO; LCP was 1.06 s and CLS was 0.
 
-All checks ran on 30 August 2026 UTC.
+## How to reproduce
 
-- Fresh clean clone of `c5be1f3`: `npm ci` installed 66 packages, audited 67,
-  and found zero vulnerabilities.
-- Every exact `.factory/claims.json` command passed separately: 22/22. Every
-  claim tag occurs exactly once.
-- `npm test`: 11 Rust, 11 Vitest, and 33 Playwright tests passed.
-- `npm run check`: TypeScript, rustfmt, and strict Clippy passed.
-- `npm run build`: `dist/site` produced. JavaScript totals 43.30 kB raw and
-  15.15 kB gzip; CSS is 18.64 kB raw and 5.11 kB gzip.
-- `actionlint 1.7.12 .github/workflows/release.yml`: passed.
-- Worker URL verification passed live `/` and `/?demo=1`: HTTP 200, correct
-  titles and language, one h1, one main, no missing alt text, no unlabelled
-  buttons, and no console errors.
-- Live browser QA passed `/`, `/demo`, `/?demo=1`, `/app`, `/privacy`,
-  `/terms`, and an unknown HTTP 404 route. Titles, descriptions, canonicals,
-  shared landmarks, skip links, and legal links are correct.
-- The live sample completed quarantine, nine-row CSV export, and restore-dialog
-  focus. Demo storage stayed separate, reset cleared it, and **Start for real**
-  preserved real storage.
-- Route focus, Back/scroll restoration, cross-route `#how` focus, same-origin
-  ordinary traffic, offline demo reload, and zero unexpected console errors
-  passed.
-- Axe found zero serious or critical findings on five routes in light and dark
-  themes and on the 390 px demo. At 390 px and 200% text there was no overflow;
-  tested targets were at least 44 px and reduced motion was active.
-- Lighthouse mobile: performance 100, accessibility 100, best practices 100,
-  SEO 100, LCP 1.13 s, TBT 14 ms, CLS 0, 140,830 transferred bytes.
-- Live root and 404 responses include HSTS, nosniff, referrer, permissions, and
-  CSP headers; the unknown route returns HTTP 404.
-- Public release gate: no public releases; no v0.1.19 release object; live
-  dialog has zero package links; live `install.sh` exited 1 and wrote zero
-  files.
+```sh
+npm ci
+npm test
+npm run check
+npm run build
+sudo apt-get update
+sudo apt-get install -y libwebkit2gtk-4.1-dev libappindicator3-dev librsvg2-dev patchelf rpm xvfb
+CI=true npm run build:desktop -- --bundles deb,rpm
+curl -i https://api.github.com/repos/B-Divyesh/sf-photo-proof-pile/releases/latest
+```
 
-Evidence is under `.factory/polish-6-artifacts/`, with the cumulative mapping
-in `.factory/polish-6.md`.
-
-## Deployment
-
-`npm run build:site` produced `dist/site`, which was deployed to the existing
-Azure Static Web App `sf-photo-proof-pile` production environment. No
-prohibited service or resource was read or changed. The custom domain served
-the current `index-DpHBUDvZ.js` bundle during the final cold check.
+Open the live first screen and choose **Try it with sample data**. Open
+**Check desktop downloads** to reproduce the blocking no-package state.
 
 ## Needs operator action
 
-GitHub Actions run
-<https://github.com/B-Divyesh/sf-photo-proof-pile/actions/runs/33295415409>
-failed at `validate-signing` exactly as designed. The repository has no Actions
-secrets, so every build and publication job was skipped and no untrusted
-package was created.
-
-To publish desktop installers, the owner must add these repository secrets and
-rerun the `v0.1.19` release workflow:
+Provide the signing credentials expected by `.github/workflows/release.yml`
+and rerun the `v0.1.19` release workflow. The workflow expects:
 
 - `APPLE_CERTIFICATE`
 - `APPLE_CERTIFICATE_PASSWORD`
@@ -104,8 +76,8 @@ rerun the `v0.1.19` release workflow:
 - `WINDOWS_CERT_PFX`
 - `WINDOWS_CERTIFICATE_PASSWORD`
 
-After those credentials are present, the workflow itself builds every target,
-independently downloads and verifies the signed packages, creates checksums
-and `latest.json`, writes `DESKTOP_SIGNATURES_VERIFIED.json`, and only then
-publishes. There is no repository-controlled defect left open; public desktop
-distribution remains intentionally unavailable until that operator action.
+After publication, independently verify both macOS architectures, Windows,
+AppImage and DEB assets, `SHA256SUMS`, `latest.json`,
+`DESKTOP_SIGNATURES_VERIFIED.json`, a downloaded package checksum, and the
+live detected-platform link. No product-code change was made in this work
+order.
