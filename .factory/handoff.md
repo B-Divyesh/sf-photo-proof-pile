@@ -50,6 +50,11 @@ All commands ran from a clean `npm ci` install.
 | DEB/RPM consumer smoke | PASS — `proof-pile` `0.1.22` (`amd64` DEB and `x86_64` RPM); extracted DEB stayed running under Xvfb for eight seconds (the timeout exit is expected) |
 | URL/accessibility smoke | PASS — title, `lang=en`, one h1, main landmark, image alt text, and no console errors; `repair-11-artifacts/local-verify-url/verify.json` |
 | Workflow syntax | PASS — parsed with PyYAML |
+| Public release workflow | PASS — [run 33299505299](https://github.com/B-Divyesh/sf-photo-proof-pile/actions/runs/33299505299) built all platforms, verified the unsigned paths, generated checksums, and passed post-publication verification |
+| Public release artifacts | PASS — `v0.1.22` from `a95500f2997f86fe07910b10fe966242d9dfdbd1`; all 10 `SHA256SUMS` entries downloaded and passed `sha256sum -c` |
+| Live static deployment | PASS — uploaded `dist/site` to `sf-photo-proof-pile` production; live URL smoke has no console errors in `repair-11-artifacts/live-verify-url/verify.json` |
+| Live desktop/mobile browser | PASS — desktop dialog returned four v0.1.22 package links and closes with Escape; 390px iPhone viewport has no overflow and shows the desktop-download note |
+| Live Linux installer | PASS — fresh `XDG_BIN_HOME` installation downloaded the AppImage only after its SHA-256 matched `SHA256SUMS` |
 
 Local package SHA-256 values:
 
@@ -75,12 +80,31 @@ requires the explicit operator variable `DESKTOP_SIGNING_ENABLED=true` before
 it uses any signing credential, so unknown or placeholder values publish an
 unsigned release instead of blocking it.
 
-The next committed tag is `v0.1.22`. Publish it through
-`.github/workflows/release.yml`, then verify the public GitHub release has two
-DMGs, Windows MSI/EXE, Linux AppImage/DEB/RPM, `SHA256SUMS`, `latest.json`, and
-`DESKTOP_PACKAGE_STATUS.json`; download one asset and run `sha256sum -c`.
-After the static deployment updates, verify that the live download picker links
-to all four package choices and that `/demo` remains available offline.
+`v0.1.22` is published from commit
+`a95500f2997f86fe07910b10fe966242d9dfdbd1`. Its successful
+[release workflow](https://github.com/B-Divyesh/sf-photo-proof-pile/actions/runs/33299505299)
+published two DMGs, Windows MSI/EXE, Linux AppImage/DEB/RPM, both macOS app
+archives, `SHA256SUMS`, `latest.json`, and `DESKTOP_PACKAGE_STATUS.json`.
+`latest.json` records two macOS, two Windows, and two Linux download choices
+and the same source commit. Its package status is exactly
+`{"macos":"unsigned","windows":"unsigned","checksums":"sha256"}`:
+these macOS and Windows packages are not signed or notarized.
+
+All ten checksum-listed files were downloaded into a fresh temporary directory
+and passed `sha256sum -c`; the exact hashes and command outcome are recorded in
+`repair-11-artifacts/release-v0.1.22.txt`. The live Linux installer was then
+run with a fresh `XDG_BIN_HOME` and installed only the checksum-matching
+`a8e863…97f80` AppImage. The production download dialog returns all four
+expected v0.1.22 choices and states the checksum/status policy without claiming
+a signature.
+
+The static site was deployed to the existing `sf-photo-proof-pile` production
+app using its product-scoped deployment token. The deployment was checked at
+`https://photo-proof-pile.sociobot.in`: `/`, `/demo`, `/privacy`, and `/terms`
+return 200 with the configured CSP, nosniff, and referrer-policy headers;
+`verify-url.sh` reports zero console errors and the required title, language,
+heading, landmark, and alt-text checks. The complete final Playwright suite
+also covers offline reload and service-worker update behavior.
 
 ## Needs operator action
 

@@ -1,0 +1,24 @@
+Release: https://github.com/B-Divyesh/sf-photo-proof-pile/releases/tag/v0.1.22
+Source commit: a95500f2997f86fe07910b10fe966242d9dfdbd1
+Release workflow: https://github.com/B-Divyesh/sf-photo-proof-pile/actions/runs/33299505299
+Workflow result: completed / success
+
+DESKTOP_PACKAGE_STATUS.json
+{"macos":"unsigned","windows":"unsigned","checksums":"sha256"}
+
+The release SHA256SUMS was downloaded with every listed entry. `sha256sum -c
+SHA256SUMS` reported OK for all 10 entries:
+43035bde1044e46d3f4480dca8c648c0de57cb9abc152d22aca34f7b4c25bc3e  DESKTOP_PACKAGE_STATUS.json
+91ab8aa1b1f31d8e43a5f5f2a36c58bb248c26d7ea168f5766721dfe01ccf3bd  Proof.Pile-0.1.22-1.x86_64.rpm
+1e6c59c946bd3767babf2dc7bacadde95348587a77f0446488466c53cc20bc6b  Proof.Pile_0.1.22_aarch64.dmg
+a8e863b7cde64438eaec9b2c1ae7482f33217d46d01b54f48e85980f08797f80  Proof.Pile_0.1.22_amd64.AppImage
+e2854e092566f38e3b0c7fe1f0c2e5f54e22c148102c5580c3f8e23517c5f956  Proof.Pile_0.1.22_amd64.deb
+a886ba8bfff222fa180db1282dce0e6ae1e19fe6665223d2f45b6be3c689b5c5  Proof.Pile_0.1.22_x64-setup.exe
+e0e407d2a7d5148f755e35fc12b7d77491956031d906d3770da480f2baf87126  Proof.Pile_0.1.22_x64.dmg
+d1b3cc8d0751c4a196936896b91316f84b8f21b18c58d4fde1b865da9a623868  Proof.Pile_0.1.22_x64_en-US.msi
+54cac6f8b039ab5ccc3dc468463aaa1246e029b388e015ed7e036b303878e648  Proof.Pile_aarch64.app.tar.gz
+afcc81c53c8bb290cc6cc7638bbab98cfa802d6e9e4229571e72e4e4a6ae37c3  Proof.Pile_x64.app.tar.gz
+
+The deployed Linux installer downloaded the AppImage into a fresh temporary
+XDG_BIN_HOME, verified the a8e863...97f80 checksum, and printed its install
+path. The live desktop dialog returned four v0.1.22 package links.
