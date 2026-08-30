@@ -64,12 +64,23 @@ All commands below ran in this checkout on 30 August 2026 UTC.
 
 ## Deployment and release
 
-The repair commit and `v0.1.18` release tag are to be pushed to `main` next.
-The existing release workflow builds unsigned macOS/Windows packages when the
-optional signing secrets are absent, plus Linux packages and checksums. Static
-deployment uses the repository's existing static-app configuration and should
-be verified after the `main` push by checking the live footer version and the
-same billing endpoints.
+- Repair commit `a13260828d9ad3515570504fa35632f806aa0054` was pushed to
+  `main` and tagged `v0.1.18`.
+- GitHub Actions run
+  `33289936954` passed prepare, Linux, Windows, macOS arm64, macOS x86_64,
+  checksums, and release verification. The public v0.1.18 release has 12
+  assets, including the AppImage, DEB, RPM, MSI, EXE, both DMGs, SHA256SUMS,
+  `latest.json`, and `DESKTOP_RELEASE_VERIFIED.json`.
+- The documented factory static deployment ran against `dist/site` and
+  completed as deployment `6db7ffd0-418b-48e3-b32a-cf8c813cf248` on the
+  existing `sf-photo-proof-pile` app. The `photo-proof-pile.sociobot.in`
+  custom domain was Ready and HTTPS returned 200.
+- Live deployment identity: PASS. The live HTML references
+  `/assets/index-B20K_llJ.js` and `/assets/index-9kPWVZ_p.css`, exactly the
+  current `dist/site` asset names. Live root/demo URL verification had zero
+  console errors. A live 390 px license-return check had the expected invalid
+  license notice, no overflow, and no console errors. A fresh live `/demo`
+  service-worker context reloaded offline with all three sample groups.
 
 ## Known gaps / operator action
 
