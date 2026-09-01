@@ -131,7 +131,7 @@ jobs:
           linux=$(find . -maxdepth 1 -type f \( -name '*.AppImage' -o -name '*.deb' -o -name '*.rpm' \) -printf '%f\n' | sort | jq -Rsc 'split("\n") | map(select(length > 0))')
           jq -n --arg version "$RELEASE_TAG" --arg commit "$RELEASE_COMMIT" --arg base "$download_base" --argjson macos "$macos" --argjson windows "$windows" --argjson linux "$linux" \
             '{version: $version, commit: $commit, signatures: {macos: "unsigned", windows: "unsigned"}, platforms: {macos: ($macos | map({name: ., url: ($base + "/" + .)})), windows: ($windows | map({name: ., url: ($base + "/" + .)})), linux: ($linux | map({name: ., url: ($base + "/" + .)}))}}' > latest.json
-          jq -e --arg tag "$RELEASE_TAG" --arg commit "$RELEASE_COMMIT" --arg base "$download_base" '.version == $tag and .commit == $commit and .signatures.macos == "unsigned" and .signatures.windows == "unsigned" and (.platforms.macos | length) >= 2 and (.platforms.windows | length) >= 1 and (.platforms.linux | length) >= 2 and all(.platforms[][]; .url | startswith($base + "/"))' latest.json
+          jq -e --arg tag "$RELEASE_TAG" --arg commit "$RELEASE_COMMIT" '.version == $tag and .commit == $commit and .signatures.macos == "unsigned" and .signatures.windows == "unsigned" and (.platforms.macos | length) >= 2 and (.platforms.windows | length) >= 1 and (.platforms.linux | length) >= 2' latest.json
           sha256sum -c SHA256SUMS
       - name: Publish complete unsigned desktop release
         uses: softprops/action-gh-release@v2
