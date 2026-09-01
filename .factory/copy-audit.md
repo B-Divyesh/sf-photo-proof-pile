@@ -1,92 +1,81 @@
 # Landing page copy audit
 
-Audited 30 August 2026. Counts treat hyphenated terms and prices as one word.
-No sentence exceeds 22 words. No banned marketing word appears.
+Audited 1 September 2026 for release `v0.1.23`. Counts treat hyphenated
+terms, prices, and URLs as one word. No reader sentence exceeds 22 words. No
+banned marketing word appears.
 
-| Landing copy | Words | Flag |
+| Landing copy | Words | Check |
 | --- | ---: | --- |
 | Skip to main content | 4 | Navigation |
 | Proof Pile | 2 | Wordmark |
-| Demo | 1 | Navigation |
-| How it works | 3 | Navigation |
-| Privacy | 1 | Navigation |
-| Local duplicate-photo review | 3 | None |
-| Review photo copies before you remove them | 7 | None |
-| For people with photos across several drives who fear removing the only meaningful copy. | 14 | None |
-| Try it with sample data | 5 | Claim: demo-isolated |
-| Opens three ready-to-review groups. | 4 | Claim: match-evidence |
-| Check desktop downloads | 3 | Claim: verified-downloads-only |
-| Open this page on a desktop computer to check signed downloads. | 11 | Mobile action guidance |
-| Photos stay on this device | 5 | Claim: native-local-privacy |
-| Works without an account | 4 | Claim: no-account |
-| Free for 1,000 files; US$29 once for full libraries | 9 | Claims: free-scan-limit, licensed-scan-limit, paid-checkout |
-| Each group keeps its file locations, dates, sizes, and match details. | 11 | Claim: match-evidence |
-| The review desk | 3 | Section label |
-| See why files match | 4 | None |
-| Compare file locations, image sizes, dates, and copies on other drives before making a plan. | 15 | Claim: match-evidence |
-| Exact bytes | 2 | Sample label |
-| 3 copies · 2 drives | 4 | Sample label |
-| How photo cleanup works | 4 | None |
-| Scan your folders | 3 | Step heading |
-| Choose photo folders on each connected drive. | 7 | None |
-| The app reads files where they are. | 7 | Claim: scan-scope |
-| Start with groups, not a delete list. | 7 | Instruction |
-| Review the evidence | 3 | Step heading |
-| Keep one copy and mark extras. | 6 | None |
-| Every path and difference remains visible. | 6 | Claim: match-evidence |
-| Compare each copy and its metadata. | 6 | Instruction |
-| Quarantine, then verify | 3 | Step heading |
-| Move extras to a folder you choose. | 7 | Claim: review-before-move |
-| Restore them from the decision log. | 6 | Claim: reversible-plan |
-| Move reviewed files, then restore if needed. | 7 | Claims: review-before-move, reversible-plan |
-| Privacy and limits | 3 | Section label |
-| Your photos are not uploaded | 5 | Claims: local-privacy, native-local-privacy |
-| Copies on other drives are matching files, not tested backups. | 10 | Safety warning |
-| Keep a tested backup. | 4 | Safety instruction |
-| A matching copy can still live on a failing drive. | 9 | Safety explanation |
-| Open important backups before cleanup. | 5 | Safety instruction |
-| Desktop license | 2 | Section label |
-| Review a full library | 4 | None |
-| The free app scans 1,000 files at a time. | 9 | Claim: free-scan-limit |
-| A license removes that scan limit. | 6 | Claim: licensed-scan-limit |
-| US$29 one-time purchase | 3 | Claim: paid-checkout |
-| Buy via Sociobot checkout ↗ | 4 | Claim: paid-checkout |
-| Restore a purchase | 3 | None |
-| Sociobot checkout takes payment. | 4 | Claim: paid-checkout |
-| For refunds, email support@sociobot.in. | 4 | Claim: paid-checkout |
-| Review duplicate photos before moving extra copies. | 7 | Product description |
-| Terms | 1 | Legal navigation |
-| Built by Param Factory ↗ | 4 | Attribution |
-| License checks are temporarily unavailable. | 5 | Service recovery notice |
-| Try again later. | 3 | Service recovery action |
-| Your returned license stays active for now. | 8 | Service recovery notice |
-| Your free review stays available. | 6 | Service recovery notice |
-| v0.1.19 | 1 | Release identity |
+| Demo / How it works / Privacy | 1 / 3 / 1 | Navigation |
+| Local duplicate-photo review | 3 | Useful label |
+| Review photo copies before you remove them | 7 | Headline |
+| For people with photos across several drives who fear removing the only meaningful copy. | 14 | Audience |
+| Try it with sample data | 5 | `demo-isolated` |
+| Opens three ready-to-review groups. | 4 | `match-evidence` |
+| Check desktop downloads | 3 | `verified-downloads-only` |
+| Open this page on a desktop computer to check desktop packages. | 11 | Mobile guidance |
+| Photos stay on this device | 5 | `native-local-privacy` |
+| Works without an account | 4 | `no-account` |
+| Free for 1,000 files; US$29 once for full libraries | 9 | Price and limit claims |
+| Each group keeps its file locations, dates, sizes, and match details. | 11 | `match-evidence` |
+| The review desk / See why files match | 3 / 4 | Section label and heading |
+| Compare file locations, image sizes, dates, and copies on other drives before making a plan. | 15 | `match-evidence` |
+| Exact bytes / 3 copies · 2 drives | 2 / 4 | Sample labels |
+| How photo cleanup works | 4 | Section heading |
+| Scan your folders / Choose photo folders on each connected drive. / The app reads files where they are. / Start with groups, not a delete list. | 3 / 7 / 7 / 7 | Step copy |
+| Review the evidence / Keep one copy and mark extras. / Every path and difference remains visible. / Compare each copy and its metadata. | 3 / 6 / 6 / 6 | Step copy |
+| Quarantine, then verify / Move extras to a folder you choose. / Restore them from the decision log. / Move reviewed files, then restore if needed. | 3 / 7 / 6 / 7 | Step copy |
+| Privacy and limits / Your photos are not uploaded | 3 / 5 | Section and privacy claims |
+| Copies on other drives are matching files, not tested backups. / Keep a tested backup. / A matching copy can still live on a failing drive. / Open important backups before cleanup. | 10 / 4 / 9 / 5 | Safety copy |
+| Desktop license / Review a full library | 2 / 4 | Section label and heading |
+| The free app scans 1,000 files at a time. / A license removes that scan limit. | 9 / 6 | Limit claims |
+| US$29 one-time purchase | 3 | `paid-checkout` |
+| Buy via Sociobot checkout ↗ / Restore a purchase | 4 / 3 | Result actions |
+| Sociobot checkout takes payment. / For refunds, email support@sociobot.in. | 4 / 4 | `paid-checkout` |
+| Review duplicate photos before moving extra copies. | 7 | Footer description |
+| Terms / Built by Param Factory ↗ / v0.1.23 | 1 / 4 / 1 | Footer |
 
 ## Download dialog copy
 
-| Dialog copy | Words | Flag |
+| Dialog copy | Words | Check |
 | --- | ---: | --- |
 | Close download window | 3 | Accessible name |
-| Desktop app | 2 | Dialog label |
-| Desktop downloads | 2 | Dialog heading |
-| Checking the latest release… | 4 | Loading state |
-| Checking release verification… | 3 | Loading state |
+| Desktop app / Desktop downloads | 2 / 2 | Label and heading |
+| Checking the latest release… / Checking release verification… | 4 / 3 | Loading state |
 | Signed downloads are being prepared. | 5 | Empty state |
-| No package is offered until Windows and macOS signature checks pass. | 11 | Claim: verified-downloads-only |
-| Windows is Authenticode signed. | 4 | Claim: verified-downloads-only |
-| macOS is signed and notarized. | 5 | Claim: verified-downloads-only |
-| Download for macOS (Apple silicon) | 5 | Result action |
-| Download for macOS (Intel) | 4 | Result action |
-| Download for Windows | 3 | Result action |
-| Download for Linux | 3 | Result action |
-| Downloads are not published yet. | 5 | Error state |
-| Check again later. | 3 | Error next step |
+| No package is offered until Windows and macOS signature checks pass. | 11 | `verified-downloads-only` |
+| Windows is Authenticode signed. / macOS is signed and notarized. | 4 / 5 | Verified-release state |
+| Download for macOS (Apple silicon) / Download for macOS (Intel) / Download for Windows / Download for Linux | 5 / 4 / 3 / 3 | Result actions |
+| Downloads are not published yet. Check again later. | 8 | Error and next step |
 | View release status on GitHub ↗ | 6 | External status action |
 | No package was offered because release verification could not be checked. | 10 | Error explanation |
-| License checks are busy. | 4 | License recovery notice |
-| Try again in a few minutes. | 6 | License recovery action |
-| Your saved license was not changed. | 7 | License recovery notice |
+
+## README copy
+
+| Copy | Words | Check |
+| --- | ---: | --- |
+| Review photo copies, quarantine extras, and keep a reversible decision log. | 11 | Summary |
+| Proof Pile is for people whose photo libraries span several drives. | 11 | Audience |
+| The desktop app reads only folders you choose, groups likely copies, and keeps evidence beside each decision. | 17 | `scan-scope`, `match-evidence` |
+| The sample needs no account. / Its choices stay only in this browser tab and never mix with a real review. / Use Reset demo for a clean state. | 5 / 14 / 7 | Demo copy |
+| Groups exact copies, photos that look alike, and photos taken at the same time. | 13 | `match-evidence` |
+| Shows each file location, image size, file size, capture date, camera, file identifier, and copies on other drives. | 17 | `match-evidence` |
+| Builds a reviewed plan before moving any file to a quarantine folder. | 12 | `review-before-move` |
+| Keeps quarantine recovery records after restart. / Restore verified decision-log records after selecting their quarantine folder. / Exports every decision and move in a decision log (CSV). | 6 / 9 / 10 | Recovery and export claims |
+| Keeps the review desk available offline after its first visit. | 10 | `offline-reload` |
+| The free desktop app scans up to 1,000 image files at a time. / A US$29 one-time license removes that scan limit. | 13 / 8 | Price and limit claims |
+| The license changes only the scan limit: quarantine, restore, and decision-log recovery remain available without one. | 15 | `free-safety-tools` |
+| Buy through the Sociobot checkout. / For refunds, email support@sociobot.in. | 5 / 4 | `paid-checkout` |
+| The app stores a returned license under `sb_license:photo-proof-pile` and checks it with the Sociobot API at most once each day. | 19 | `paid-license` |
+| The request contains only the license token. | 7 | `license-request-privacy` |
+| Use Check desktop downloads on the website. | 6 | Install action |
+| No desktop package is offered until independent Windows and macOS signature checks pass. | 13 | `verified-downloads-only` |
+| The dialog also requires the full package set and published verification files. | 11 | `verified-downloads-only` |
+| Both scripts require the signed-package verification record and compare the downloaded package with the published SHA-256 verification file before installing it. | 19 | Installer tests |
+| The local scanner reads only folders you select. / It compares file bytes for exact copies and image content for photos that look alike. / It also reads the capture time and camera stored inside each photo. / Files in an exact-copy group do not appear again in another match group. | 8 / 15 / 13 / 14 | Matching claims |
+| Moving a file preserves its bytes and embedded photo information. / If a move crosses drives, the app copies the file first and removes the source only after a successful copy. / A name collision receives a numbered file name instead of overwriting either copy. | 10 / 20 / 13 | `cross-drive-safety` |
 
 ## Terminology
 
@@ -101,6 +90,6 @@ No sentence exceeds 22 words. No banned marketing word appears.
 | The isolated trial state | demo |
 | An installable release | desktop download |
 
-The move confirmation says “Move 2 files to /Sample drive/Proof Pile Quarantine?” (9 words) in the demo. The destination changes to the chosen desktop folder. This is covered by `review-before-move`.
-
-Catalog description: “Review photo copies, quarantine extras, and restore each move from a local decision log.” It starts with a verb and contains 88 characters.
+The move confirmation says “Move 2 files to /Sample drive/Proof Pile
+Quarantine?” in the demo. `review-before-move` covers that destination-aware
+confirmation. The catalog description starts with a verb and is 88 characters.

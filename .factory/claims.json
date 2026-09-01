@@ -147,17 +147,10 @@
     "sandbox": "inspect the shipped PowerShell installer contract; assert package verification happens before msiexec can start"
   },
   {
-    "id": "checksummed-downloads-only",
-    "claim": "The download dialog offers packages only after the full desktop package set, SHA-256 verification file, and package-status file are published.",
+    "id": "verified-downloads-only",
+    "claim": "The download dialog offers desktop packages only after Windows and macOS signature verification is published.",
     "where": "README and download dialog",
-    "test": "npm run test:e2e -- --grep @claim:checksummed-downloads-only",
-    "sandbox": "mock complete and incomplete releases; assert only the release with macOS, Windows, Linux, checksum, manifest, and package-status assets exposes package links"
-  },
-  {
-    "id": "package-signing-status",
-    "claim": "Without operator certificates, releases record macOS and Windows packages as unsigned.",
-    "where": "README and release workflow",
-    "test": "npm run test:unit -- --testNamePattern @claim:package-signing-status",
-    "sandbox": "run the release signing-status resolver with every certificate input empty and assert it exits successfully with unsigned macOS and Windows statuses"
+    "test": "npm run test:e2e -- --grep @claim:verified-downloads-only",
+    "sandbox": "mock a full package matrix without the signed-package marker, then add the marker and assert only the verified release exposes package links"
   }
 ]

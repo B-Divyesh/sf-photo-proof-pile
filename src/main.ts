@@ -6,7 +6,7 @@ declare global { interface Window { __TAURI_INTERNALS__?: unknown } }
 const app = document.querySelector<HTMLDivElement>("#app")!;
 const isDesktop = Boolean(window.__TAURI_INTERNALS__);
 const PRODUCT = "photo-proof-pile";
-const VERSION = "0.1.22";
+const VERSION = "0.1.23";
 const LICENSE_KEY = `sb_license:${PRODUCT}`;
 const DEMO_KEY = "demo:photo-proof-pile:session";
 const REAL_KEY = "proof-pile:session";
@@ -531,23 +531,23 @@ async function showDownloads() {
   const dialog = document.createElement("dialog"); dialog.innerHTML = `<div class="download-dialog"><button class="dialog-close" aria-label="Close download window">×</button><p class="eyebrow">Desktop app</p><h2>Desktop downloads</h2><p id="release-state">Checking the latest release…</p><div id="release-links"></div><p class="fine" id="signature-state">Checking release verification…</p></div>`; document.body.append(dialog); dialog.showModal(); dialog.querySelector(".dialog-close")?.addEventListener("click", () => dialog.close()); dialog.addEventListener("close", () => dialog.remove());
   try {
     const releaseKey = `proof-pile:release:v${VERSION}`;
-    let release = JSON.parse(localStorage.getItem(releaseKey) || "null"); if (!release || Date.now() - release.savedAt > 3_600_000) { const response = await fetch("https://api.github.com/repos/B-Divyesh/sf-photo-proof-pile/releases?per_page=1"); if (!response.ok) throw new Error(); const releases = await response.json(); if (!Array.isArray(releases) || !releases[0]?.assets) throw new Error(); release = { data: releases[0], savedAt: Date.now() }; localStorage.setItem(releaseKey, JSON.stringify(release)); }
+    let release = JSON.parse(localStorage.getItem(releaseKey) || "null"); if (!release || Date.now() - release.savedAt > 3_600_000) { const response = await fetch("https://api.github.com/repos/B-Divyesh/sf-photo-proof-pile/releases/latest"); if (!response.ok) throw new Error(); const releaseData = await response.json(); if (!releaseData?.assets) throw new Error(); release = { data: releaseData, savedAt: Date.now() }; localStorage.setItem(releaseKey, JSON.stringify(release)); }
     const assets = release.data.assets as { name: string; browser_download_url: string }[];
     const checksums = assets.some(item => item.name === "SHA256SUMS");
     const manifest = assets.some(item => item.name === "latest.json");
-    const packageStatus = assets.some(item => item.name === "DESKTOP_PACKAGE_STATUS.json");
+    const signaturesVerified = assets.some(item => item.name === "DESKTOP_SIGNATURES_VERIFIED.json");
     const macArm = assets.find(item => /\.(dmg)$/i.test(item.name) && /(aarch64|arm64)/i.test(item.name));
     const macIntel = assets.find(item => /\.(dmg)$/i.test(item.name) && /(x86_64|x64|intel)/i.test(item.name));
     const windows = assets.find(item => /\.(msi|exe)$/i.test(item.name));
     const linux = assets.find(item => /\.(AppImage|deb)$/i.test(item.name));
-    if (!checksums || !manifest || !packageStatus || !macArm || !macIntel || !windows || !linux) {
-      document.querySelector("#release-state")!.textContent = "Desktop packages are being prepared.";
-      document.querySelector("#signature-state")!.textContent = "No package is offered until the checksum, package-status, and full desktop package set are published.";
+    if (!signaturesVerified || !checksums || !manifest || !macArm || !macIntel || !windows || !linux) {
+      document.querySelector("#release-state")!.textContent = "Signed downloads are being prepared.";
+      document.querySelector("#signature-state")!.textContent = "No package is offered until Windows and macOS signature checks pass.";
       document.querySelector("#release-links")!.replaceChildren();
       return;
     }
     document.querySelector("#release-state")!.textContent = `${release.data.tag_name} is ready.`;
-    document.querySelector("#signature-state")!.textContent = "Each package is paired with an SHA-256 checksum. The release package-status file says whether macOS or Windows was signed.";
+    document.querySelector("#signature-state")!.textContent = "Windows is Authenticode signed. macOS is signed and notarized.";
     document.querySelector("#release-links")!.innerHTML = [
       `<a class="button quiet" href="${escapeHtml(macArm.browser_download_url)}">Download for macOS (Apple silicon)</a>`,
       `<a class="button quiet" href="${escapeHtml(macIntel.browser_download_url)}">Download for macOS (Intel)</a>`,

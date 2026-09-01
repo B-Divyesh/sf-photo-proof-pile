@@ -589,19 +589,19 @@ test("the skip link moves keyboard focus to main", async ({ page }) => {
   await expect(page.locator("main")).toBeFocused();
 });
 
-test("download picker offers both published macOS architectures", async ({ page }) => {
-  await page.route("https://api.github.com/repos/B-Divyesh/sf-photo-proof-pile/releases?per_page=1", route => route.fulfill({
+test("download picker offers both independently verified macOS architectures", async ({ page }) => {
+  await page.route("https://api.github.com/repos/B-Divyesh/sf-photo-proof-pile/releases/latest", route => route.fulfill({
     status: 200,
     contentType: "application/json",
-    body: JSON.stringify([{ tag_name: "v0.1.1", assets: [
+    body: JSON.stringify({ tag_name: "v0.1.1", assets: [
       { name: "Proof.Pile_0.1.1_aarch64.dmg", browser_download_url: "https://example.test/arm.dmg" },
       { name: "Proof.Pile_0.1.1_x86_64.dmg", browser_download_url: "https://example.test/intel.dmg" },
       { name: "Proof.Pile_0.1.1_x64_en-US.msi", browser_download_url: "https://example.test/app.msi" },
       { name: "Proof.Pile_0.1.1_amd64.AppImage", browser_download_url: "https://example.test/app.AppImage" },
       { name: "SHA256SUMS", browser_download_url: "https://example.test/SHA256SUMS" },
       { name: "latest.json", browser_download_url: "https://example.test/latest.json" },
-      { name: "DESKTOP_PACKAGE_STATUS.json", browser_download_url: "https://example.test/package-status.json" }
-    ] }])
+      { name: "DESKTOP_SIGNATURES_VERIFIED.json", browser_download_url: "https://example.test/signatures.json" }
+    ] })
   }));
   await page.goto("/");
   await page.evaluate(() => localStorage.setItem("proof-pile:release", JSON.stringify({ savedAt: Date.now(), data: { tag_name: "v0.1.0", assets: [] } })));
@@ -609,52 +609,52 @@ test("download picker offers both published macOS architectures", async ({ page 
   await expect(page.getByText("v0.1.1 is ready.")).toBeVisible();
   await expect(page.getByRole("link", { name: "Download for macOS (Apple silicon)" })).toHaveAttribute("href", "https://example.test/arm.dmg");
   await expect(page.getByRole("link", { name: "Download for macOS (Intel)" })).toHaveAttribute("href", "https://example.test/intel.dmg");
-  await expect(page.getByText("Each package is paired with an SHA-256 checksum. The release package-status file says whether macOS or Windows was signed.")).toBeVisible();
+  await expect(page.getByText("Windows is Authenticode signed. macOS is signed and notarized.")).toBeVisible();
 });
 
-test("@claim:checksummed-downloads-only offers packages only after the full checksummed set is published", async ({ page }) => {
-  await page.route("https://api.github.com/repos/B-Divyesh/sf-photo-proof-pile/releases?per_page=1", route => route.fulfill({
+test("@claim:verified-downloads-only offers packages only after signature verification is published", async ({ page }) => {
+  await page.route("https://api.github.com/repos/B-Divyesh/sf-photo-proof-pile/releases/latest", route => route.fulfill({
     status: 200,
     contentType: "application/json",
-    body: JSON.stringify([{ tag_name: "v0.1.22", assets: [
-      { name: "Proof.Pile_0.1.22_aarch64.dmg", browser_download_url: "https://example.test/arm.dmg" },
-      { name: "Proof.Pile_0.1.22_x64.dmg", browser_download_url: "https://example.test/intel.dmg" },
-      { name: "Proof.Pile_0.1.22_x64_en-US.msi", browser_download_url: "https://example.test/app.msi" },
-      { name: "Proof.Pile_0.1.22_amd64.AppImage", browser_download_url: "https://example.test/app.AppImage" },
+    body: JSON.stringify({ tag_name: "v0.1.23", assets: [
+      { name: "Proof.Pile_0.1.23_aarch64.dmg", browser_download_url: "https://example.test/arm.dmg" },
+      { name: "Proof.Pile_0.1.23_x64.dmg", browser_download_url: "https://example.test/intel.dmg" },
+      { name: "Proof.Pile_0.1.23_x64_en-US.msi", browser_download_url: "https://example.test/app.msi" },
+      { name: "Proof.Pile_0.1.23_amd64.AppImage", browser_download_url: "https://example.test/app.AppImage" },
+      { name: "SHA256SUMS", browser_download_url: "https://example.test/SHA256SUMS" },
       { name: "latest.json", browser_download_url: "https://example.test/latest.json" },
-      { name: "DESKTOP_PACKAGE_STATUS.json", browser_download_url: "https://example.test/package-status.json" }
-    ] }])
+    ] })
   }));
   await page.goto("/");
   await page.getByRole("button", { name: "Check desktop downloads" }).click();
-  await expect(page.getByText("Desktop packages are being prepared.")).toBeVisible();
-  await expect(page.getByText("No package is offered until the checksum, package-status, and full desktop package set are published.")).toBeVisible();
+  await expect(page.getByText("Signed downloads are being prepared.")).toBeVisible();
+  await expect(page.getByText("No package is offered until Windows and macOS signature checks pass.")).toBeVisible();
   await expect(page.getByRole("link", { name: /Download for/ })).toHaveCount(0);
   await page.getByRole("button", { name: "Close download window" }).click();
   await page.evaluate(() => localStorage.clear());
-  await page.unroute("https://api.github.com/repos/B-Divyesh/sf-photo-proof-pile/releases?per_page=1");
-  await page.route("https://api.github.com/repos/B-Divyesh/sf-photo-proof-pile/releases?per_page=1", route => route.fulfill({
+  await page.unroute("https://api.github.com/repos/B-Divyesh/sf-photo-proof-pile/releases/latest");
+  await page.route("https://api.github.com/repos/B-Divyesh/sf-photo-proof-pile/releases/latest", route => route.fulfill({
     status: 200,
     contentType: "application/json",
-    body: JSON.stringify([{ tag_name: "v0.1.22", assets: [
-      { name: "Proof.Pile_0.1.22_aarch64.dmg", browser_download_url: "https://example.test/arm.dmg" },
-      { name: "Proof.Pile_0.1.22_x64.dmg", browser_download_url: "https://example.test/intel.dmg" },
-      { name: "Proof.Pile_0.1.22_x64_en-US.msi", browser_download_url: "https://example.test/app.msi" },
-      { name: "Proof.Pile_0.1.22_amd64.AppImage", browser_download_url: "https://example.test/app.AppImage" },
+    body: JSON.stringify({ tag_name: "v0.1.23", assets: [
+      { name: "Proof.Pile_0.1.23_aarch64.dmg", browser_download_url: "https://example.test/arm.dmg" },
+      { name: "Proof.Pile_0.1.23_x64.dmg", browser_download_url: "https://example.test/intel.dmg" },
+      { name: "Proof.Pile_0.1.23_x64_en-US.msi", browser_download_url: "https://example.test/app.msi" },
+      { name: "Proof.Pile_0.1.23_amd64.AppImage", browser_download_url: "https://example.test/app.AppImage" },
       { name: "SHA256SUMS", browser_download_url: "https://example.test/SHA256SUMS" },
       { name: "latest.json", browser_download_url: "https://example.test/latest.json" },
-      { name: "DESKTOP_PACKAGE_STATUS.json", browser_download_url: "https://example.test/package-status.json" }
-    ] }])
+      { name: "DESKTOP_SIGNATURES_VERIFIED.json", browser_download_url: "https://example.test/signatures.json" }
+    ] })
   }));
   await page.getByRole("button", { name: "Check desktop downloads" }).click();
-  await expect(page.getByText("v0.1.22 is ready.")).toBeVisible();
-  await expect(page.getByText("Each package is paired with an SHA-256 checksum. The release package-status file says whether macOS or Windows was signed.")).toBeVisible();
+  await expect(page.getByText("v0.1.23 is ready.")).toBeVisible();
+  await expect(page.getByText("Windows is Authenticode signed. macOS is signed and notarized.")).toBeVisible();
   await expect(page.getByRole("link", { name: /Download for/ })).toHaveCount(4);
   await expect(page.getByRole("link", { name: "Download for Linux" })).toHaveAttribute("href", "https://example.test/app.AppImage");
   await page.getByRole("button", { name: "Close download window" }).click();
   await page.evaluate(() => localStorage.clear());
-  await page.unroute("https://api.github.com/repos/B-Divyesh/sf-photo-proof-pile/releases?per_page=1");
-  await page.route("https://api.github.com/repos/B-Divyesh/sf-photo-proof-pile/releases?per_page=1", route => route.fulfill({ status: 200, contentType: "application/json", body: "[]" }));
+  await page.unroute("https://api.github.com/repos/B-Divyesh/sf-photo-proof-pile/releases/latest");
+  await page.route("https://api.github.com/repos/B-Divyesh/sf-photo-proof-pile/releases/latest", route => route.fulfill({ status: 404, contentType: "application/json", body: '{"message":"Not Found"}' }));
   await page.getByRole("button", { name: "Check desktop downloads" }).click();
   await expect(page.getByText("Downloads are not published yet. Check again later.")).toBeVisible();
   await expect(page.getByRole("link", { name: "View release status on GitHub (external site)" })).toHaveAttribute("href", "https://github.com/B-Divyesh/sf-photo-proof-pile/releases");

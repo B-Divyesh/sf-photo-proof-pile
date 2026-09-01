@@ -5,17 +5,25 @@ repo="B-Divyesh/sf-photo-proof-pile"
 api="https://api.github.com/repos/$repo/releases/latest"
 release_json=$(mktemp)
 checksums=$(mktemp)
-trap 'rm -f "$release_json" "$checksums"' EXIT
+signature_marker=$(mktemp)
+trap 'rm -f "$release_json" "$checksums" "$signature_marker"' EXIT
 
 if ! curl -fsSL "$api" -o "$release_json"; then
-  echo "A Linux release with a checksum is not published yet. Nothing was installed." >&2
+  echo "A trusted Linux release is not published yet. Nothing was installed." >&2
   exit 1
 fi
 asset_url=$(sed -n 's/.*"browser_download_url": "\([^"]*\.AppImage\)".*/\1/p' "$release_json" | head -n 1)
 checksum_url=$(sed -n 's/.*"browser_download_url": "\([^"]*SHA256SUMS\)".*/\1/p' "$release_json" | head -n 1)
+marker_url=$(sed -n 's/.*"browser_download_url": "\([^"]*DESKTOP_SIGNATURES_VERIFIED\.json\)".*/\1/p' "$release_json" | head -n 1)
 
-if [ -z "$asset_url" ] || [ -z "$checksum_url" ]; then
-  echo "A Linux release with a checksum is not published yet. Nothing was installed." >&2
+if [ -z "$asset_url" ] || [ -z "$checksum_url" ] || [ -z "$marker_url" ]; then
+  echo "A trusted Linux release is not published yet. Nothing was installed." >&2
+  exit 1
+fi
+
+curl -fsSL "$marker_url" -o "$signature_marker"
+if ! grep -Eq '"macos"[[:space:]]*:[[:space:]]*"signed-and-notarized"' "$signature_marker" || ! grep -Eq '"windows"[[:space:]]*:[[:space:]]*"authenticode-signed"' "$signature_marker"; then
+  echo "Desktop signature verification is incomplete. Nothing was installed." >&2
   exit 1
 fi
 
