@@ -454,10 +454,14 @@ test("does not save a pasted token when the billing service returns 503", async 
 
 test("@claim:license-verification-allowance honors the 30-request allowance and Retry-After", async ({ page }) => {
   let checks = 0;
+  let retryAfter: string | undefined;
+  page.on("response", response => {
+    if (response.url().includes("/products/photo-proof-pile/verify") && response.status() === 429) retryAfter = response.headers()["retry-after"];
+  });
   await page.route("https://api.sociobot.in/api/v1/products/photo-proof-pile/verify?license=allowance-token", route => {
     checks += 1;
     if (checks <= 30) return route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify({ valid: false, reason: "invalid" }) });
-    return route.fulfill({ status: 429, headers: { "Access-Control-Allow-Origin": "*", "Access-Control-Expose-Headers": "Retry-After", "Retry-After": "4" }, body: "Too many verification requests" });
+    return route.fulfill({ status: 429, headers: { "Access-Control-Allow-Origin": "*", "Retry-After": "4" }, body: "Too many verification requests" });
   });
 
   await page.goto("/");
@@ -472,7 +476,8 @@ test("@claim:license-verification-allowance honors the 30-request allowance and 
 
   await page.getByRole("button", { name: "Verify license" }).click();
   await expect.poll(() => checks).toBe(31);
-  await expect(page.getByText("License checks are busy. Try again in 4 seconds. Your saved license was not changed.")).toBeVisible();
+  await expect(page.getByText("License checks are busy. Try again in a few minutes. Your saved license was not changed.")).toBeVisible();
+  await expect.poll(() => retryAfter).toBe("4");
   expect(checks).toBe(31);
   await page.waitForTimeout(100);
   expect(checks).toBe(31);

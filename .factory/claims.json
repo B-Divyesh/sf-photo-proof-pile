@@ -95,7 +95,7 @@
     "claim": "Product verification allows 30 requests per client window; request 31 returns 429 with Retry-After.",
     "where": "README",
     "test": "npm run test:e2e -- --grep @claim:license-verification-allowance",
-    "sandbox": "recorded billing responses return 200 for 30 invalid-token checks, then 429 with Retry-After; assert the app gives the supplied wait time and makes no automatic retry"
+    "sandbox": "recorded billing responses return 200 for 30 invalid-token checks, then 429 with Retry-After; assert the response header, a safe rate-limit notice, and no automatic retry"
   },
   {
     "id": "paid-checkout",
