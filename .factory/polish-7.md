@@ -11,14 +11,22 @@ an unsigned-package disclaimer.
 
 ## Evidence index
 
-- Clean-clone claim run: 22 exact commands passed (recorded in this handoff).
+- Clean-clone claim run: [`22 exact commands passed`](polish-7-artifacts/clean-clone-claims.txt).
 - Local root check: [`verify.json`](polish-7-artifacts/local-verify/verify.json),
   [`desktop`](polish-7-artifacts/local-verify/screenshot-desktop.png), and
   [`mobile`](polish-7-artifacts/local-verify/screenshot-mobile.png).
 - Local direct-demo check: [`verify.json`](polish-7-artifacts/local-demo-verify/verify.json),
   [`desktop`](polish-7-artifacts/local-demo-verify/screenshot-desktop.png), and
   [`mobile`](polish-7-artifacts/local-demo-verify/screenshot-mobile.png).
-- Final live evidence is added after the deployment and cold recheck.
+- Cold live root: [`worker check`](polish-7-artifacts/live-root-final/verify.json)
+  and [`first screen`](polish-7-artifacts/live-cold-root.png).
+- Direct `?demo=1`: [`worker check`](polish-7-artifacts/live-demo-final/verify.json)
+  and [`390 px demo`](polish-7-artifacts/live-demo-mobile.png).
+- Live route, accessibility, mobile, and download-gate recheck:
+  [`live-qa.json`](polish-7-artifacts/live-qa.json) and
+  [`download refusal`](polish-7-artifacts/live-download-refusal.png).
+- Performance: [`Lighthouse report`](polish-7-artifacts/lighthouse-live.json)
+  (100/100/100/100; LCP 1.2 s, CLS 0).
 
 ## Finding mapping
 
@@ -75,17 +83,17 @@ an unsigned-package disclaimer.
 | F-6-2 | README names the signed-package verification record in plain words. | README; installer tests. |
 | F-6-3 | The action remains “Check desktop downloads.” | Browser exact-label test. |
 | F-6-4 | The former unsupported promise is replaced by a registered, executable claim. | `verified-downloads-only` manifest and test. |
-| F-7-1 | Removed unsigned branches, claim, and documentation; introduced mandatory full signing credentials, independent checks, marker-only public availability, and withdrew public v0.1.22. | `npm run test:unit`; `@claim:verified-downloads-only`; installer tests; public release list `[]`, `/releases/latest` 404. |
-| F-7-2 | Regenerated the copy audit from v0.1.23, with the exact marker rule and current catalog count. | `.factory/copy-audit.md`; model identity test; current build. |
+| F-7-1 | Removed unsigned branches, claim, and documentation; introduced mandatory full signing credentials, independent checks, marker-only public availability, withdrew public v0.1.22, and made the unavailable release lookup quiet. | `@claim:verified-downloads-only`; installer tests; [`public release check`](polish-7-artifacts/release-public-check.txt); live [`0 offered packages / 0 errors`](polish-7-artifacts/live-qa.json) and screenshot. |
+| F-7-2 | Regenerated the copy audit from v0.1.23, with the exact marker rule and current catalog count. | `.factory/copy-audit.md`; model identity test; current build; live current-version 404. |
 
 ## Final verification
 
-Before deployment, a fresh clone completed `npm ci`, all 22 exact claim
-commands, `CI=1 npm test` (11 Rust, 12 Vitest, 33 Playwright), `npm run check`,
-and `npm run build`. The desktop package build produced a v0.1.23 DEB and RPM;
-an extracted DEB stayed running under Xvfb for eight seconds. The local root
-and `/demo` verifier found one title, `lang=en`, one h1, a main landmark,
-complete image alt text, and no console errors.
-
-The final section is updated after static deployment with a cold live root,
-direct demo, routing, accessibility, mobile, and download-gate recheck.
+At final commit `ff9d456`, a fresh clone completed `npm ci` and all 22 exact
+claim commands. The local full suite passed 11 Rust, 12 Vitest, and 33
+Playwright tests; `npm run check`, `npm run build`, native DEB/RPM production
+build, and extracted-DEB Xvfb smoke passed. The final static build was deployed
+through the product work order. Cold live root and direct `?demo=1` checks had
+no console errors. The live audit confirmed all real routes, titles, 404,
+demo sample, mobile layout, zero serious/critical Axe findings, and the
+fail-closed download dialog with no offered package. Live Lighthouse scored
+100 in all four categories.

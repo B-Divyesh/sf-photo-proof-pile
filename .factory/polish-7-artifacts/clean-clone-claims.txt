@@ -1,0 +1,34 @@
+Clean-clone claim evidence — 1 September 2026 UTC
+
+Source: local no-network clone of commit ff9d456 from /work/repo
+Install: npm ci
+Result: zero npm audit vulnerabilities; all 22 exact commands from
+.factory/claims.json passed. The final Playwright run wrote:
+{"status":"passed","failedTests":[]}
+
+Passed claim IDs:
+- demo-isolated
+- match-evidence
+- csv-export
+- reversible-plan
+- review-before-move
+- local-privacy
+- no-ad-tracking
+- native-local-privacy
+- license-request-privacy
+- no-account
+- free-scan-limit
+- free-safety-tools
+- paid-license
+- paid-checkout
+- licensed-scan-limit
+- offline-reload
+- native-matching
+- scan-scope
+- cross-drive-safety
+- installer-checksum
+- windows-installer-checksum
+- verified-downloads-only
+
+The command runner exited only when every exact registered command returned
+zero and printed ALL_CLEAN_CLONE_CLAIMS_PASS 22.

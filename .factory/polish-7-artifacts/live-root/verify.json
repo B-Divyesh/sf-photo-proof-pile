@@ -1,0 +1,14 @@
+{
+  "url": "https://photo-proof-pile.sociobot.in",
+  "loadMs": 3192,
+  "errors": [],
+  "a11y": {
+    "title": "Proof Pile — Review photo copies before cleanup",
+    "lang": "en",
+    "h1": 1,
+    "main": true,
+    "imgsMissingAlt": 0,
+    "buttonsUnlabeled": 0,
+    "textLength": 1722
+  }
+}

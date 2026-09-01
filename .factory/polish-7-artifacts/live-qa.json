@@ -1,0 +1,69 @@
+{
+  "checkedAt": "2026-09-01T20:49:00.694Z",
+  "base": "https://photo-proof-pile.sociobot.in",
+  "releaseSafety": {
+    "publicPackagesOffered": 0,
+    "dialogErrors": []
+  },
+  "routes": {
+    "/": {
+      "status": 200,
+      "title": "Proof Pile — Review photo copies before cleanup",
+      "h1": 1,
+      "main": 1,
+      "axeSeriousCritical": []
+    },
+    "/demo": {
+      "status": 200,
+      "title": "Demo — Proof Pile",
+      "h1": 1,
+      "main": 1,
+      "axeSeriousCritical": []
+    },
+    "/app": {
+      "status": 200,
+      "title": "Proof Pile — Review photo copies",
+      "h1": 1,
+      "main": 1,
+      "axeSeriousCritical": []
+    },
+    "/privacy": {
+      "status": 200,
+      "title": "Privacy — Proof Pile",
+      "h1": 1,
+      "main": 1,
+      "axeSeriousCritical": []
+    },
+    "/terms": {
+      "status": 200,
+      "title": "Terms — Proof Pile",
+      "h1": 1,
+      "main": 1,
+      "axeSeriousCritical": []
+    },
+    "/polish-7-missing": {
+      "status": 404,
+      "title": "Page not found — Proof Pile",
+      "h1": 1,
+      "main": 1
+    }
+  },
+  "desktop": {
+    "demo": {
+      "sampleFiles": 8,
+      "groups": 3,
+      "errors": []
+    }
+  },
+  "mobile": {
+    "actionBox": {
+      "x": 37,
+      "y": 399.9375,
+      "width": 316,
+      "height": 44.390625
+    },
+    "horizontalOverflow": false,
+    "axeSeriousCritical": [],
+    "errors": []
+  }
+}

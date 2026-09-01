@@ -32,24 +32,56 @@ added.
 - Bumped package, Tauri, 404, static UI, and service-worker identities to
   `v0.1.23`; regenerated `.factory/copy-audit.md`; updated the catalog line.
 
-## Verification completed before deployment
+## Verification
 
 | Check | Result |
 | --- | --- |
-| Fresh clone, `npm ci` | PASS; zero npm audit vulnerabilities. |
-| Every exact claim command | PASS; 22/22, including `@claim:verified-downloads-only`. |
+| Fresh clone, `npm ci` | PASS; zero npm audit vulnerabilities at `ff9d456`. |
+| Every exact claim command | PASS; 22/22, including `@claim:verified-downloads-only`; [`clean-clone record`](polish-7-artifacts/clean-clone-claims.txt). |
 | `CI=1 npm test` | PASS; 11 Rust, 12 Vitest, 33 Playwright tests. |
 | `npm run check` | PASS; TypeScript, rustfmt, and Clippy. |
-| `npm run build` | PASS; `dist/site`; 13.61 KiB gzip app JS, 5.11 KiB gzip CSS. |
+| `npm run build` | PASS; `dist/site`; 13.63 KiB gzip app JS, 5.11 KiB gzip CSS. |
 | `CI=true npm run build:desktop -- --bundles deb,rpm` | PASS; `v0.1.23` DEB and RPM built. |
 | Extracted-DEB Xvfb smoke | PASS; app remained open for eight seconds (expected timeout 124). |
 | Local URL verifier | PASS at `/` and `/demo`: title, `lang`, one h1, main, alt text, zero console errors. |
-| Accessibility | PASS in Playwright Axe tests (light, dark, mobile); standalone Axe CLI could not create a Chrome session in this container. |
+| Accessibility | PASS in Playwright Axe tests (light, dark, mobile) and final live Playwright Axe sweep; zero serious/critical violations. |
+| Live URL verifier | PASS at `/` and `/?demo=1`: title, `lang`, one h1, main, alt text, zero console errors. |
+| Live release gate | PASS: GitHub public releases is `[]`; the live dialog offered 0 packages and logged 0 errors. |
+| Live Lighthouse | PASS: 100 performance, accessibility, best practices, and SEO; LCP 1.2 s, TBT 40 ms, CLS 0, 137 KiB transfer. |
 
-Pre-deploy artifacts are in `polish-7-artifacts/local-verify/` and
-`polish-7-artifacts/local-demo-verify/`. The final live deployment identifier,
-cold-browser evidence, and final URL checks are recorded below after the
-deployment step.
+## Deployment and cold live recheck
+
+The current `dist/site` was deployed through the `photo-proof-pile` static
+work-order configuration after `ff9d456` was pushed. The live root serves
+`index-ow-NLYE0.js` and the service worker reports `proof-pile-v21`, matching
+the final build.
+
+Fresh browser contexts verified `/`, `/demo`, `/?demo=1`, `/app`, `/privacy`,
+and `/terms` return the right route-specific title, one h1, and one main.
+`/polish-7-missing` returns HTTP 404 with the designed 404 title. The first
+screen contains the clear photo-review job and one-click sample action; the
+sample has three groups and eight files. The mobile 390 px demo has no
+horizontal overflow and its main action is 44.39 px high.
+
+- Live browser audit: [`live-qa.json`](polish-7-artifacts/live-qa.json)
+- Cold first screen: [`root`](polish-7-artifacts/live-cold-root.png)
+- One-click sample: [`demo`](polish-7-artifacts/live-demo-one-click.png)
+- Direct sample, mobile: [`screenshot`](polish-7-artifacts/live-demo-mobile.png)
+- Fail-closed download dialog: [`screenshot`](polish-7-artifacts/live-download-refusal.png)
+- Worker URL checks: [`root`](polish-7-artifacts/live-root-final/verify.json)
+  and [`direct demo`](polish-7-artifacts/live-demo-final/verify.json)
+- Public-release check: [`release-public-check.txt`](polish-7-artifacts/release-public-check.txt)
+- Lighthouse report: [`lighthouse-live.json`](polish-7-artifacts/lighthouse-live.json)
+
+Local screenshots and URL records remain in `polish-7-artifacts/local-verify/`
+and `polish-7-artifacts/local-demo-verify/`.
+
+The final locally built consumer packages were:
+
+```text
+be04df5bfdc88f3fcf34ad94bfed2b98a99da5e3eaf1c9bc7cdca63ee03147ee  Proof Pile_0.1.23_amd64.deb
+29d4c0eac24b34b9f41c715f6d8d0ad2eba8c078c9db17f3e17e55b4589a1e99  Proof Pile-0.1.23-1.x86_64.rpm
+```
 
 ## How to run and verify
 
