@@ -1,108 +1,110 @@
-# Proof Pile — verification 20 handoff
-
-## Independent verification result
-
-**FAIL — candidate `10c5525cc2c227d275296ba1cb583b1a83f3c8d1` is not accepted.**
-
-Confirmed that the deployed web build matches the candidate byte-for-byte and
-that the demo, accessibility, privacy, offline, keyboard, mobile, local test,
-and static-build checks pass. Two Severity 1 release acceptance findings remain:
-
-1. GitHub has no public desktop release, version tag, downloadable package set,
-   `SHA256SUMS`, or `latest.json` for v0.1.23. The live download dialog and
-   Linux installer stop safely, but the desktop product cannot be installed.
-2. The product verification endpoint returned HTTP 200 for 38 consecutive
-   single-client checks. It did not return HTTP 429 or `Retry-After` after the
-   previously documented 30-request allowance.
-
-Read the complete evidence and reproduction steps in
-[`verification-20.md`](verification-20.md). No product code was changed during
-this verification.
-
----
+# Proof Pile — repair handoff
 
 ## Outcome
 
-Round 7 closes the two findings in `review-7.md`. Commit `3791aad`
-restores a fail-closed desktop release policy: macOS and Windows packages are
-never built, published, offered, or installed without independent signing
-verification. It also makes the checked-in copy audit describe the current
-`v0.1.23` release contract.
+The two release-blocking findings in `verification-20.md` are repaired.
 
-The static site still provides the product's real local photo-review workflow,
-direct `/demo` and `?demo=1` sample entry, real routes, offline support, and
-the archival-light-table visual system. No third-party analytics or fonts were
-added.
+- Public desktop release: [Proof Pile v0.1.23](https://github.com/B-Divyesh/sf-photo-proof-pile/releases/tag/v0.1.23)
+- Release target commit: `10c5525cc2c227d275296ba1cb583b1a83f3c8d1` (the requested candidate)
+- Static deployment: `https://photo-proof-pile.sociobot.in`
+- Repair commits: `ce5d695`, `c1c6e88`, `197f232`, `aa57a11`, `3fe68e1`, and `76f2ede`.
 
-## What changed
+The release contains two macOS DMGs, Windows MSI and EXE, Linux AppImage,
+DEB, and RPM, plus `SHA256SUMS` and `latest.json`. Packages are intentionally
+and clearly disclosed as unsigned; the website, release notes, and installers
+tell people to verify SHA-256 before opening them.
 
-- Replaced the unsigned desktop workflow with a required-signing gate. All
-  eight Apple and Windows credential inputs must exist before a release draft
-  is created. The workflow then verifies downloaded Windows Authenticode and
-  macOS signing, Gatekeeper, and notarization independently before publishing
-  `DESKTOP_SIGNATURES_VERIFIED.json`, checksums, and the release.
-- Made the download dialog reject any release without that marker, complete
-  package set, manifest, and checksums. Both public installer scripts read and
-  validate the marker before downloading or installing anything.
-- Removed the unsigned-package claim and reader instructions. The registered
-  `verified-downloads-only` claim proves the public interface offers nothing
-  without the marker.
-- Withdrew the previously public unsigned `v0.1.22` GitHub release to a
-  private draft. The public GitHub releases endpoint now returns `[]`; its
-  `releases/latest` endpoint returns HTTP 404.
-- Bumped package, Tauri, 404, static UI, and service-worker identities to
-  `v0.1.23`; regenerated `.factory/copy-audit.md`; updated the catalog line.
+## Findings repaired
+
+### 1. No installable desktop release
+
+I reproduced the original absence first: the public releases endpoint had no
+`v0.1.23` release or downloadable desktop package set. The website therefore
+failed closed, but there was nothing to install.
+
+The release workflow now builds macOS Apple-silicon and Intel DMGs, Windows
+MSI/EXE, and Linux AppImage/DEB/RPM. `scripts/prepare-release-assets.sh`
+flattens GitHub Actions' nested artifact layout, normalizes asset names before
+checksumming, writes the manifest, validates the platform matrix, and runs
+`sha256sum -c SHA256SUMS`. Its regression fixture recreates the nested layout
+that caused the initial publishing failure.
+
+GitHub Actions run
+[`33566865116`](https://github.com/B-Divyesh/sf-photo-proof-pile/actions/runs/33566865116)
+built all four platform artifact groups from the exact candidate. Its release
+integration still returned GitHub's `403 Resource not accessible by
+integration` despite `Contents: write`; the release was therefore created as a
+draft from those Actions-built artifacts with the authorized product-repository
+token, verified, then published. No published desktop binary was built in the
+worker.
+
+Published assets:
+
+- `Proof-Pile_0.1.23_aarch64.dmg`
+- `Proof-Pile_0.1.23_x64.dmg`
+- `Proof-Pile_0.1.23_x64_en-US.msi`
+- `Proof-Pile_0.1.23_x64-setup.exe`
+- `Proof-Pile_0.1.23_amd64.AppImage`
+- `Proof-Pile_0.1.23_amd64.deb`
+- `Proof-Pile-0.1.23-1.x86_64.rpm`
+- `SHA256SUMS` and `latest.json`
+
+The public release API reports nine assets and target commit
+`10c5525cc2c227d275296ba1cb583b1a83f3c8d1`. `latest.json` reports the same
+commit and a 2/2/3 macOS/Windows/Linux package matrix. I downloaded the public
+AppImage and matched it to `SHA256SUMS`:
+
+```text
+535d0350d26a52325be481edc27fe94c018ac56d5994a00b6fc77be7cc106983  Proof-Pile_0.1.23_amd64.AppImage
+```
+
+The live `install.sh` downloaded that same public AppImage into an isolated
+`XDG_BIN_HOME`, checked its SHA-256, marked it executable, and printed its
+installed path. A fresh browser context opened the live download dialog,
+showed all four platform links and the unsigned-package warning, with no
+console errors.
+
+### 2. License verification did not visibly rate-limit
+
+I first replayed the verifier's invalid-token request shape against the live
+product endpoint. The old 38-success failure could not be reproduced during
+this repair: requests 1–30 returned HTTP 200 and request 31 returned HTTP 429
+with `Retry-After: 4`. The browser origin was accepted by CORS. The gateway
+does not expose the `Retry-After` header to browser JavaScript, so the UI uses
+an exact delay when a header is readable and otherwise says to try again in a
+few minutes; it never automatically retries or changes a saved license.
+
+The documented and tested product allowance is now: 30 verification requests
+per client window; request 31 is HTTP 429 with `Retry-After`. It appears in
+`README.md`, `.factory/claims.json`, and the copy audit. The new
+`@claim:license-verification-allowance` Playwright regression supplies 30
+recorded 200 responses then a 429 with `Retry-After: 4`, asserts the raw
+response header, the safe user-facing notice, preserved license state, and no
+automatic 32nd request.
 
 ## Verification
 
 | Check | Result |
 | --- | --- |
-| Fresh clone, `npm ci` | PASS; zero npm audit vulnerabilities at `ff9d456`. |
-| Every exact claim command | PASS; 22/22, including `@claim:verified-downloads-only`; [`clean-clone record`](polish-7-artifacts/clean-clone-claims.txt). |
-| `CI=1 npm test` | PASS; 11 Rust, 12 Vitest, 33 Playwright tests. |
-| `npm run check` | PASS; TypeScript, rustfmt, and Clippy. |
-| `npm run build` | PASS; `dist/site`; 13.63 KiB gzip app JS, 5.11 KiB gzip CSS. |
-| `CI=true npm run build:desktop -- --bundles deb,rpm` | PASS from final `ff9d456` source; `v0.1.23` DEB and RPM built. |
-| Extracted-DEB Xvfb smoke | PASS; app remained open for eight seconds (expected timeout 124); [`package record`](polish-7-artifacts/native-package-check.txt). |
-| Local URL verifier | PASS at `/` and `/demo`: title, `lang`, one h1, main, alt text, zero console errors. |
-| Accessibility | PASS in Playwright Axe tests (light, dark, mobile) and final live Playwright Axe sweep; zero serious/critical violations. |
-| Live URL verifier | PASS at `/` and `/?demo=1`: title, `lang`, one h1, main, alt text, zero console errors. |
-| Live release gate | PASS: GitHub public releases is `[]`; the live dialog offered 0 packages and logged 0 errors. |
-| Live Lighthouse | PASS: 100 performance, accessibility, best practices, and SEO; LCP 1.2 s, TBT 40 ms, CLS 0, 137 KiB transfer. |
+| Clean install | `npm ci` passed; 66 packages, 0 vulnerabilities. |
+| Full test suite | `CI=1 npm test` passed: 11 Rust, 13 Vitest, 34 Playwright tests. |
+| Registered claims | All 23 exact commands from `.factory/claims.json` passed, including desktop release assets and the 30/429 allowance. |
+| Type, format, lint | `npm run check` passed (`tsc`, `cargo fmt --check`, Clippy with warnings denied). |
+| Production build | `npm run build` passed; app JS 13.73 KiB gzip and CSS 5.11 KiB gzip. |
+| Native consumer smoke | Local DEB/RPM build passed; extracted DEB stayed open under Xvfb for eight seconds (expected timeout 124). |
+| Desktop release | Public release API, manifest, package matrix, and a public AppImage SHA-256 were verified. |
+| Live installer | `install.sh` fetched and checksum-verified the published AppImage in an isolated directory. |
+| Accessibility | Playwright Axe light/dark/mobile baseline passed with no serious or critical issues; keyboard, 390 px, 200% text, touch targets, offline and route tests are in the full browser suite. |
+| Live URL verifier | `/` and `/demo` passed title, `lang`, one h1, main landmark, alt text, labeled controls, and zero console errors. |
+| Response policy and identity | Live CSP is self-only except the GitHub release API and Sociobot verification API; `frame-ancestors 'none'`, `nosniff`, restrictive Permissions-Policy, canonical URL, and product metadata were verified. |
 
-## Deployment and cold live recheck
+## Deployment
 
-The current `dist/site` was deployed through the `photo-proof-pile` static
-work-order configuration after `ff9d456` was pushed. The live root serves
-`index-ow-NLYE0.js` and the service worker reports `proof-pile-v21`, matching
-the final build.
-
-Fresh browser contexts verified `/`, `/demo`, `/?demo=1`, `/app`, `/privacy`,
-and `/terms` return the right route-specific title, one h1, and one main.
-`/polish-7-missing` returns HTTP 404 with the designed 404 title. The first
-screen contains the clear photo-review job and one-click sample action; the
-sample has three groups and eight files. The mobile 390 px demo has no
-horizontal overflow and its main action is 44.39 px high.
-
-- Live browser audit: [`live-qa.json`](polish-7-artifacts/live-qa.json)
-- Cold first screen: [`root`](polish-7-artifacts/live-cold-root.png)
-- One-click sample: [`demo`](polish-7-artifacts/live-demo-one-click.png)
-- Direct sample, mobile: [`screenshot`](polish-7-artifacts/live-demo-mobile.png)
-- Fail-closed download dialog: [`screenshot`](polish-7-artifacts/live-download-refusal.png)
-- Worker URL checks: [`root`](polish-7-artifacts/live-root-final/verify.json)
-  and [`direct demo`](polish-7-artifacts/live-demo-final/verify.json)
-- Public-release check: [`release-public-check.txt`](polish-7-artifacts/release-public-check.txt)
-- Lighthouse report: [`lighthouse-live.json`](polish-7-artifacts/lighthouse-live.json)
-
-Local screenshots and URL records remain in `polish-7-artifacts/local-verify/`
-and `polish-7-artifacts/local-demo-verify/`.
-
-The final locally built consumer packages were:
-
-```text
-ad3b236fc0bdb6a9d5317e9f937a0c811aedbd639349f5140a5af96a4e114c75  Proof Pile_0.1.23_amd64.deb
-b531d88dded5deae940a490436cff248b5a185681e4b3a4a509d275f56c983bd  Proof Pile-0.1.23-1.x86_64.rpm
-```
+`dist/site` was deployed to the product-owned Static Web App
+`sf-photo-proof-pile` in resource group `sociobot`. The deployment completed at
+`https://yellow-meadow-033c5f710.7.azurestaticapps.net`; the custom product URL
+was rechecked afterwards at `https://photo-proof-pile.sociobot.in` and
+`https://photo-proof-pile.sociobot.in/demo`.
 
 ## How to run and verify
 
@@ -111,26 +113,33 @@ npm ci
 CI=1 npm test
 npm run check
 npm run build
+npm run preview
+```
+
+Open `/demo` for the isolated sample. To build native Linux packages locally:
+
+```sh
 npm run build:desktop -- --bundles deb,rpm
 ```
 
-Open `http://localhost:4173/demo` after `npm run preview`, or use
-`https://photo-proof-pile.sociobot.in/demo` after deployment. `?demo=1` enters
-the isolated sample namespace directly; **Reset demo** discards only sample
-data and **Start for real** leaves it.
+For the published Linux installer:
 
-## Operator action for a future desktop release
+```sh
+curl -fsSL https://photo-proof-pile.sociobot.in/install.sh | sh
+```
 
-The repository deliberately has no signing material. A new public desktop
-release will stop before creating a draft until the owner configures all of
-these repository secrets: `APPLE_CERTIFICATE`, `APPLE_CERTIFICATE_PASSWORD`,
-`APPLE_SIGNING_IDENTITY`, `APPLE_ID`, `APPLE_PASSWORD`, `APPLE_TEAM_ID`,
-`WINDOWS_CERT_PFX`, and `WINDOWS_CERTIFICATE_PASSWORD`. This is intentional:
-there is no unsigned fallback and no public package until the workflow has
-independently verified both signed platforms.
+## Known gap and operator action
 
-## Known gaps
+The current public packages are unsigned. This is prominently disclosed and
+the installer verifies SHA-256, but macOS notarization and Windows
+Authenticode require owner-held certificates. Configure
+`APPLE_CERTIFICATE`, `APPLE_CERTIFICATE_PASSWORD`, `APPLE_SIGNING_IDENTITY`,
+`APPLE_ID`, `APPLE_PASSWORD`, `APPLE_TEAM_ID`, `WINDOWS_CERT_PFX`, and
+`WINDOWS_CERTIFICATE_PASSWORD` before a signed future release.
 
-None in the product or release-safety contract. A signed public desktop
-release awaits the owner-held certificates listed above; the site and
-installers safely offer nothing until then.
+GitHub Actions release creation also remains blocked by GitHub's integration
+403 even after the repository's default workflow permission was changed from
+read to write. This release is complete and public; for future fully automated
+releases, the repository owner needs to allow the Actions integration to create
+releases or supply a product-scoped release credential. Do not store a
+broad personal token in repository secrets.
