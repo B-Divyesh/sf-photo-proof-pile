@@ -1,6 +1,6 @@
 # Landing page copy audit
 
-Audited 1 September 2026 for release `v0.1.24`. Counts treat hyphenated
+Audited 1 September 2026 for release `v0.1.25`. Counts treat hyphenated
 terms, prices, and URLs as one word. No reader sentence exceeds 22 words. No
 banned marketing word appears.
 
@@ -35,7 +35,7 @@ banned marketing word appears.
 | Buy via Sociobot checkout ↗ / Restore a purchase | 4 / 3 | Result actions |
 | Sociobot checkout takes payment. / For refunds, email support@sociobot.in. | 4 / 4 | `paid-checkout` |
 | Review duplicate photos before moving extra copies. | 7 | Footer description |
-| Terms / Built by Param Factory ↗ / v0.1.24 · source [commit id] | 1 / 4 / 4 | `desktop-release-identity` |
+| Terms / Built by Param Factory ↗ / v0.1.25 · source [commit id] | 1 / 4 / 4 | `desktop-release-identity` |
 
 ## Download dialog copy
 
@@ -46,8 +46,8 @@ banned marketing word appears.
 | Checking the latest release… / Checking release verification… | 4 / 3 | Loading state |
 | Downloads for this build are being published. | 7 | Empty state |
 | No package is offered until this source, the full package set, and the SHA-256 file match. | 17 | `desktop-release-assets`, `desktop-release-identity` |
-| v0.1.24 is ready from this source. | 7 | `desktop-release-identity` |
-| Packages are unsigned. / Match the SHA-256 file before opening one. | 3 / 8 | Release state |
+| v0.1.25 is ready from this source. | 7 | `desktop-release-identity` |
+| macOS packages lack Developer ID signing. / Windows packages are unsigned. / Match the SHA-256 file before opening one. | 6 / 5 / 8 | `unsigned-package-state` |
 | Download for macOS (Apple silicon) / Download for macOS (Intel) / Download for Windows / Download for Linux | 5 / 4 / 3 / 3 | Result actions |
 | Downloads are not published yet. Check again later. | 8 | Error and next step |
 | View release status on GitHub ↗ | 6 | External status action |
@@ -74,7 +74,7 @@ banned marketing word appears.
 | Use Check desktop downloads on the website. | 6 | Install action |
 | A package is offered only when both macOS builds, a Windows installer, Linux packages, SHA256SUMS, and latest.json are published. | 19 | `desktop-release-assets` |
 | The download must also match the source shown in the site footer. | 11 | `desktop-release-identity` |
-| Current packages are unsigned: on macOS, Control-click and choose Open; on Windows, inspect the publisher warning before continuing. | 17 | `unsigned-package-state` |
+| macOS packages lack Developer ID signing. / Windows packages are unsigned. / On macOS, Control-click and choose Open; on Windows, inspect the publisher warning before continuing. | 6 / 5 / 12 | `unsigned-package-state` |
 | Both scripts compare the downloaded package with the published SHA-256 verification file before installing it. | 15 | Installer tests |
 | The service allows 30 verification requests per client window. / Request 31 returns HTTP 429 with Retry-After; the app does not retry it automatically. | 9 / 15 | `license-verification-allowance` |
 | The local scanner reads only folders you select. / It compares file bytes for exact copies and image content for photos that look alike. / It also reads the capture time and camera stored inside each photo. / Files in an exact-copy group do not appear again in another match group. | 8 / 15 / 13 / 14 | Matching claims |

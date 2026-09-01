@@ -169,9 +169,9 @@
   },
   {
     "id": "unsigned-package-state",
-    "claim": "Published macOS and Windows packages are unsigned.",
+    "claim": "Published macOS packages lack Developer ID signing and Windows packages are Authenticode NotSigned.",
     "where": "README and download dialog",
     "test": "npm run test:unit -- --testNamePattern @claim:unsigned-package-state",
-    "sandbox": "the release workflow inspects every built DMG for a missing Developer ID authority and every built MSI/EXE for Windows NotSigned status before publication"
+    "sandbox": "the release workflow inspects every built DMG for a missing Developer ID or Apple Distribution authority and every built MSI/EXE for Windows NotSigned status before publication"
   }
 ]

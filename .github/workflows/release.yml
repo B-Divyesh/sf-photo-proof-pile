@@ -140,7 +140,7 @@ jobs:
           RELEASE_COMMIT: ${{ needs.prepare-release.outputs.commit }}
           REPOSITORY: ${{ github.repository }}
         run: bash scripts/prepare-release-assets.sh release-assets
-      - name: Publish complete unsigned desktop release
+      - name: Publish complete desktop release with verified signing state
         uses: softprops/action-gh-release@v2
         with:
           tag_name: ${{ needs.prepare-release.outputs.tag }}
@@ -149,7 +149,7 @@ jobs:
           body: |
             Desktop packages built from `${{ needs.prepare-release.outputs.commit }}`.
 
-            These packages are unsigned. Verify the package against `SHA256SUMS` before opening it. On macOS, Control-click and choose Open. On Windows, inspect the publisher warning before continuing.
+            macOS packages lack Developer ID distribution signing. Windows packages are Authenticode NotSigned. Verify the package against `SHA256SUMS` before opening it. On macOS, Control-click and choose Open. On Windows, inspect the publisher warning before continuing.
           files: release-assets/published/*
           fail_on_unmatched_files: true
       - name: Verify one published Linux asset against SHA256SUMS

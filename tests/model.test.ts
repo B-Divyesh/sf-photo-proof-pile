@@ -102,7 +102,8 @@ describe("review model", () => {
     expect(workflow).toContain("latest.json");
     expect(workflow).toContain("softprops/action-gh-release@v2");
     expect(preparation).toContain("sha256sum -c SHA256SUMS");
-    expect(preparation).toContain('"unsigned"');
+    expect(preparation).toContain('"no_developer_id"');
+    expect(preparation).toContain('"not_signed"');
     expect(workflow).toContain("files: release-assets/published/*");
     expect(workflow).toContain("bash scripts/prepare-release-assets.sh release-assets");
     expect(workflow).toContain('tag_commit=$(git rev-parse "${release_tag}^{}")');
@@ -134,7 +135,7 @@ describe("review model", () => {
     const published = join(artifacts, "published");
     const manifest = JSON.parse(readFileSync(join(published, "latest.json"), "utf8"));
     const sums = readFileSync(join(published, "SHA256SUMS"), "utf8");
-    expect(manifest).toMatchObject({ version: "v0.1.23", commit: "a".repeat(40), signatures: { macos: "unsigned", windows: "unsigned" } });
+    expect(manifest).toMatchObject({ version: "v0.1.23", commit: "a".repeat(40), signatures: { macos: "no_developer_id", windows: "not_signed" } });
     expect(manifest.platforms.macos).toHaveLength(2);
     expect(manifest.platforms.windows).toHaveLength(1);
     expect(manifest.platforms.linux).toHaveLength(3);
@@ -178,7 +179,7 @@ describe("review model", () => {
     expect(workflow).toContain("verify-unsigned-macos-dmg.sh src-tauri/target/**/release/bundle/dmg/*.dmg");
     expect(workflow).toContain("verify-unsigned-windows.ps1 -Path src-tauri/target");
     expect(macCheck).toContain("codesign -dv --verbose=4");
-    expect(macCheck).toContain("Expected an unsigned macOS package");
+    expect(macCheck).toContain("Expected no macOS distribution signature");
     expect(windowsCheck).toContain("Get-AuthenticodeSignature");
     expect(windowsCheck).toContain('"NotSigned"');
   });

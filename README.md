@@ -27,7 +27,7 @@ The app stores a returned license under `sb_license:photo-proof-pile` and checks
 
 ## Install
 
-Use **Check desktop downloads** on the website. A package is offered only when both macOS builds, a Windows installer, Linux packages, `SHA256SUMS`, and `latest.json` are published. The download must also match the source shown in the site footer. Current packages are unsigned: on macOS, Control-click and choose Open; on Windows, inspect the publisher warning before continuing.
+Use **Check desktop downloads** on the website. A package is offered only when both macOS builds, a Windows installer, Linux packages, `SHA256SUMS`, and `latest.json` are published. The download must also match the source shown in the site footer. macOS packages lack Developer ID signing. Windows packages are unsigned. On macOS, Control-click and choose Open; on Windows, inspect the publisher warning before continuing.
 
 Linux users can run:
 

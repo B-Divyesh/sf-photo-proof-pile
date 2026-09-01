@@ -20,12 +20,12 @@ for dmg in "$@"; do
     exit 1
   fi
   signature=$(codesign -dv --verbose=4 "$app" 2>&1 || true)
-  if printf '%s\n' "$signature" | grep -Eq '^Authority=|^TeamIdentifier=[^[:space:]]+'; then
-    echo "Expected an unsigned macOS package, but $dmg has a signing authority." >&2
+  if printf '%s\n' "$signature" | grep -Eq '^Authority=(Developer ID Application|Apple Distribution):'; then
+    echo "Expected no macOS distribution signature, but $dmg has a distribution signing authority." >&2
     exit 1
   fi
   detach
   trap - EXIT
 done
 
-echo "Verified macOS packages have no Developer ID signing authority."
+echo "Verified macOS packages have no Developer ID or Apple Distribution signing authority."

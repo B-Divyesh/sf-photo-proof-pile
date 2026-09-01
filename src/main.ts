@@ -8,7 +8,7 @@ declare global { interface Window { __TAURI_INTERNALS__?: unknown } }
 const app = document.querySelector<HTMLDivElement>("#app")!;
 const isDesktop = Boolean(window.__TAURI_INTERNALS__);
 const PRODUCT = "photo-proof-pile";
-const VERSION = "0.1.24";
+const VERSION = "0.1.25";
 const BUILD_COMMIT = __PROOF_PILE_BUILD_COMMIT__;
 const LICENSE_KEY = `sb_license:${PRODUCT}`;
 const DEMO_KEY = "demo:photo-proof-pile:session";
@@ -556,7 +556,7 @@ async function showDownloads() {
       return;
     }
     document.querySelector("#release-state")!.textContent = `${published.tag_name} is ready from this source.`;
-    document.querySelector("#signature-state")!.textContent = "Packages are unsigned. Match the SHA-256 file before opening one.";
+    document.querySelector("#signature-state")!.textContent = "macOS packages lack Developer ID signing. Windows packages are unsigned. Match the SHA-256 file before opening one.";
     document.querySelector("#release-links")!.innerHTML = [
       `<a class="button quiet" href="${escapeHtml(published.macArm.browser_download_url)}">Download for macOS (Apple silicon)</a>`,
       `<a class="button quiet" href="${escapeHtml(published.macIntel.browser_download_url)}">Download for macOS (Intel)</a>`,
