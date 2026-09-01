@@ -134,7 +134,7 @@ describe("review model", () => {
     expect(manifest.platforms.macos).toHaveLength(2);
     expect(manifest.platforms.windows).toHaveLength(1);
     expect(manifest.platforms.linux).toHaveLength(3);
-    for (const [relative] of files) expect(sums).toContain(`  ${relative.split("/").at(-1)}`);
+    for (const [relative] of files) expect(sums).toContain(`  ${relative.split("/").at(-1)?.replaceAll(" ", "-")}`);
   });
 
   it("releases only the matching version tag and records that tag's immutable commit", () => {

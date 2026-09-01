@@ -9,7 +9,7 @@ output_dir="$input_dir/published"
 
 mkdir -p "$output_dir"
 while IFS= read -r -d '' asset; do
-  name=$(basename "$asset")
+  name=$(basename "$asset" | tr ' ' '-')
   if [ -e "$output_dir/$name" ]; then
     echo "Duplicate release asset name: $name" >&2
     exit 1
