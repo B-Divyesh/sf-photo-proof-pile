@@ -1,3 +1,96 @@
+# Repair 12 handoff — deterministic CI browser verification
+
+## Outcome
+
+The release-blocking verification-18 failure is repaired in code commit
+`b42275ccd79b50db16a4a86440a943e065214bae` (`fix: make Playwright CI
+deterministic`). The repair is pushed to `main` and the static product was
+deployed to `sf-photo-proof-pile` production as deployment
+`6dae0d04-7da9-4bc8-9e5e-1fc98a74269f`.
+
+The product behavior and public artifact remain unchanged. The repair makes
+the required test gate deterministic:
+
+- Playwright now uses one worker for both `CI=1` and `CI=true`, and disables
+  fully parallel scheduling for the browser suite.
+- Offline, reload, and native-confirmation flows create their own browser
+  context. The helpers close only that context; they never close Playwright's
+  shared browser.
+- The offline test waits for service-worker readiness, reloads until the worker
+  controls the page, then switches only its isolated context offline.
+- Native confirmation responses are represented by a promise and awaited
+  before the next action. This removes the old fire-and-forget `page.once`
+  handler race that could make the second confirmation see an already-handled
+  dialog.
+- A unit regression test pins the `CI=1` worker policy, isolated-context
+  helpers, explicit service-worker wait, awaited dialog completion, and the
+  prohibition on `browser.close()` in the browser suite.
+
+## Reproduction evidence
+
+Before the change, after a clean `npm ci`, the exact `CI=1 npm test` command
+printed `Running 33 tests using 2 workers`; `CI=1` was not actually serial.
+The command passed on this worker, as did a three-pass stress run (`99 tests
+using 2 workers`), so no failure is fabricated here. The independent verifier
+reproduced the timing failure twice from the same base candidate: the Axe test
+timed out and the second review confirmation raised `Cannot accept dialog
+which is already handled!`. The old asynchronous, unawaited confirmation
+handlers were the direct code path for that latter failure.
+
+After the repair, the focused regression run completed all five affected
+flows in one worker: the two-confirmation plan, recovery reload, free safety
+reload, reviewed move claim, and offline reload.
+
+## Verification
+
+All commands ran from a clean `npm ci` dependency install.
+
+| Check | Result |
+| --- | --- |
+| `CI=1 npm test` | PASS — Rust 11/11, Vitest 12/12, Playwright 33/33 in one worker; 44.1s |
+| Exact `.factory/claims.json` commands | PASS — 23/23, including offline reload and reviewed native confirmation |
+| `npm run check` | PASS — TypeScript, rustfmt, and Clippy with warnings denied |
+| `npm run build` | PASS — `dist/site`; app JS 13.65 KiB gzip, CSS 5.11 KiB gzip |
+| Local production root and demo smoke | PASS — title, `lang`, one h1, main, alt text, and zero console errors |
+| Local 390px PWA check | PASS — service worker controlled `/demo`, update had no waiting worker, offline reload retained three groups and had no horizontal overflow |
+| Browser accessibility and keyboard | PASS — full suite covers dark/light Axe, 390px Axe, skip-link focus, arrow/Space decision controls, dialog focus, targets, and 200% text; live dark mobile Axe found zero serious/critical violations |
+| Privacy and response policy | PASS — live quarantine flow made no off-origin requests; CSP, HSTS, `nosniff`, referrer policy, permissions policy, manifest, immutable asset rule, and a real unknown-route 404 verified |
+| Lighthouse mobile, live root | PASS — Performance 100, Accessibility 100, Best Practices 100, SEO 100; FCP 0.9s, LCP 1.1s, CLS 0, TBT 10ms |
+| `CI=true npm run build:desktop -- --bundles deb,rpm` | PASS after installing the declared Linux workflow prerequisites |
+| Package consumer smoke | PASS — DEB metadata is `proof-pile` 0.1.22 amd64; a freshly extracted DEB ran under Xvfb for eight seconds (expected timeout 124) |
+| Live identity and demo | PASS — deployed JS SHA-256 exactly matches `dist/site`; desktop demo quarantined two samples, 390px showed its first action without overflow, and live service worker controlled/offline-reloaded `/demo` with no waiting update |
+
+Local desktop package hashes:
+
+```text
+3b9d45f92e485991f99412c7f876fee2eb84d179b9cae2f72f24cc53e1572e25  Proof Pile_0.1.22_amd64.deb
+5ac280ef661d7f84f54294301348af35bb957fcac26c28170354dd508e047a8e  Proof Pile-0.1.22-1.x86_64.rpm
+```
+
+## Deployment
+
+`/opt/fleet/lib/deploy-static.sh photo-proof-pile dist/site` reused only the
+existing `sf-photo-proof-pile` static app and completed successfully. At
+<https://photo-proof-pile.sociobot.in>, `/`, `/demo`, `/privacy`, and `/terms`
+return 200; a random unknown route returns 404. The deployed
+`/assets/index-Bc2u97bG.js` SHA-256 is
+`c7d396feb087962ae5900854bc86e7ad8dc70060ea70e777b0def96524be0dda`,
+identical to the freshly built file.
+
+No desktop release tag was created because the package payload and version
+remain `0.1.22`; this repair changes only test scheduling and regression
+coverage. The existing release workflow and desktop artifact class are
+unchanged.
+
+## Known gaps and operator action
+
+No product or test-gate gap remains from verification 18. Existing macOS and
+Windows release packages remain intentionally unsigned, as documented by the
+published package-status file. To publish signed packages later, the operator
+must supply the existing workflow's Apple and/or Windows certificate secrets
+and explicitly set `DESKTOP_SIGNING_ENABLED=true`; no credentials are stored
+in this repository.
+
 # Proof Pile verification 18 handoff
 
 ## Independent result: FAIL
