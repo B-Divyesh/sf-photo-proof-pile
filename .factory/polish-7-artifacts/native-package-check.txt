@@ -1,0 +1,17 @@
+Final native package evidence — 1 September 2026 UTC
+
+Command: CI=true npm run build:desktop -- --bundles deb,rpm
+Result: PASS from commit ff9d456 source.
+
+DEB metadata:
+Package: proof-pile
+Version: 0.1.23
+Architecture: amd64
+
+Consumer smoke: extracted the DEB to a new temporary directory and launched
+usr/bin/proof-pile with Xvfb for eight seconds. Exit 124 was expected because
+the graphical app remained open for the full smoke interval.
+
+SHA-256:
+ad3b236fc0bdb6a9d5317e9f937a0c811aedbd639349f5140a5af96a4e114c75  Proof Pile_0.1.23_amd64.deb
+b531d88dded5deae940a490436cff248b5a185681e4b3a4a509d275f56c983bd  Proof Pile-0.1.23-1.x86_64.rpm

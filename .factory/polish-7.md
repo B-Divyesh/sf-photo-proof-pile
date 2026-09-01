@@ -90,8 +90,8 @@ an unsigned-package disclaimer.
 
 At final commit `ff9d456`, a fresh clone completed `npm ci` and all 22 exact
 claim commands. The local full suite passed 11 Rust, 12 Vitest, and 33
-Playwright tests; `npm run check`, `npm run build`, native DEB/RPM production
-build, and extracted-DEB Xvfb smoke passed. The final static build was deployed
+Playwright tests; `npm run check`, `npm run build`, final-source native DEB/RPM
+production build, and extracted-DEB Xvfb smoke passed. The final static build was deployed
 through the product work order. Cold live root and direct `?demo=1` checks had
 no console errors. The live audit confirmed all real routes, titles, 404,
 demo sample, mobile layout, zero serious/critical Axe findings, and the

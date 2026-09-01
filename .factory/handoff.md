@@ -41,8 +41,8 @@ added.
 | `CI=1 npm test` | PASS; 11 Rust, 12 Vitest, 33 Playwright tests. |
 | `npm run check` | PASS; TypeScript, rustfmt, and Clippy. |
 | `npm run build` | PASS; `dist/site`; 13.63 KiB gzip app JS, 5.11 KiB gzip CSS. |
-| `CI=true npm run build:desktop -- --bundles deb,rpm` | PASS; `v0.1.23` DEB and RPM built. |
-| Extracted-DEB Xvfb smoke | PASS; app remained open for eight seconds (expected timeout 124). |
+| `CI=true npm run build:desktop -- --bundles deb,rpm` | PASS from final `ff9d456` source; `v0.1.23` DEB and RPM built. |
+| Extracted-DEB Xvfb smoke | PASS; app remained open for eight seconds (expected timeout 124); [`package record`](polish-7-artifacts/native-package-check.txt). |
 | Local URL verifier | PASS at `/` and `/demo`: title, `lang`, one h1, main, alt text, zero console errors. |
 | Accessibility | PASS in Playwright Axe tests (light, dark, mobile) and final live Playwright Axe sweep; zero serious/critical violations. |
 | Live URL verifier | PASS at `/` and `/?demo=1`: title, `lang`, one h1, main, alt text, zero console errors. |
@@ -79,8 +79,8 @@ and `polish-7-artifacts/local-demo-verify/`.
 The final locally built consumer packages were:
 
 ```text
-be04df5bfdc88f3fcf34ad94bfed2b98a99da5e3eaf1c9bc7cdca63ee03147ee  Proof Pile_0.1.23_amd64.deb
-29d4c0eac24b34b9f41c715f6d8d0ad2eba8c078c9db17f3e17e55b4589a1e99  Proof Pile-0.1.23-1.x86_64.rpm
+ad3b236fc0bdb6a9d5317e9f937a0c811aedbd639349f5140a5af96a4e114c75  Proof Pile_0.1.23_amd64.deb
+b531d88dded5deae940a490436cff248b5a185681e4b3a4a509d275f56c983bd  Proof Pile-0.1.23-1.x86_64.rpm
 ```
 
 ## How to run and verify
