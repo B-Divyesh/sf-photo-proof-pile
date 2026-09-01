@@ -1,5 +1,9 @@
 import { expect, test, type Browser, type BrowserContext, type BrowserContextOptions, type Page } from "@playwright/test";
 import AxeBuilder from "@axe-core/playwright";
+import { execFileSync } from "node:child_process";
+
+const sourceCommit = execFileSync("git", ["rev-parse", "HEAD"], { encoding: "utf8" }).trim();
+const releaseApi = "https://api.github.com/repos/B-Divyesh/sf-photo-proof-pile/releases/tags/v0.1.24";
 
 async function withIsolatedPage<T>(browser: Browser, run: (page: Page, context: BrowserContext) => Promise<T>, options?: BrowserContextOptions): Promise<T> {
   const context = await browser.newContext(options);
@@ -620,23 +624,22 @@ test("the skip link moves keyboard focus to main", async ({ page }) => {
   await expect(page.locator("main")).toBeFocused();
 });
 
-test("download picker offers both macOS architectures from a complete release", async ({ page }) => {
-  await page.route("https://api.github.com/repos/B-Divyesh/sf-photo-proof-pile/releases?per_page=1", route => route.fulfill({
+test("download picker offers both macOS architectures from a matching complete release", async ({ page }) => {
+  await page.route(releaseApi, route => route.fulfill({
     status: 200,
     contentType: "application/json",
-    body: JSON.stringify([{ tag_name: "v0.1.1", assets: [
-      { name: "Proof.Pile_0.1.1_aarch64.dmg", browser_download_url: "https://example.test/arm.dmg" },
-      { name: "Proof.Pile_0.1.1_x86_64.dmg", browser_download_url: "https://example.test/intel.dmg" },
-      { name: "Proof.Pile_0.1.1_x64_en-US.msi", browser_download_url: "https://example.test/app.msi" },
-      { name: "Proof.Pile_0.1.1_amd64.AppImage", browser_download_url: "https://example.test/app.AppImage" },
+    body: JSON.stringify({ tag_name: "v0.1.24", target_commitish: sourceCommit, assets: [
+      { name: "Proof.Pile_0.1.24_aarch64.dmg", browser_download_url: "https://example.test/arm.dmg" },
+      { name: "Proof.Pile_0.1.24_x86_64.dmg", browser_download_url: "https://example.test/intel.dmg" },
+      { name: "Proof.Pile_0.1.24_x64_en-US.msi", browser_download_url: "https://example.test/app.msi" },
+      { name: "Proof.Pile_0.1.24_amd64.AppImage", browser_download_url: "https://example.test/app.AppImage" },
       { name: "SHA256SUMS", browser_download_url: "https://example.test/SHA256SUMS" },
       { name: "latest.json", browser_download_url: "https://example.test/latest.json" }
-    ] }])
+    ] })
   }));
   await page.goto("/");
-  await page.evaluate(() => localStorage.setItem("proof-pile:release", JSON.stringify({ savedAt: Date.now(), data: { tag_name: "v0.1.0", assets: [] } })));
   await page.getByRole("button", { name: "Check desktop downloads" }).click();
-  await expect(page.getByText("v0.1.1 is ready.")).toBeVisible();
+  await expect(page.getByText("v0.1.24 is ready from this source.")).toBeVisible();
   await expect(page.getByRole("link", { name: "Download for macOS (Apple silicon)" })).toHaveAttribute("href", "https://example.test/arm.dmg");
   await expect(page.getByRole("link", { name: "Download for macOS (Intel)" })).toHaveAttribute("href", "https://example.test/intel.dmg");
   await expect(page.getByText("Packages are unsigned. Match the SHA-256 file before opening one.")).toBeVisible();
@@ -645,51 +648,71 @@ test("download picker offers both macOS architectures from a complete release", 
 test("@claim:desktop-release-assets offers packages only after the complete release record is published", async ({ page }) => {
   const consoleErrors: string[] = [];
   page.on("console", message => { if (message.type() === "error") consoleErrors.push(message.text()); });
-  await page.route("https://api.github.com/repos/B-Divyesh/sf-photo-proof-pile/releases?per_page=1", route => route.fulfill({
+  await page.route(releaseApi, route => route.fulfill({
     status: 200,
     contentType: "application/json",
-    body: JSON.stringify([{ tag_name: "v0.1.23", assets: [
-      { name: "Proof.Pile_0.1.23_aarch64.dmg", browser_download_url: "https://example.test/arm.dmg" },
-      { name: "Proof.Pile_0.1.23_x64.dmg", browser_download_url: "https://example.test/intel.dmg" },
-      { name: "Proof.Pile_0.1.23_x64_en-US.msi", browser_download_url: "https://example.test/app.msi" },
-      { name: "Proof.Pile_0.1.23_amd64.AppImage", browser_download_url: "https://example.test/app.AppImage" },
+    body: JSON.stringify({ tag_name: "v0.1.24", target_commitish: sourceCommit, assets: [
+      { name: "Proof.Pile_0.1.24_aarch64.dmg", browser_download_url: "https://example.test/arm.dmg" },
+      { name: "Proof.Pile_0.1.24_x64.dmg", browser_download_url: "https://example.test/intel.dmg" },
+      { name: "Proof.Pile_0.1.24_x64_en-US.msi", browser_download_url: "https://example.test/app.msi" },
+      { name: "Proof.Pile_0.1.24_amd64.AppImage", browser_download_url: "https://example.test/app.AppImage" },
       { name: "SHA256SUMS", browser_download_url: "https://example.test/SHA256SUMS" }
-    ] }])
+    ] })
   }));
   await page.goto("/");
   await page.getByRole("button", { name: "Check desktop downloads" }).click();
-  await expect(page.getByText("Downloads are being published.")).toBeVisible();
-  await expect(page.getByText("No package is offered until the full package set and SHA-256 file are published.")).toBeVisible();
+  await expect(page.getByText("Downloads for this build are being published.")).toBeVisible();
+  await expect(page.getByText("No package is offered until this source, the full package set, and the SHA-256 file match.")).toBeVisible();
   await expect(page.getByRole("link", { name: /Download for/ })).toHaveCount(0);
   await page.getByRole("button", { name: "Close download window" }).click();
   await page.evaluate(() => localStorage.clear());
-  await page.unroute("https://api.github.com/repos/B-Divyesh/sf-photo-proof-pile/releases?per_page=1");
-  await page.route("https://api.github.com/repos/B-Divyesh/sf-photo-proof-pile/releases?per_page=1", route => route.fulfill({
+  await page.unroute(releaseApi);
+  await page.route(releaseApi, route => route.fulfill({
     status: 200,
     contentType: "application/json",
-    body: JSON.stringify([{ tag_name: "v0.1.23", assets: [
-      { name: "Proof.Pile_0.1.23_aarch64.dmg", browser_download_url: "https://example.test/arm.dmg" },
-      { name: "Proof.Pile_0.1.23_x64.dmg", browser_download_url: "https://example.test/intel.dmg" },
-      { name: "Proof.Pile_0.1.23_x64_en-US.msi", browser_download_url: "https://example.test/app.msi" },
-      { name: "Proof.Pile_0.1.23_amd64.AppImage", browser_download_url: "https://example.test/app.AppImage" },
+    body: JSON.stringify({ tag_name: "v0.1.24", target_commitish: sourceCommit, assets: [
+      { name: "Proof.Pile_0.1.24_aarch64.dmg", browser_download_url: "https://example.test/arm.dmg" },
+      { name: "Proof.Pile_0.1.24_x64.dmg", browser_download_url: "https://example.test/intel.dmg" },
+      { name: "Proof.Pile_0.1.24_x64_en-US.msi", browser_download_url: "https://example.test/app.msi" },
+      { name: "Proof.Pile_0.1.24_amd64.AppImage", browser_download_url: "https://example.test/app.AppImage" },
       { name: "SHA256SUMS", browser_download_url: "https://example.test/SHA256SUMS" },
       { name: "latest.json", browser_download_url: "https://example.test/latest.json" }
-    ] }])
+    ] })
   }));
   await page.getByRole("button", { name: "Check desktop downloads" }).click();
-  await expect(page.getByText("v0.1.23 is ready.")).toBeVisible();
+  await expect(page.getByText("v0.1.24 is ready from this source.")).toBeVisible();
   await expect(page.getByText("Packages are unsigned. Match the SHA-256 file before opening one.")).toBeVisible();
   await expect(page.getByRole("link", { name: /Download for/ })).toHaveCount(4);
   await expect(page.getByRole("link", { name: "Download for Linux" })).toHaveAttribute("href", "https://example.test/app.AppImage");
   await page.getByRole("button", { name: "Close download window" }).click();
   await page.evaluate(() => localStorage.clear());
-  await page.unroute("https://api.github.com/repos/B-Divyesh/sf-photo-proof-pile/releases?per_page=1");
-  await page.route("https://api.github.com/repos/B-Divyesh/sf-photo-proof-pile/releases?per_page=1", route => route.fulfill({ status: 200, contentType: "application/json", body: "[]" }));
+  await page.unroute(releaseApi);
+  await page.route(releaseApi, route => route.fulfill({ status: 200, contentType: "application/json", body: "{}" }));
   await page.getByRole("button", { name: "Check desktop downloads" }).click();
   await expect(page.getByText("Downloads are not published yet. Check again later.")).toBeVisible();
   await expect(page.getByRole("link", { name: "View release status on GitHub (external site)" })).toHaveAttribute("href", "https://github.com/B-Divyesh/sf-photo-proof-pile/releases");
   await expect(page.getByRole("link", { name: /Download for/ })).toHaveCount(0);
   expect(consoleErrors).toEqual([]);
+});
+
+test("@claim:desktop-release-identity refuses a complete package set from another source", async ({ page }) => {
+  await page.route(releaseApi, route => route.fulfill({
+    status: 200,
+    contentType: "application/json",
+    body: JSON.stringify({ tag_name: "v0.1.24", target_commitish: "10c5525cc2c227d275296ba1cb583b1a83f3c8d1", assets: [
+      { name: "Proof-Pile_0.1.24_aarch64.dmg", browser_download_url: "https://example.test/arm.dmg" },
+      { name: "Proof-Pile_0.1.24_x64.dmg", browser_download_url: "https://example.test/intel.dmg" },
+      { name: "Proof-Pile_0.1.24_x64_en-US.msi", browser_download_url: "https://example.test/app.msi" },
+      { name: "Proof-Pile_0.1.24_amd64.AppImage", browser_download_url: "https://example.test/app.AppImage" },
+      { name: "SHA256SUMS", browser_download_url: "https://example.test/SHA256SUMS" },
+      { name: "latest.json", browser_download_url: "https://example.test/latest.json" }
+    ] })
+  }));
+  await page.goto("/");
+  await expect(page.getByRole("link", { name: `View source commit ${sourceCommit} on GitHub (external site)` })).toHaveAttribute("href", `https://github.com/B-Divyesh/sf-photo-proof-pile/commit/${sourceCommit}`);
+  await page.getByRole("button", { name: "Check desktop downloads" }).click();
+  await expect(page.getByText("Downloads for this build are being published.")).toBeVisible();
+  await expect(page.getByRole("link", { name: /Download for/ })).toHaveCount(0);
 });
 
 test("routes load without console errors and Back restores the previous scroll position", async ({ page }) => {

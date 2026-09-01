@@ -1,12 +1,15 @@
 import "./style.css";
 import { activeMoveSources, countPlan, decisionCsv, formatBytes, movesFromDecisionCsv, normalizeMoves, pendingQuarantineFiles, sampleGroups, type FileDecision, type MoveRecord, type PhotoGroup, type SavedReview } from "./model";
+import { resolvePublishedDesktopRelease } from "./release";
 
+declare const __PROOF_PILE_BUILD_COMMIT__: string;
 declare global { interface Window { __TAURI_INTERNALS__?: unknown } }
 
 const app = document.querySelector<HTMLDivElement>("#app")!;
 const isDesktop = Boolean(window.__TAURI_INTERNALS__);
 const PRODUCT = "photo-proof-pile";
-const VERSION = "0.1.23";
+const VERSION = "0.1.24";
+const BUILD_COMMIT = __PROOF_PILE_BUILD_COMMIT__;
 const LICENSE_KEY = `sb_license:${PRODUCT}`;
 const DEMO_KEY = "demo:photo-proof-pile:session";
 const REAL_KEY = "proof-pile:session";
@@ -43,7 +46,7 @@ function header() {
 }
 
 function footer() {
-  return `<footer><p>Review duplicate photos before moving extra copies.</p><nav aria-label="Footer navigation"><a class="route-link" href="/privacy">Privacy</a><a class="route-link" href="/terms">Terms</a><a href="https://sociobot.in" rel="external" aria-label="Built by Param Factory (external site)">Built by Param Factory ↗</a></nav><p class="fine">v${VERSION}</p></footer>`;
+  return `<footer><p>Review duplicate photos before moving extra copies.</p><nav aria-label="Footer navigation"><a class="route-link" href="/privacy">Privacy</a><a class="route-link" href="/terms">Terms</a><a href="https://sociobot.in" rel="external" aria-label="Built by Param Factory (external site)">Built by Param Factory ↗</a></nav><p class="fine">v${VERSION} · source <a href="https://github.com/B-Divyesh/sf-photo-proof-pile/commit/${BUILD_COMMIT}" rel="external" aria-label="View source commit ${BUILD_COMMIT} on GitHub (external site)">${BUILD_COMMIT.slice(0, 12)}</a></p></footer>`;
 }
 
 function shell(content: string) {
@@ -543,28 +546,22 @@ async function showDownloads() {
   const existing = document.querySelector("dialog"); if (existing) existing.remove();
   const dialog = document.createElement("dialog"); dialog.innerHTML = `<div class="download-dialog"><button class="dialog-close" aria-label="Close download window">×</button><p class="eyebrow">Desktop app</p><h2>Desktop downloads</h2><p id="release-state">Checking the latest release…</p><div id="release-links"></div><p class="fine" id="signature-state">Checking release verification…</p></div>`; document.body.append(dialog); dialog.showModal(); dialog.querySelector(".dialog-close")?.addEventListener("click", () => dialog.close()); dialog.addEventListener("close", () => dialog.remove());
   try {
-    const releaseKey = `proof-pile:release:v${VERSION}`;
-    let release = JSON.parse(localStorage.getItem(releaseKey) || "null"); if (!release || Date.now() - release.savedAt > 3_600_000) { const response = await fetch("https://api.github.com/repos/B-Divyesh/sf-photo-proof-pile/releases?per_page=1"); if (!response.ok) throw new Error(); const releases = await response.json(); const releaseData = Array.isArray(releases) ? releases[0] : null; if (!releaseData?.assets) throw new Error(); release = { data: releaseData, savedAt: Date.now() }; localStorage.setItem(releaseKey, JSON.stringify(release)); }
-    const assets = release.data.assets as { name: string; browser_download_url: string }[];
-    const checksums = assets.some(item => item.name === "SHA256SUMS");
-    const manifest = assets.some(item => item.name === "latest.json");
-    const macArm = assets.find(item => /\.(dmg)$/i.test(item.name) && /(aarch64|arm64)/i.test(item.name));
-    const macIntel = assets.find(item => /\.(dmg)$/i.test(item.name) && /(x86_64|x64|intel)/i.test(item.name));
-    const windows = assets.find(item => /\.(msi|exe)$/i.test(item.name));
-    const linux = assets.find(item => /\.(AppImage|deb)$/i.test(item.name));
-    if (!checksums || !manifest || !macArm || !macIntel || !windows || !linux) {
-      document.querySelector("#release-state")!.textContent = "Downloads are being published.";
-      document.querySelector("#signature-state")!.textContent = "No package is offered until the full package set and SHA-256 file are published.";
+    const releaseKey = `proof-pile:release:v${VERSION}:${BUILD_COMMIT}`;
+    let release = JSON.parse(localStorage.getItem(releaseKey) || "null"); if (!release || Date.now() - release.savedAt > 3_600_000) { const response = await fetch(`https://api.github.com/repos/B-Divyesh/sf-photo-proof-pile/releases/tags/v${VERSION}`); if (!response.ok) throw new Error(); const releaseData = await response.json(); if (!releaseData?.assets) throw new Error(); release = { data: releaseData, savedAt: Date.now() }; localStorage.setItem(releaseKey, JSON.stringify(release)); }
+    const published = resolvePublishedDesktopRelease(release.data, { version: VERSION, commit: BUILD_COMMIT });
+    if (!published) {
+      document.querySelector("#release-state")!.textContent = "Downloads for this build are being published.";
+      document.querySelector("#signature-state")!.textContent = "No package is offered until this source, the full package set, and the SHA-256 file match.";
       document.querySelector("#release-links")!.replaceChildren();
       return;
     }
-    document.querySelector("#release-state")!.textContent = `${release.data.tag_name} is ready.`;
+    document.querySelector("#release-state")!.textContent = `${published.tag_name} is ready from this source.`;
     document.querySelector("#signature-state")!.textContent = "Packages are unsigned. Match the SHA-256 file before opening one.";
     document.querySelector("#release-links")!.innerHTML = [
-      `<a class="button quiet" href="${escapeHtml(macArm.browser_download_url)}">Download for macOS (Apple silicon)</a>`,
-      `<a class="button quiet" href="${escapeHtml(macIntel.browser_download_url)}">Download for macOS (Intel)</a>`,
-      `<a class="button quiet" href="${escapeHtml(windows.browser_download_url)}">Download for Windows</a>`,
-      `<a class="button quiet" href="${escapeHtml(linux.browser_download_url)}">Download for Linux</a>`
+      `<a class="button quiet" href="${escapeHtml(published.macArm.browser_download_url)}">Download for macOS (Apple silicon)</a>`,
+      `<a class="button quiet" href="${escapeHtml(published.macIntel.browser_download_url)}">Download for macOS (Intel)</a>`,
+      `<a class="button quiet" href="${escapeHtml(published.windows.browser_download_url)}">Download for Windows</a>`,
+      `<a class="button quiet" href="${escapeHtml(published.linux.browser_download_url)}">Download for Linux</a>`
     ].join("");
   } catch {
     document.querySelector("#release-state")!.textContent = "Downloads are not published yet. Check again later.";

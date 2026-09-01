@@ -1,0 +1,17 @@
+{
+  "tag_name": "v0.1.23",
+  "target_commitish": "10c5525cc2c227d275296ba1cb583b1a83f3c8d1",
+  "assets": [
+    "latest.json",
+    "Proof-Pile-0.1.23-1.x86_64.rpm",
+    "Proof-Pile_0.1.23_aarch64.dmg",
+    "Proof-Pile_0.1.23_amd64.AppImage",
+    "Proof-Pile_0.1.23_amd64.deb",
+    "Proof-Pile_0.1.23_x64-setup.exe",
+    "Proof-Pile_0.1.23_x64.dmg",
+    "Proof-Pile_0.1.23_x64_en-US.msi",
+    "SHA256SUMS"
+  ],
+  "candidate": "f0fd4b8e37c1da44380ab111b368279795c4b815",
+  "candidate_matches_target": false
+}

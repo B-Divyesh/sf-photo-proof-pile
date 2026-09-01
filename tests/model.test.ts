@@ -5,6 +5,7 @@ import { dirname, join } from "node:path";
 import { tmpdir } from "node:os";
 import { fileURLToPath } from "node:url";
 import { countPlan, decisionCsv, formatBytes, movesFromDecisionCsv, normalizeMoves, sampleGroups } from "../src/model";
+import { resolvePublishedDesktopRelease } from "../src/release";
 
 describe("review model", () => {
   it("counts only files marked for quarantine", () => {
@@ -104,6 +105,9 @@ describe("review model", () => {
     expect(preparation).toContain('"unsigned"');
     expect(workflow).toContain("files: release-assets/published/*");
     expect(workflow).toContain("bash scripts/prepare-release-assets.sh release-assets");
+    expect(workflow).toContain('tag_commit=$(git rev-parse "${release_tag}^{}")');
+    expect(workflow).toContain('if [ "$tag_commit" != "$release_commit" ]');
+    expect(workflow).toContain("BUILD_COMMIT: ${{ needs.prepare-release.outputs.commit }}");
   });
 
   it("flattens nested builder artifacts before checksumming and publishing them", () => {
@@ -150,5 +154,32 @@ describe("review model", () => {
     expect(workflow).toContain('releases/download/${RELEASE_TAG}');
     expect(preparation).toContain('--arg commit "$RELEASE_COMMIT"');
     expect(preparation).not.toContain('jq --arg commit "$GITHUB_SHA"');
+  });
+
+  it("@claim:desktop-release-identity rejects the verifier's exact v0.1.23 source mismatch", () => {
+    const assets = [
+      "Proof-Pile_0.1.23_aarch64.dmg", "Proof-Pile_0.1.23_x64.dmg", "Proof-Pile_0.1.23_x64_en-US.msi",
+      "Proof-Pile_0.1.23_amd64.AppImage", "SHA256SUMS", "latest.json"
+    ].map(name => ({ name, browser_download_url: `https://example.test/${name}` }));
+    const published = resolvePublishedDesktopRelease({
+      tag_name: "v0.1.23",
+      target_commitish: "10c5525cc2c227d275296ba1cb583b1a83f3c8d1",
+      assets
+    }, { version: "0.1.23", commit: "f0fd4b8e37c1da44380ab111b368279795c4b815" });
+    expect(published).toBeNull();
+  });
+
+  it("@claim:unsigned-package-state checks the built Windows and macOS packages before publication", () => {
+    const workflow = readFileSync(new URL("../.github/workflows/release.yml", import.meta.url), "utf8");
+    const macCheck = readFileSync(new URL("../scripts/verify-unsigned-macos-dmg.sh", import.meta.url), "utf8");
+    const windowsCheck = readFileSync(new URL("../scripts/verify-unsigned-windows.ps1", import.meta.url), "utf8");
+    expect(workflow).toContain("Verify unsigned macOS package state (@claim:unsigned-package-state)");
+    expect(workflow).toContain("Verify unsigned Windows package state (@claim:unsigned-package-state)");
+    expect(workflow).toContain("verify-unsigned-macos-dmg.sh src-tauri/target/**/release/bundle/dmg/*.dmg");
+    expect(workflow).toContain("verify-unsigned-windows.ps1 -Path src-tauri/target");
+    expect(macCheck).toContain("codesign -dv --verbose=4");
+    expect(macCheck).toContain("Expected an unsigned macOS package");
+    expect(windowsCheck).toContain("Get-AuthenticodeSignature");
+    expect(windowsCheck).toContain('"NotSigned"');
   });
 });

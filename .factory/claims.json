@@ -159,5 +159,19 @@
     "where": "README and download dialog",
     "test": "npm run test:e2e -- --grep @claim:desktop-release-assets",
     "sandbox": "mock incomplete and complete GitHub release asset sets; assert only the complete set exposes platform links"
+  },
+  {
+    "id": "desktop-release-identity",
+    "claim": "The download dialog offers packages only when the release tag and target commit match this site build.",
+    "where": "download dialog and site footer",
+    "test": "npm run test:e2e -- --grep @claim:desktop-release-identity",
+    "sandbox": "mock a complete release with a different target commit; assert the dialog exposes no package links"
+  },
+  {
+    "id": "unsigned-package-state",
+    "claim": "Published macOS and Windows packages are unsigned.",
+    "where": "README and download dialog",
+    "test": "npm run test:unit -- --testNamePattern @claim:unsigned-package-state",
+    "sandbox": "the release workflow inspects every built DMG for a missing Developer ID authority and every built MSI/EXE for Windows NotSigned status before publication"
   }
 ]

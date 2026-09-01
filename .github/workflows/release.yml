@@ -44,6 +44,11 @@ jobs:
             exit 1
           fi
           release_commit=$(git rev-parse HEAD)
+          tag_commit=$(git rev-parse "${release_tag}^{}")
+          if [ "$tag_commit" != "$release_commit" ]; then
+            echo "Release tag does not resolve to the checked-out source." >&2
+            exit 1
+          fi
           if [ -n "$REQUESTED_COMMIT" ] && [ "$release_commit" != "$REQUESTED_COMMIT" ]; then
             echo "Checked-out source does not match requested commit." >&2
             exit 1
@@ -99,7 +104,17 @@ jobs:
         run: sudo apt-get update && sudo apt-get install -y libwebkit2gtk-4.1-dev libappindicator3-dev librsvg2-dev patchelf
       - run: npm ci
       - name: Build desktop packages
+        env:
+          BUILD_COMMIT: ${{ needs.prepare-release.outputs.commit }}
         run: npx tauri build --target ${{ matrix.target }} --bundles ${{ matrix.bundles }}
+      - name: Verify unsigned macOS package state (@claim:unsigned-package-state)
+        if: startsWith(matrix.name, 'macos-')
+        shell: bash
+        run: bash scripts/verify-unsigned-macos-dmg.sh src-tauri/target/**/release/bundle/dmg/*.dmg
+      - name: Verify unsigned Windows package state (@claim:unsigned-package-state)
+        if: matrix.name == 'windows'
+        shell: pwsh
+        run: ./scripts/verify-unsigned-windows.ps1 -Path src-tauri/target
       - uses: actions/upload-artifact@v4
         with:
           name: desktop-${{ matrix.name }}
