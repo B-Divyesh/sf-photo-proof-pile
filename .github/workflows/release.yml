@@ -124,6 +124,16 @@ jobs:
         run: |
           set -euo pipefail
           cd release-assets
+          mkdir -p published
+          while IFS= read -r -d '' asset; do
+            name=$(basename "$asset")
+            if [ -e "published/$name" ]; then
+              echo "Duplicate release asset name: $name" >&2
+              exit 1
+            fi
+            cp "$asset" "published/$name"
+          done < <(find . -type f \( -name '*.dmg' -o -name '*.msi' -o -name '*.exe' -o -name '*.AppImage' -o -name '*.deb' -o -name '*.rpm' \) -print0)
+          cd published
           find . -maxdepth 1 -type f -print0 | sort -z | xargs -0 sha256sum | sed 's#  \./#  #' > SHA256SUMS
           download_base="https://github.com/${REPOSITORY}/releases/download/${RELEASE_TAG}"
           macos=$(find . -maxdepth 1 -type f -name '*.dmg' -printf '%f\n' | sort | jq -Rsc 'split("\n") | map(select(length > 0))')
@@ -143,7 +153,7 @@ jobs:
             Desktop packages built from `${{ needs.prepare-release.outputs.commit }}`.
 
             These packages are unsigned. Verify the package against `SHA256SUMS` before opening it. On macOS, Control-click and choose Open. On Windows, inspect the publisher warning before continuing.
-          files: release-assets/*
+          files: release-assets/published/*
           fail_on_unmatched_files: true
       - name: Verify one published Linux asset against SHA256SUMS
         shell: bash
@@ -152,7 +162,7 @@ jobs:
           REPOSITORY: ${{ github.repository }}
         run: |
           set -euo pipefail
-          cd release-assets
+          cd release-assets/published
           asset=$(jq -r '.platforms.linux[] | select(.name | endswith(".AppImage")) | .name' latest.json | head -n 1)
           test -n "$asset"
           curl --fail --silent --show-error --location "https://github.com/${REPOSITORY}/releases/download/${RELEASE_TAG}/${asset}" --output "published-${asset}"

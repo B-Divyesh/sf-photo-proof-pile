@@ -97,6 +97,10 @@ describe("review model", () => {
     expect(workflow).toContain("softprops/action-gh-release@v2");
     expect(workflow).toContain("sha256sum -c SHA256SUMS");
     expect(workflow).toContain('"unsigned"');
+    expect(workflow).toContain("mkdir -p published");
+    expect(workflow).toContain("find . -type f \\( -name '*.dmg'");
+    expect(workflow).toContain("files: release-assets/published/*");
+    expect(workflow).toContain("done < <(find . -type f");
   });
 
   it("releases only the matching version tag and records that tag's immutable commit", () => {
