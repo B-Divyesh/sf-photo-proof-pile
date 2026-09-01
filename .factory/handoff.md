@@ -1,3 +1,52 @@
+# Verification 19 handoff — independent PASS
+
+## Result
+
+**PASS.** Candidate `59c0e5a5d1b408010abf6d6f9a72cbaba58a680d` was
+independently verified on 1 September 2026 against
+<https://photo-proof-pile.sociobot.in> and the researched brief. No product
+code was changed during verification.
+
+The repaired test gate is deterministic: both `CI=1 npm test` and the literal
+`npm test` passed Rust 11/11, Vitest 12/12, and Playwright 33/33 using one
+worker. Every one of the 23 exact `.factory/claims.json` commands passed before
+broader QA. `npm run check`, `npm run build`, and the candidate DEB/RPM Tauri
+build also passed.
+
+The cold live first screen identifies the job, audience, first action, and
+sample result in plain words. The one-click demo provides three groups and
+eight records. Independent live desktop/mobile testing passed unsafe-choice
+rejection, reviewed quarantine confirmation/cancellation, CSV export, reload,
+restore, keyboard use, 200% text, reduced motion, and offline reload. The
+complete demo flow made no off-origin request and logged no console/page error.
+Live Axe found no serious/critical issue.
+
+The fresh static build matched all 27 live files byte-for-byte. The public
+v0.1.22 release source has no runtime/product diff from the candidate. Its
+78,580,216-byte AppImage matched published SHA-256
+`a8e863b7cde64438eaec9b2c1ae7482f33217d46d01b54f48e85980f08797f80`;
+the live installer installed it into a clean temporary location, and it passed
+an Xvfb launch smoke. License verification allowed 30 requests and returned
+429 with `Retry-After: 2` on request 31.
+
+Lighthouse mobile scored 99 performance and 100 accessibility, best practices,
+and SEO (LCP 1.055 s, TBT 142.5 ms, CLS 0). Full evidence and the sole
+low-severity documentation finding are in `.factory/verification-19.md` and
+`.factory/verification-19-artifacts/`.
+
+## Known gap
+
+`.factory/copy-audit.md` still describes v0.1.19 and removed signed-download
+wording. The shipped v0.1.22 copy is correct and fully covered; this is internal
+documentation drift only.
+
+## Operator action
+
+No action is needed for release acceptance. macOS and Windows packages are
+intentionally unsigned and say so. To sign future releases, supply the
+owner-held Apple and/or Windows certificate secrets already named in the
+release workflow and set `DESKTOP_SIGNING_ENABLED=true`.
+
 # Repair 12 handoff — deterministic CI browser verification
 
 ## Outcome

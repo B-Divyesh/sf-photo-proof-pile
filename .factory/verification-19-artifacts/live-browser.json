@@ -1,0 +1,117 @@
+{
+  "desktop": {
+    "requests": [
+      "https://photo-proof-pile.sociobot.in/",
+      "https://photo-proof-pile.sociobot.in/assets/index-Bc2u97bG.js",
+      "https://photo-proof-pile.sociobot.in/assets/index-DpHKghhP.css",
+      "https://photo-proof-pile.sociobot.in/hero-proof-table.webp",
+      "https://photo-proof-pile.sociobot.in/samples/lake-a.svg",
+      "https://photo-proof-pile.sociobot.in/walkthrough/01-groups.webp",
+      "https://photo-proof-pile.sociobot.in/walkthrough/02-evidence.webp",
+      "https://photo-proof-pile.sociobot.in/walkthrough/03-quarantine.webp",
+      "https://photo-proof-pile.sociobot.in/samples/birthday.svg",
+      "https://photo-proof-pile.sociobot.in/samples/dog.svg",
+      "https://photo-proof-pile.sociobot.in/demo"
+    ],
+    "offOrigin": [],
+    "consoleErrors": [],
+    "pageErrors": [],
+    "csvRows": 9,
+    "axeSeriousCritical": [],
+    "dialogText": "Move 2 files to /Sample drive/Proof Pile Quarantine? You can restore them from the decision log."
+  },
+  "keyboard": {
+    "initialFocus": {
+      "tag": "H1",
+      "text": "Review photo copies before you remove them"
+    },
+    "focusStyle": {
+      "outlineStyle": "solid",
+      "outlineWidth": "3px",
+      "outlineColor": "rgb(49, 95, 137)"
+    },
+    "reducedTransition": "1e-05s"
+  },
+  "mobile": {
+    "width": 390,
+    "actionBox": {
+      "x": 37,
+      "y": 399.9375,
+      "width": 316,
+      "height": 44.390625
+    },
+    "axeSeriousCritical": [],
+    "errors": []
+  },
+  "pwa": {
+    "controlled": true,
+    "waiting": false,
+    "script": "https://photo-proof-pile.sociobot.in/sw.js",
+    "offlineStatus": 200
+  },
+  "routes": {
+    "/": {
+      "status": 200,
+      "title": "Proof Pile — Review photo copies before cleanup",
+      "h1": 1,
+      "main": 1,
+      "missingAlt": 0
+    },
+    "/demo": {
+      "status": 200,
+      "title": "Demo — Proof Pile",
+      "h1": 1,
+      "main": 1,
+      "missingAlt": 0
+    },
+    "/app": {
+      "status": 200,
+      "title": "Proof Pile — Review photo copies",
+      "h1": 1,
+      "main": 1,
+      "missingAlt": 0
+    },
+    "/privacy": {
+      "status": 200,
+      "title": "Privacy — Proof Pile",
+      "h1": 1,
+      "main": 1,
+      "missingAlt": 0
+    },
+    "/terms": {
+      "status": 200,
+      "title": "Terms — Proof Pile",
+      "h1": 1,
+      "main": 1,
+      "missingAlt": 0
+    },
+    "/verification-19-missing": {
+      "status": 404,
+      "title": "Page not found — Proof Pile",
+      "h1": 1,
+      "main": 1,
+      "missingAlt": 0
+    }
+  },
+  "releasePicker": {
+    "downloads": [
+      {
+        "text": "Download for macOS (Apple silicon)",
+        "href": "https://github.com/B-Divyesh/sf-photo-proof-pile/releases/download/v0.1.22/Proof.Pile_0.1.22_aarch64.dmg"
+      },
+      {
+        "text": "Download for macOS (Intel)",
+        "href": "https://github.com/B-Divyesh/sf-photo-proof-pile/releases/download/v0.1.22/Proof.Pile_0.1.22_x64.dmg"
+      },
+      {
+        "text": "Download for Windows",
+        "href": "https://github.com/B-Divyesh/sf-photo-proof-pile/releases/download/v0.1.22/Proof.Pile_0.1.22_x64-setup.exe"
+      },
+      {
+        "text": "Download for Linux",
+        "href": "https://github.com/B-Divyesh/sf-photo-proof-pile/releases/download/v0.1.22/Proof.Pile_0.1.22_amd64.AppImage"
+      }
+    ],
+    "errors": []
+  }
+}
