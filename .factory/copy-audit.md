@@ -92,4 +92,4 @@ banned marketing word appears.
 
 The move confirmation says “Move 2 files to /Sample drive/Proof Pile
 Quarantine?” in the demo. `review-before-move` covers that destination-aware
-confirmation. The catalog description starts with a verb and is 88 characters.
+confirmation. The catalog description starts with a verb and is 98 characters.

@@ -1,0 +1,13 @@
+Public GitHub release safety recheck — 1 September 2026 UTC
+
+GET https://api.github.com/repos/B-Divyesh/sf-photo-proof-pile/releases?per_page=10
+HTTP 200
+[]
+
+GET https://api.github.com/repos/B-Divyesh/sf-photo-proof-pile/releases/latest
+HTTP 404
+
+Interpretation: no desktop release is publicly available. The formerly public
+unsigned v0.1.22 release was changed to a private draft before this repair was
+handed off. The product UI and both installers now reject this absent-release
+state rather than exposing a package.
