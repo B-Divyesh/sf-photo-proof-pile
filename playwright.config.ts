@@ -1,9 +1,15 @@
 import { defineConfig, devices } from "@playwright/test";
 
+const isCi = process.env.CI === "1" || process.env.CI === "true";
+
 export default defineConfig({
   testDir: "tests",
   testMatch: "**/*.spec.ts",
-  fullyParallel: true,
+  // Browser and service-worker tests deliberately exercise reload, offline, and
+  // native confirmation flows. Keep their scheduling deterministic; CI=1 used
+  // by the factory must not silently select half of the available cores.
+  fullyParallel: false,
+  workers: isCi ? 1 : undefined,
   retries: 0,
   reporter: "list",
   use: {

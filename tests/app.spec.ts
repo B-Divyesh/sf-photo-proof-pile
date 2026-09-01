@@ -1,5 +1,37 @@
-import { expect, test } from "@playwright/test";
+import { expect, test, type Browser, type BrowserContext, type BrowserContextOptions, type Page } from "@playwright/test";
 import AxeBuilder from "@axe-core/playwright";
+
+async function withIsolatedPage<T>(browser: Browser, run: (page: Page, context: BrowserContext) => Promise<T>, options?: BrowserContextOptions): Promise<T> {
+  const context = await browser.newContext(options);
+  const page = await context.newPage();
+  try {
+    return await run(page, context);
+  } finally {
+    // Close only the test context. Playwright owns the shared browser.
+    await context.close().catch(() => undefined);
+  }
+}
+
+async function respondToNativeDialog(page: Page, trigger: () => Promise<void>, expectedMessage: string, response: "accept" | "dismiss") {
+  const handledDialog = new Promise<void>((resolve, reject) => {
+    page.once("dialog", dialog => {
+      try {
+        expect(dialog.message()).toContain(expectedMessage);
+        void (response === "accept" ? dialog.accept() : dialog.dismiss()).then(resolve, reject);
+      } catch (error) {
+        reject(error);
+      }
+    });
+  });
+  await trigger();
+  await handledDialog;
+}
+
+async function waitForServiceWorkerControl(page: Page) {
+  await page.evaluate(async () => { await navigator.serviceWorker.ready; });
+  await page.reload();
+  await page.waitForFunction(() => Boolean(navigator.serviceWorker.controller));
+}
 
 async function installTauriMock(page: import("@playwright/test").Page) {
   await page.addInitScript(() => {
@@ -32,8 +64,9 @@ async function installTauriMock(page: import("@playwright/test").Page) {
   });
 }
 
-test("completed quarantine plans leave no pending work and repeat safely in demo and native flows", async ({ page }) => {
-  for (const native of [false, true]) {
+test("completed quarantine plans leave no pending work and repeat safely in demo and native flows", async ({ browser }) => {
+  await withIsolatedPage(browser, async page => {
+    for (const native of [false, true]) {
     if (native) await installTauriMock(page);
     await page.goto("/");
     await page.evaluate(() => { localStorage.clear(); sessionStorage.clear(); });
@@ -44,8 +77,8 @@ test("completed quarantine plans leave no pending work and repeat safely in demo
       await page.goto("/app");
     }
 
-    page.once("dialog", dialog => dialog.accept());
-    await page.getByRole("button", { name: "Move 2 files to quarantine" }).click();
+    const destination = native ? "/Mock quarantine" : "/Sample drive/Proof Pile Quarantine";
+    await respondToNativeDialog(page, () => page.getByRole("button", { name: "Move 2 files to quarantine" }).click(), `Move 2 files to ${destination}?`, "accept");
     await expect(page.locator(".plan-number strong")).toHaveText("0");
     await expect(page.getByRole("button", { name: "Choose files to quarantine" })).toBeDisabled();
     await page.locator("#run-plan").dispatchEvent("click");
@@ -59,7 +92,8 @@ test("completed quarantine plans leave no pending work and repeat safely in demo
     if (native) {
       expect(await page.evaluate(() => (window as unknown as { __PROOF_PILE_TAURI_TEST__: { quarantineCalls: unknown[][] } }).__PROOF_PILE_TAURI_TEST__.quarantineCalls)).toHaveLength(1);
     }
-  }
+    }
+  });
 });
 
 test("keyboard decisions move focus to the next file without restarting traversal", async ({ page }) => {
@@ -154,11 +188,11 @@ test("@claim:csv-export downloads one decision row per sample file", async ({ pa
   expect(rows).toHaveLength(9);
 });
 
-test("@claim:reversible-plan persists recovery records, exports them, and imports them again", async ({ page }) => {
+test("@claim:reversible-plan persists recovery records, exports them, and imports them again", async ({ browser }) => {
+  await withIsolatedPage(browser, async page => {
   await page.goto("/demo");
   await page.getByRole("button", { name: "Mark exact extras" }).click();
-  page.once("dialog", dialog => dialog.accept());
-  await page.getByRole("button", { name: "Move 2 files to quarantine" }).click();
+  await respondToNativeDialog(page, () => page.getByRole("button", { name: "Move 2 files to quarantine" }).click(), "Move 2 files to /Sample drive/Proof Pile Quarantine?", "accept");
   await expect(page.getByText(/2 sample files moved/)).toBeVisible();
   const downloadPromise = page.waitForEvent("download");
   await page.getByRole("button", { name: "Export decision log" }).click();
@@ -181,23 +215,23 @@ test("@claim:reversible-plan persists recovery records, exports them, and import
   await expect(page.getByRole("dialog")).toContainText("From quarantine");
   await page.getByRole("button", { name: "Restore this file" }).click();
   await expect(page.getByText(/restored in the demo/)).toBeVisible();
+  });
 });
 
-test("@claim:free-safety-tools keeps quarantine, restore, and decision-log recovery available without a license", async ({ page }) => {
+test("@claim:free-safety-tools keeps quarantine, restore, and decision-log recovery available without a license", async ({ browser }) => {
+  await withIsolatedPage(browser, async page => {
   await installTauriMock(page);
   await page.goto("/demo");
   await page.getByRole("button", { name: "Mark exact extras" }).click();
   await page.evaluate(() => localStorage.setItem("proof-pile:session", sessionStorage.getItem("demo:photo-proof-pile:session")!));
   await page.goto("/app");
 
-  page.once("dialog", dialog => dialog.accept());
-  await page.getByRole("button", { name: "Move 2 files to quarantine" }).click();
+  await respondToNativeDialog(page, () => page.getByRole("button", { name: "Move 2 files to quarantine" }).click(), "Move 2 files to /Mock quarantine?", "accept");
   await expect(page.getByText("2 files moved to quarantine. The decision log is ready to export.")).toBeVisible();
 
   await page.getByRole("option").nth(1).click();
   await page.locator(".file-row").nth(1).getByRole("button", { name: "Quarantine" }).click();
-  page.once("dialog", dialog => dialog.accept());
-  await page.getByRole("button", { name: "Move 1 file to quarantine" }).click();
+  await respondToNativeDialog(page, () => page.getByRole("button", { name: "Move 1 file to quarantine" }).click(), "Move 1 files to /Mock quarantine?", "accept");
   await expect(page.getByText("1 file moved to quarantine. The decision log is ready to export.")).toBeVisible();
 
   expect(await page.evaluate(() => JSON.parse(localStorage.getItem("proof-pile:session")!).moves)).toHaveLength(3);
@@ -218,6 +252,7 @@ test("@claim:free-safety-tools keeps quarantine, restore, and decision-log recov
   expect(restored).toHaveLength(2);
   expect(restored.some(path => path.includes("DSC_2082"))).toBe(true);
   expect(restored.some(path => path.includes("IMG_4812"))).toBe(true);
+  });
 });
 
 test("never allows a plan that quarantines a group's only kept copy", async ({ page }) => {
@@ -227,7 +262,8 @@ test("never allows a plan that quarantines a group's only kept copy", async ({ p
   await expect(page.locator(".plan-number strong")).toHaveText("0");
 });
 
-test("@claim:review-before-move requires reviewed choices and confirms the exact destination", async ({ page }) => {
+test("@claim:review-before-move requires reviewed choices and confirms the exact destination", async ({ browser }) => {
+  await withIsolatedPage(browser, async page => {
   await installTauriMock(page);
   await page.goto("/demo");
   await page.getByRole("button", { name: "Mark exact extras" }).click();
@@ -241,23 +277,16 @@ test("@claim:review-before-move requires reviewed choices and confirms the exact
   expect(await page.evaluate(() => (window as unknown as { __PROOF_PILE_TAURI_TEST__: { quarantineCalls: unknown[] } }).__PROOF_PILE_TAURI_TEST__.quarantineCalls)).toHaveLength(0);
 
   await page.getByRole("button", { name: "Mark exact extras" }).click();
-  page.once("dialog", async dialog => {
-    expect(dialog.message()).toContain("Move 2 files to /Mock quarantine?");
-    await dialog.dismiss();
-  });
-  await page.getByRole("button", { name: "Move 2 files to quarantine" }).click();
+  await respondToNativeDialog(page, () => page.getByRole("button", { name: "Move 2 files to quarantine" }).click(), "Move 2 files to /Mock quarantine?", "dismiss");
   expect(await page.evaluate(() => (window as unknown as { __PROOF_PILE_TAURI_TEST__: { quarantineCalls: unknown[] } }).__PROOF_PILE_TAURI_TEST__.quarantineCalls)).toHaveLength(0);
 
-  page.once("dialog", async dialog => {
-    expect(dialog.message()).toContain("Move 2 files to /Mock quarantine?");
-    await dialog.accept();
-  });
-  await page.getByRole("button", { name: "Move 2 files to quarantine" }).click();
+  await respondToNativeDialog(page, () => page.getByRole("button", { name: "Move 2 files to quarantine" }).click(), "Move 2 files to /Mock quarantine?", "accept");
   await expect(page.getByText("2 files moved to quarantine. The decision log is ready to export.")).toBeVisible();
   const calls = await page.evaluate(() => (window as unknown as { __PROOF_PILE_TAURI_TEST__: { quarantineCalls: { path: string; decision: string; keptCopyPath: string }[][] } }).__PROOF_PILE_TAURI_TEST__.quarantineCalls);
   expect(calls).toHaveLength(1);
   expect(calls[0]).toHaveLength(2);
   expect(calls[0].every(entry => entry.decision === "quarantine" && entry.keptCopyPath.endsWith("IMG_4812.jpg"))).toBe(true);
+  });
 });
 
 test("hostile decision CSV cannot become an authoritative desktop recovery record", async ({ page }) => {
@@ -284,16 +313,17 @@ test("hostile decision CSV cannot become an authoritative desktop recovery recor
   expect(await page.evaluate(() => (window as unknown as { __RESTORE_TEST_CALLS__: string[] }).__RESTORE_TEST_CALLS__)).toContain("validate_recovery_records");
 });
 
-test("@claim:local-privacy sends no sample photo data off origin", async ({ page }) => {
+test("@claim:local-privacy sends no sample photo data off origin", async ({ browser }) => {
+  await withIsolatedPage(browser, async page => {
   const offOrigin: string[] = [];
   page.on("request", request => {
     if (new URL(request.url()).origin !== "http://127.0.0.1:4173") offOrigin.push(request.url());
   });
   await page.goto("/demo");
   await page.getByRole("button", { name: "Mark exact extras" }).click();
-  page.once("dialog", dialog => dialog.accept());
-  await page.getByRole("button", { name: "Move 2 files to quarantine" }).click();
+  await respondToNativeDialog(page, () => page.getByRole("button", { name: "Move 2 files to quarantine" }).click(), "Move 2 files to /Sample drive/Proof Pile Quarantine?", "accept");
   expect(offOrigin).toEqual([]);
+  });
 });
 
 test("@claim:no-ad-tracking loads no advertising or tracking scripts", async ({ page }) => {
@@ -338,7 +368,8 @@ test("@claim:no-account starts a review without sign-in", async ({ page }) => {
   await expect(page.getByRole("textbox", { name: /email|password/i })).toHaveCount(0);
 });
 
-test("@claim:paid-license restores a license and checks it at most once per 24 hours", async ({ page }) => {
+test("@claim:paid-license restores a license and checks it at most once per 24 hours", async ({ browser }) => {
+  await withIsolatedPage(browser, async page => {
   const checkedAt = Date.UTC(2026, 7, 29, 12, 0, 0);
   await page.addInitScript(() => {
     const actualNow = Date.now.bind(Date);
@@ -375,9 +406,11 @@ test("@claim:paid-license restores a license and checks it at most once per 24 h
   await expect.poll(() => checks).toBe(2);
   await page.reload();
   expect(checks).toBe(2);
+  });
 });
 
-test("a fresh invalid license verdict is reused without another request", async ({ page }) => {
+test("a fresh invalid license verdict is reused without another request", async ({ browser }) => {
+  await withIsolatedPage(browser, async page => {
   let checks = 0;
   await page.addInitScript(() => {
     localStorage.setItem("sb_license:photo-proof-pile", "revoked-license-token");
@@ -392,6 +425,7 @@ test("a fresh invalid license verdict is reused without another request", async 
   await page.reload();
   await page.reload();
   expect(checks).toBe(0);
+  });
 });
 
 test("keeps a returned license active when billing verification has a network outage", async ({ page }) => {
@@ -442,15 +476,16 @@ test("@claim:paid-checkout shows the price, opens hosted checkout, and stores a 
   expect(verifyRequests).toBe(1);
 });
 
-test("@claim:offline-reload reloads the demo without a network", async ({ page, context }) => {
-  await page.goto("/demo");
-  await page.evaluate(() => navigator.serviceWorker.ready);
-  await page.reload();
-  await expect(page.getByRole("heading", { level: 1 })).toContainText("sample photo pile");
-  await context.setOffline(true);
-  await page.reload();
-  await expect(page.getByText("Demo — sample data, nothing is saved")).toBeVisible();
-  await expect(page.getByRole("option")).toHaveCount(3);
+test("@claim:offline-reload reloads the demo without a network", async ({ browser }) => {
+  await withIsolatedPage(browser, async (page, context) => {
+    await page.goto("/demo");
+    await waitForServiceWorkerControl(page);
+    await expect(page.getByRole("heading", { level: 1 })).toContainText("sample photo pile");
+    await context.setOffline(true);
+    await page.reload();
+    await expect(page.getByText("Demo — sample data, nothing is saved")).toBeVisible();
+    await expect(page.getByRole("option")).toHaveCount(3);
+  });
 });
 
 test("pages meet the automated accessibility baseline in light and dark presentations", async ({ page }) => {

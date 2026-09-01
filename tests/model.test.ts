@@ -70,6 +70,21 @@ describe("review model", () => {
     expect(main).toContain(`const VERSION = "${version}"`);
   });
 
+  it("keeps CI browser flows serial and isolates offline, reload, and confirmation state", () => {
+    const config = readFileSync(new URL("../playwright.config.ts", import.meta.url), "utf8");
+    const browserTests = readFileSync(new URL("./app.spec.ts", import.meta.url), "utf8");
+    expect(config).toContain('const isCi = process.env.CI === "1" || process.env.CI === "true"');
+    expect(config).toContain("fullyParallel: false");
+    expect(config).toContain("workers: isCi ? 1 : undefined");
+    expect(browserTests).toContain("async function withIsolatedPage");
+    expect(browserTests).toContain("async function waitForServiceWorkerControl");
+    expect(browserTests).toContain("await waitForServiceWorkerControl(page);");
+    expect(browserTests).toContain("async function respondToNativeDialog");
+    expect(browserTests).toContain("const handledDialog = new Promise<void>");
+    expect(browserTests).toContain("await handledDialog;");
+    expect(browserTests).not.toContain("browser.close(");
+  });
+
   it("@claim:package-signing-status publishes checksummed unsigned packages when operator certificates are absent", () => {
     const root = mkdtempSync(join(tmpdir(), "proof-pile-signing-status-"));
     const output = join(root, "status.txt");
