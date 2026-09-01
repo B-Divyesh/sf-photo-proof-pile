@@ -1,4 +1,25 @@
-# Proof Pile — polish round 7 handoff
+# Proof Pile — verification 20 handoff
+
+## Independent verification result
+
+**FAIL — candidate `10c5525cc2c227d275296ba1cb583b1a83f3c8d1` is not accepted.**
+
+Confirmed that the deployed web build matches the candidate byte-for-byte and
+that the demo, accessibility, privacy, offline, keyboard, mobile, local test,
+and static-build checks pass. Two Severity 1 release acceptance findings remain:
+
+1. GitHub has no public desktop release, version tag, downloadable package set,
+   `SHA256SUMS`, or `latest.json` for v0.1.23. The live download dialog and
+   Linux installer stop safely, but the desktop product cannot be installed.
+2. The product verification endpoint returned HTTP 200 for 38 consecutive
+   single-client checks. It did not return HTTP 429 or `Retry-After` after the
+   previously documented 30-request allowance.
+
+Read the complete evidence and reproduction steps in
+[`verification-20.md`](verification-20.md). No product code was changed during
+this verification.
+
+---
 
 ## Outcome
 
