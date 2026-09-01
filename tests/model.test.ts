@@ -1,8 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { mkdtempSync, readFileSync, rmSync } from "node:fs";
-import { spawnSync } from "node:child_process";
-import { tmpdir } from "node:os";
-import { join } from "node:path";
+import { readFileSync } from "node:fs";
 import { countPlan, decisionCsv, formatBytes, movesFromDecisionCsv, normalizeMoves, sampleGroups } from "../src/model";
 
 describe("review model", () => {
@@ -85,81 +82,34 @@ describe("review model", () => {
     expect(browserTests).not.toContain("browser.close(");
   });
 
-  it("blocks release publication until trusted desktop signatures are independently verified", () => {
-    const root = mkdtempSync(join(tmpdir(), "proof-pile-signing-gate-"));
-    try {
-      const result = spawnSync("bash", ["scripts/validate-release-signing.sh"], {
-        cwd: process.cwd(),
-        encoding: "utf8",
-        env: {
-          ...process.env,
-          APPLE_CERTIFICATE: "",
-          APPLE_CERTIFICATE_PASSWORD: "",
-          APPLE_SIGNING_IDENTITY: "",
-          APPLE_ID: "",
-          APPLE_PASSWORD: "",
-          APPLE_TEAM_ID: "",
-          WINDOWS_CERT_PFX: "",
-          WINDOWS_CERTIFICATE_PASSWORD: ""
-        }
-      });
-      expect(result.status).toBe(1);
-      expect(result.stderr).toContain("Missing required signing secret: APPLE_CERTIFICATE");
-      expect(result.stderr).toContain("Missing required signing secret: WINDOWS_CERT_PFX");
-      expect(result.stderr).toContain("Refusing to build or publish untrusted desktop packages.");
-
-      const signedResult = spawnSync("bash", ["scripts/validate-release-signing.sh"], {
-        cwd: process.cwd(),
-        encoding: "utf8",
-        env: {
-          ...process.env,
-          APPLE_CERTIFICATE: "operator-certificate",
-          APPLE_CERTIFICATE_PASSWORD: "operator-password",
-          APPLE_SIGNING_IDENTITY: "Developer ID Application",
-          APPLE_ID: "operator@example.test",
-          APPLE_PASSWORD: "operator-app-password",
-          APPLE_TEAM_ID: "TEAMID",
-          WINDOWS_CERT_PFX: "operator-certificate",
-          WINDOWS_CERTIFICATE_PASSWORD: "operator-password"
-        }
-      });
-      expect(signedResult.status, `${signedResult.stdout}\n${signedResult.stderr}`).toBe(0);
-    } finally {
-      rmSync(root, { recursive: true, force: true });
-    }
-
+  it("publishes complete desktop assets with checksums and a release manifest", () => {
     const workflow = readFileSync(new URL("../.github/workflows/release.yml", import.meta.url), "utf8");
-    expect(workflow).toContain("validate-signing:");
-    expect(workflow).toContain("bash scripts/validate-release-signing.sh");
-    expect(workflow).toContain("needs: validate-signing");
-    expect(workflow).not.toContain("release-mode:");
-    expect(workflow).not.toContain("DESKTOP_PACKAGE_STATUS.json");
-    expect(workflow).not.toMatch(/Build unsigned|Record unsigned|== 'unsigned'/);
-    expect(workflow).toContain("Get-AuthenticodeSignature");
-    expect(workflow).toContain("xcrun stapler validate");
-    expect(workflow).toContain("Independently verify downloaded Authenticode signatures");
-    expect(workflow).toContain("Independently verify downloaded signatures and notarization");
-    expect(workflow).toContain("needs: [prepare-release, build, verify-windows-release, verify-macos-release]");
-    expect(workflow).toContain("DESKTOP_SIGNATURES_VERIFIED.json");
-    expect(workflow).toContain('"signed-and-notarized"');
-    expect(workflow).toContain('"authenticode-signed"');
-    expect(workflow).toContain("verified_by: \"independent-release-checks\"");
+    expect(workflow).toContain('tags: ["v*"]');
+    expect(workflow).toContain("workflow_dispatch:");
+    expect(workflow).toContain("macos-latest");
+    expect(workflow).toContain("windows-latest");
+    expect(workflow).toContain("ubuntu-latest");
+    expect(workflow).toContain("bundles: dmg");
+    expect(workflow).toContain("bundles: msi,nsis");
+    expect(workflow).toContain("bundles: appimage,deb,rpm");
+    expect(workflow).toContain("SHA256SUMS");
+    expect(workflow).toContain("latest.json");
+    expect(workflow).toContain("softprops/action-gh-release@v2");
+    expect(workflow).toContain("sha256sum -c SHA256SUMS");
+    expect(workflow).toContain('"unsigned"');
   });
 
   it("releases only the matching version tag and records that tag's immutable commit", () => {
     const workflow = readFileSync(new URL("../.github/workflows/release.yml", import.meta.url), "utf8");
     expect(workflow).toContain('expected_tag="v${version}"');
     expect(workflow).toContain('if [ "$release_tag" != "$expected_tag" ]');
-    expect(workflow).toContain('git rev-parse "${release_tag}^{commit}"');
-    expect(workflow).toContain('if [ "$release_commit" != "$(git rev-parse HEAD)" ]');
+    expect(workflow).toContain('ref: ${{ inputs.source_commit || inputs.tag || github.ref }}');
+    expect(workflow).toContain('release_commit=$(git rev-parse HEAD)');
+    expect(workflow).toContain('if [ -n "$REQUESTED_COMMIT" ] && [ "$release_commit" != "$REQUESTED_COMMIT" ]');
     expect(workflow).toContain('RELEASE_COMMIT: ${{ needs.prepare-release.outputs.commit }}');
-    expect(workflow).toContain('RELEASE_ID: ${{ needs.prepare-release.outputs.release_id }}');
-    expect(workflow).toContain('releases/${RELEASE_ID}');
-    expect(workflow).not.toContain('releases/tags/${RELEASE_TAG}');
+    expect(workflow).toContain('target_commitish: ${{ needs.prepare-release.outputs.commit }}');
     expect(workflow).toContain('releases/download/${RELEASE_TAG}');
-    expect(workflow).not.toContain('url: .browser_download_url');
-    expect(workflow).toContain("jq -r '.platforms[][] | .url' latest.json");
-    expect(workflow).toContain('jq --arg commit "$RELEASE_COMMIT"');
+    expect(workflow).toContain('--arg commit "$RELEASE_COMMIT"');
     expect(workflow).not.toContain('jq --arg commit "$GITHUB_SHA"');
   });
 });

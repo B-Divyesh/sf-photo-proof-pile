@@ -23,7 +23,7 @@ const scrollPositions = new Map<string, number>();
 type LicenseVerdict = { valid: boolean; reason?: string; expires_at?: string | null };
 
 class LicenseServiceError extends Error {
-  constructor(readonly kind: "unavailable" | "rate-limited" | "invalid-response") {
+  constructor(readonly kind: "unavailable" | "rate-limited" | "invalid-response", readonly retryAfterSeconds?: number) {
     super(kind);
   }
 }
@@ -396,8 +396,21 @@ function licenseVerificationUrl(token: string) {
 }
 
 function licenseServiceMessage(error: unknown) {
-  if (error instanceof LicenseServiceError && error.kind === "rate-limited") return "License checks are busy. Try again in a few minutes.";
+  if (error instanceof LicenseServiceError && error.kind === "rate-limited") {
+    if (error.retryAfterSeconds) return `License checks are busy. Try again in ${error.retryAfterSeconds} second${error.retryAfterSeconds === 1 ? "" : "s"}.`;
+    return "License checks are busy. Try again in a few minutes.";
+  }
   return "License checks are temporarily unavailable. Try again later.";
+}
+
+function retryAfterSeconds(response: Response) {
+  const value = response.headers.get("Retry-After")?.trim();
+  if (!value) return undefined;
+  const seconds = Number(value);
+  if (Number.isInteger(seconds) && seconds > 0) return seconds;
+  const retryDate = Date.parse(value);
+  if (!Number.isNaN(retryDate)) return Math.max(1, Math.ceil((retryDate - Date.now()) / 1000));
+  return undefined;
 }
 
 async function verifyLicenseToken(token: string): Promise<LicenseVerdict> {
@@ -409,7 +422,7 @@ async function verifyLicenseToken(token: string): Promise<LicenseVerdict> {
     // from a disconnected browser. Neither is a reason to revoke local work.
     throw new LicenseServiceError("unavailable");
   }
-  if (response.status === 429) throw new LicenseServiceError("rate-limited");
+  if (response.status === 429) throw new LicenseServiceError("rate-limited", retryAfterSeconds(response));
   if (!response.ok) throw new LicenseServiceError("unavailable");
   let verdict: unknown;
   try {
@@ -535,19 +548,18 @@ async function showDownloads() {
     const assets = release.data.assets as { name: string; browser_download_url: string }[];
     const checksums = assets.some(item => item.name === "SHA256SUMS");
     const manifest = assets.some(item => item.name === "latest.json");
-    const signaturesVerified = assets.some(item => item.name === "DESKTOP_SIGNATURES_VERIFIED.json");
     const macArm = assets.find(item => /\.(dmg)$/i.test(item.name) && /(aarch64|arm64)/i.test(item.name));
     const macIntel = assets.find(item => /\.(dmg)$/i.test(item.name) && /(x86_64|x64|intel)/i.test(item.name));
     const windows = assets.find(item => /\.(msi|exe)$/i.test(item.name));
     const linux = assets.find(item => /\.(AppImage|deb)$/i.test(item.name));
-    if (!signaturesVerified || !checksums || !manifest || !macArm || !macIntel || !windows || !linux) {
-      document.querySelector("#release-state")!.textContent = "Signed downloads are being prepared.";
-      document.querySelector("#signature-state")!.textContent = "No package is offered until Windows and macOS signature checks pass.";
+    if (!checksums || !manifest || !macArm || !macIntel || !windows || !linux) {
+      document.querySelector("#release-state")!.textContent = "Downloads are being published.";
+      document.querySelector("#signature-state")!.textContent = "No package is offered until the full package set and SHA-256 file are published.";
       document.querySelector("#release-links")!.replaceChildren();
       return;
     }
     document.querySelector("#release-state")!.textContent = `${release.data.tag_name} is ready.`;
-    document.querySelector("#signature-state")!.textContent = "Windows is Authenticode signed. macOS is signed and notarized.";
+    document.querySelector("#signature-state")!.textContent = "Packages are unsigned. Match the SHA-256 file before opening one.";
     document.querySelector("#release-links")!.innerHTML = [
       `<a class="button quiet" href="${escapeHtml(macArm.browser_download_url)}">Download for macOS (Apple silicon)</a>`,
       `<a class="button quiet" href="${escapeHtml(macIntel.browser_download_url)}">Download for macOS (Intel)</a>`,

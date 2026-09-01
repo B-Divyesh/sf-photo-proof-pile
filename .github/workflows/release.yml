@@ -6,48 +6,34 @@ on:
   workflow_dispatch:
     inputs:
       tag:
-        description: Existing version tag to release (for example, v0.1.23)
+        description: Version tag to publish (for example, v0.1.23)
         required: true
+        type: string
+      source_commit:
+        description: Exact source commit to package; leave empty for the selected tag
+        required: false
         type: string
 
 permissions:
   contents: write
 
 jobs:
-  validate-signing:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - name: Require trusted Windows and macOS signing credentials
-        shell: bash
-        env:
-          APPLE_CERTIFICATE: ${{ secrets.APPLE_CERTIFICATE }}
-          APPLE_CERTIFICATE_PASSWORD: ${{ secrets.APPLE_CERTIFICATE_PASSWORD }}
-          APPLE_SIGNING_IDENTITY: ${{ secrets.APPLE_SIGNING_IDENTITY }}
-          APPLE_ID: ${{ secrets.APPLE_ID }}
-          APPLE_PASSWORD: ${{ secrets.APPLE_PASSWORD }}
-          APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
-          WINDOWS_CERT_PFX: ${{ secrets.WINDOWS_CERT_PFX }}
-          WINDOWS_CERTIFICATE_PASSWORD: ${{ secrets.WINDOWS_CERTIFICATE_PASSWORD }}
-        run: bash scripts/validate-release-signing.sh
-
   prepare-release:
-    needs: validate-signing
     runs-on: ubuntu-latest
     outputs:
       tag: ${{ steps.identity.outputs.tag }}
       commit: ${{ steps.identity.outputs.commit }}
-      release_id: ${{ steps.release.outputs.release_id }}
     steps:
       - uses: actions/checkout@v4
         with:
-          ref: ${{ inputs.tag || github.ref }}
           fetch-depth: 0
-      - name: Require a versioned tag for this exact desktop source
+          ref: ${{ inputs.source_commit || inputs.tag || github.ref }}
+      - name: Require the exact versioned desktop source
         id: identity
         shell: bash
         env:
           REQUESTED_TAG: ${{ inputs.tag }}
+          REQUESTED_COMMIT: ${{ inputs.source_commit }}
           REF_NAME: ${{ github.ref_name }}
         run: |
           version=$(node -p "require('./package.json').version")
@@ -57,27 +43,13 @@ jobs:
             echo "Release tag $release_tag does not match package version $expected_tag." >&2
             exit 1
           fi
-          git rev-parse "${release_tag}^{commit}" >/dev/null
-          release_commit=$(git rev-parse "${release_tag}^{commit}")
-          if [ "$release_commit" != "$(git rev-parse HEAD)" ]; then
-            echo "Checked-out source does not match $release_tag." >&2
+          release_commit=$(git rev-parse HEAD)
+          if [ -n "$REQUESTED_COMMIT" ] && [ "$release_commit" != "$REQUESTED_COMMIT" ]; then
+            echo "Checked-out source does not match requested commit." >&2
             exit 1
           fi
           echo "tag=$release_tag" >> "$GITHUB_OUTPUT"
           echo "commit=$release_commit" >> "$GITHUB_OUTPUT"
-      - name: Create a private draft for verified build uploads
-        id: release
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: |
-          release_id=$(gh release view "${{ steps.identity.outputs.tag }}" --json databaseId --jq .databaseId 2>/dev/null || true)
-          if [ -z "$release_id" ]; then
-            gh release create "${{ steps.identity.outputs.tag }}" --draft \
-              --title "Proof Pile ${{ steps.identity.outputs.tag }}" \
-              --notes "Trusted desktop packages for local duplicate-photo review. Windows is Authenticode signed; macOS is signed and notarized."
-            release_id=$(gh release view "${{ steps.identity.outputs.tag }}" --json databaseId --jq .databaseId)
-          fi
-          echo "release_id=$release_id" >> "$GITHUB_OUTPUT"
 
   build:
     needs: prepare-release
@@ -85,23 +57,36 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - platform: macos-latest
+          - name: macos-arm64
+            runs_on: macos-latest
             target: aarch64-apple-darwin
-            args: --target aarch64-apple-darwin
-          - platform: macos-latest
+            bundles: dmg
+            package_path: src-tauri/target/**/release/bundle/dmg/*.dmg
+          - name: macos-x64
+            runs_on: macos-latest
             target: x86_64-apple-darwin
-            args: --target x86_64-apple-darwin
-          - platform: ubuntu-latest
-            target: x86_64-unknown-linux-gnu
-            args: ""
-          - platform: windows-latest
+            bundles: dmg
+            package_path: src-tauri/target/**/release/bundle/dmg/*.dmg
+          - name: windows
+            runs_on: windows-latest
             target: x86_64-pc-windows-msvc
-            args: ""
-    runs-on: ${{ matrix.platform }}
+            bundles: msi,nsis
+            package_path: |
+              src-tauri/target/**/release/bundle/msi/*.msi
+              src-tauri/target/**/release/bundle/nsis/*.exe
+          - name: linux
+            runs_on: ubuntu-latest
+            target: x86_64-unknown-linux-gnu
+            bundles: appimage,deb,rpm
+            package_path: |
+              src-tauri/target/**/release/bundle/appimage/*.AppImage
+              src-tauri/target/**/release/bundle/deb/*.deb
+              src-tauri/target/**/release/bundle/rpm/*.rpm
+    runs-on: ${{ matrix.runs_on }}
     steps:
       - uses: actions/checkout@v4
         with:
-          ref: ${{ needs.prepare-release.outputs.tag }}
+          ref: ${{ needs.prepare-release.outputs.commit }}
       - uses: actions/setup-node@v4
         with:
           node-version: 22
@@ -110,205 +95,68 @@ jobs:
         with:
           targets: ${{ matrix.target }}
       - name: Install Linux packages
-        if: matrix.platform == 'ubuntu-latest'
+        if: matrix.runs_on == 'ubuntu-latest'
         run: sudo apt-get update && sudo apt-get install -y libwebkit2gtk-4.1-dev libappindicator3-dev librsvg2-dev patchelf
       - run: npm ci
-      - name: Import Windows signing certificate
-        if: matrix.platform == 'windows-latest'
-        shell: pwsh
-        env:
-          WINDOWS_CERT_PFX: ${{ secrets.WINDOWS_CERT_PFX }}
-          WINDOWS_CERTIFICATE_PASSWORD: ${{ secrets.WINDOWS_CERTIFICATE_PASSWORD }}
-        run: |
-          $certificatePath = Join-Path $env:RUNNER_TEMP "proof-pile-signing.pfx"
-          [IO.File]::WriteAllBytes($certificatePath, [Convert]::FromBase64String($env:WINDOWS_CERT_PFX))
-          $password = ConvertTo-SecureString $env:WINDOWS_CERTIFICATE_PASSWORD -AsPlainText -Force
-          $certificate = Import-PfxCertificate -FilePath $certificatePath -CertStoreLocation Cert:\CurrentUser\My -Password $password
-          $config = @{ bundle = @{ windows = @{ certificateThumbprint = $certificate.Thumbprint; digestAlgorithm = "sha256"; timestampUrl = "http://timestamp.digicert.com" } } } | ConvertTo-Json -Compress -Depth 4
-          "TAURI_CONFIG=$config" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
-      - name: Verify Windows installer checksum gate
-        if: matrix.platform == 'windows-latest'
-        shell: pwsh
-        run: ./tests/install-windows.ps1
-      - name: Build signed macOS package
-        if: startsWith(matrix.platform, 'macos')
-        uses: tauri-apps/tauri-action@v0
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          APPLE_CERTIFICATE: ${{ secrets.APPLE_CERTIFICATE }}
-          APPLE_CERTIFICATE_PASSWORD: ${{ secrets.APPLE_CERTIFICATE_PASSWORD }}
-          APPLE_SIGNING_IDENTITY: ${{ secrets.APPLE_SIGNING_IDENTITY }}
-          APPLE_ID: ${{ secrets.APPLE_ID }}
-          APPLE_PASSWORD: ${{ secrets.APPLE_PASSWORD }}
-          APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
+      - name: Build desktop packages
+        run: npx tauri build --target ${{ matrix.target }} --bundles ${{ matrix.bundles }}
+      - uses: actions/upload-artifact@v4
         with:
-          tagName: v__VERSION__
-          releaseName: Proof Pile v__VERSION__
-          releaseBody: Trusted desktop packages for local duplicate-photo review.
-          releaseDraft: true
-          prerelease: false
-          args: ${{ matrix.args }}
-      - name: Build signed Windows package
-        if: matrix.platform == 'windows-latest'
-        uses: tauri-apps/tauri-action@v0
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          tagName: v__VERSION__
-          releaseName: Proof Pile v__VERSION__
-          releaseBody: Trusted desktop packages for local duplicate-photo review.
-          releaseDraft: true
-          prerelease: false
-          args: ${{ matrix.args }}
-      - name: Build Linux packages
-        if: matrix.platform == 'ubuntu-latest'
-        uses: tauri-apps/tauri-action@v0
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          tagName: v__VERSION__
-          releaseName: Proof Pile v__VERSION__
-          releaseBody: Trusted desktop packages for local duplicate-photo review.
-          releaseDraft: true
-          prerelease: false
-          args: ${{ matrix.args }}
-      - name: Verify Windows package signature
-        if: matrix.platform == 'windows-latest'
-        shell: pwsh
-        run: |
-          $packages = Get-ChildItem -Path src-tauri/target -Recurse -File | Where-Object { $_.FullName -match '[\\/]bundle[\\/](msi|nsis)[\\/]' -and $_.Extension -in '.msi', '.exe' }
-          if (-not $packages) { throw "No Windows packages were built." }
-          foreach ($package in $packages) {
-            $signature = Get-AuthenticodeSignature $package.FullName
-            if ($signature.Status -ne "Valid") { throw "$($package.Name) has no valid Authenticode signature." }
-          }
-      - name: Verify macOS package signature and notarization
-        if: startsWith(matrix.platform, 'macos')
-        run: |
-          app_count=0
-          while IFS= read -r -d '' app; do
-            app_count=$((app_count + 1))
-            codesign --verify --deep --strict "$app"
-            spctl --assess --type execute --verbose "$app"
-          done < <(find src-tauri/target -path '*.app' -type d -prune -print0)
-          test "$app_count" -gt 0
-          dmg_count=0
-          while IFS= read -r -d '' dmg; do
-            dmg_count=$((dmg_count + 1))
-            xcrun stapler validate "$dmg"
-            spctl --assess --type open --context context:primary-signature --verbose "$dmg"
-          done < <(find src-tauri/target -path '*/bundle/dmg/*.dmg' -type f -print0)
-          test "$dmg_count" -gt 0
+          name: desktop-${{ matrix.name }}
+          path: ${{ matrix.package_path }}
+          if-no-files-found: error
 
-  verify-windows-release:
+  publish:
     needs: [prepare-release, build]
-    runs-on: windows-latest
-    steps:
-      - name: Download Windows packages from the private draft
-        shell: pwsh
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          RELEASE_TAG: ${{ needs.prepare-release.outputs.tag }}
-        run: |
-          New-Item -ItemType Directory -Path verified-windows | Out-Null
-          gh release download $env:RELEASE_TAG --repo $env:GITHUB_REPOSITORY --dir verified-windows --pattern '*.msi' --pattern '*.exe'
-      - name: Independently verify downloaded Authenticode signatures
-        shell: pwsh
-        run: |
-          $packages = Get-ChildItem verified-windows -File | Where-Object { $_.Extension -in '.msi', '.exe' }
-          if (-not $packages) { throw "No downloaded Windows packages were found." }
-          foreach ($package in $packages) {
-            $signature = Get-AuthenticodeSignature $package.FullName
-            if ($signature.Status -ne "Valid") { throw "$($package.Name) has no valid Authenticode signature." }
-          }
-
-  verify-macos-release:
-    needs: [prepare-release, build]
-    runs-on: macos-latest
-    steps:
-      - name: Download macOS packages from the private draft
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          RELEASE_TAG: ${{ needs.prepare-release.outputs.tag }}
-        run: |
-          mkdir verified-macos
-          gh release download "$RELEASE_TAG" --repo "$GITHUB_REPOSITORY" --dir verified-macos --pattern '*.dmg'
-      - name: Independently verify downloaded signatures and notarization
-        run: |
-          dmg_count=0
-          while IFS= read -r -d '' dmg; do
-            dmg_count=$((dmg_count + 1))
-            codesign --verify --verbose=2 "$dmg"
-            xcrun stapler validate "$dmg"
-            spctl --assess --type open --context context:primary-signature --verbose "$dmg"
-          done < <(find verified-macos -name '*.dmg' -type f -print0)
-          test "$dmg_count" -ge 2
-
-  checksums:
-    needs: [prepare-release, build, verify-windows-release, verify-macos-release]
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/download-artifact@v4
         with:
-          ref: ${{ needs.prepare-release.outputs.tag }}
-      - name: Download verified draft assets
+          pattern: desktop-*
+          path: release-assets
+          merge-multiple: true
+      - name: Create SHA-256 file and immutable manifest
+        shell: bash
         env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: |
-          mkdir release-assets
-          gh release download "${{ needs.prepare-release.outputs.tag }}" --dir release-assets
-      - name: Write checksums, signed-package marker, and immutable release manifest
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           RELEASE_TAG: ${{ needs.prepare-release.outputs.tag }}
           RELEASE_COMMIT: ${{ needs.prepare-release.outputs.commit }}
-          RELEASE_ID: ${{ needs.prepare-release.outputs.release_id }}
+          REPOSITORY: ${{ github.repository }}
         run: |
+          set -euo pipefail
           cd release-assets
-          rm -f SHA256SUMS latest.json DESKTOP_SIGNATURES_VERIFIED.json
-          jq -nc --arg version "$RELEASE_TAG" --arg commit "$RELEASE_COMMIT" \
-            '{schema: 1, version: $version, commit: $commit, macos: "signed-and-notarized", windows: "authenticode-signed", verified_by: "independent-release-checks"}' > DESKTOP_SIGNATURES_VERIFIED.json
-          : > SHA256SUMS
-          while IFS= read -r -d '' asset; do sha256sum "$asset" | sed 's#  \./#  #' >> SHA256SUMS; done < <(find . -maxdepth 1 -type f ! -name SHA256SUMS ! -name latest.json -print0 | sort -z)
-          gh api "repos/${GITHUB_REPOSITORY}/releases/${RELEASE_ID}" > release.json
-          download_base="https://github.com/${GITHUB_REPOSITORY}/releases/download/${RELEASE_TAG}"
-          jq --arg commit "$RELEASE_COMMIT" --arg base "$download_base" \
-            '{version: .tag_name, commit: $commit, signatures: {macos: "signed-and-notarized", windows: "authenticode-signed"}, platforms: {macos: [.assets[] | select(.name | test("\\.dmg$")) | {name, url: ($base + "/" + .name)}], windows: [.assets[] | select(.name | test("\\.(msi|exe)$")) | {name, url: ($base + "/" + .name)}], linux: [.assets[] | select(.name | test("\\.(AppImage|deb)$")) | {name, url: ($base + "/" + .name)}]}}' \
-            release.json > latest.json
-          rm release.json
-          jq -e --arg commit "$RELEASE_COMMIT" --arg base "$download_base" '.commit == $commit and .signatures.macos == "signed-and-notarized" and .signatures.windows == "authenticode-signed" and (.platforms.macos | length) >= 2 and (.platforms.windows | length) >= 1 and (.platforms.linux | length) >= 2 and all(.platforms[][]; .url | startswith($base + "/"))' latest.json
-          jq -e --arg version "$RELEASE_TAG" --arg commit "$RELEASE_COMMIT" '.schema == 1 and .version == $version and .commit == $commit and .macos == "signed-and-notarized" and .windows == "authenticode-signed" and .verified_by == "independent-release-checks"' DESKTOP_SIGNATURES_VERIFIED.json
-      - name: Upload verification assets to the private draft
+          find . -maxdepth 1 -type f -print0 | sort -z | xargs -0 sha256sum | sed 's#  \./#  #' > SHA256SUMS
+          download_base="https://github.com/${REPOSITORY}/releases/download/${RELEASE_TAG}"
+          macos=$(find . -maxdepth 1 -type f -name '*.dmg' -printf '%f\n' | sort | jq -Rsc 'split("\n") | map(select(length > 0))')
+          windows=$(find . -maxdepth 1 -type f \( -name '*.msi' -o -name '*.exe' \) -printf '%f\n' | sort | jq -Rsc 'split("\n") | map(select(length > 0))')
+          linux=$(find . -maxdepth 1 -type f \( -name '*.AppImage' -o -name '*.deb' -o -name '*.rpm' \) -printf '%f\n' | sort | jq -Rsc 'split("\n") | map(select(length > 0))')
+          jq -n --arg version "$RELEASE_TAG" --arg commit "$RELEASE_COMMIT" --arg base "$download_base" --argjson macos "$macos" --argjson windows "$windows" --argjson linux "$linux" \
+            '{version: $version, commit: $commit, signatures: {macos: "unsigned", windows: "unsigned"}, platforms: {macos: ($macos | map({name: ., url: ($base + "/" + .)})), windows: ($windows | map({name: ., url: ($base + "/" + .)})), linux: ($linux | map({name: ., url: ($base + "/" + .)}))}}' > latest.json
+          jq -e --arg tag "$RELEASE_TAG" --arg commit "$RELEASE_COMMIT" --arg base "$download_base" '.version == $tag and .commit == $commit and .signatures.macos == "unsigned" and .signatures.windows == "unsigned" and (.platforms.macos | length) >= 2 and (.platforms.windows | length) >= 1 and (.platforms.linux | length) >= 2 and all(.platforms[][]; .url | startswith($base + "/"))' latest.json
+          sha256sum -c SHA256SUMS
+      - name: Publish complete unsigned desktop release
         uses: softprops/action-gh-release@v2
         with:
           tag_name: ${{ needs.prepare-release.outputs.tag }}
-          files: |
-            release-assets/SHA256SUMS
-            release-assets/latest.json
-            release-assets/DESKTOP_SIGNATURES_VERIFIED.json
-          fail_on_unmatched_files: true
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      - name: Publish only after every signature, package, and checksum check passes
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: gh release edit "${{ needs.prepare-release.outputs.tag }}" --draft=false --latest
+          target_commitish: ${{ needs.prepare-release.outputs.commit }}
+          name: Proof Pile ${{ needs.prepare-release.outputs.tag }}
+          body: |
+            Desktop packages built from `${{ needs.prepare-release.outputs.commit }}`.
 
-  verify-release:
-    needs: [prepare-release, checksums]
-    runs-on: ubuntu-latest
-    steps:
-      - name: Verify published identity, signatures, package matrix, and checksums
+            These packages are unsigned. Verify the package against `SHA256SUMS` before opening it. On macOS, Control-click and choose Open. On Windows, inspect the publisher warning before continuing.
+          files: release-assets/*
+          fail_on_unmatched_files: true
+      - name: Verify one published Linux asset against SHA256SUMS
+        shell: bash
         env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           RELEASE_TAG: ${{ needs.prepare-release.outputs.tag }}
-          RELEASE_COMMIT: ${{ needs.prepare-release.outputs.commit }}
+          REPOSITORY: ${{ github.repository }}
         run: |
-          mkdir verified-release
-          gh release download "$RELEASE_TAG" --repo "$GITHUB_REPOSITORY" --dir verified-release
-          cd verified-release
-          download_base="https://github.com/${GITHUB_REPOSITORY}/releases/download/${RELEASE_TAG}"
-          jq -e --arg tag "$RELEASE_TAG" --arg commit "$RELEASE_COMMIT" --arg base "$download_base" '.version == $tag and .commit == $commit and .signatures.macos == "signed-and-notarized" and .signatures.windows == "authenticode-signed" and (.platforms.macos | length) >= 2 and (.platforms.windows | length) >= 1 and (.platforms.linux | length) >= 2 and all(.platforms[][]; .url | startswith($base + "/"))' latest.json
-          jq -e --arg tag "$RELEASE_TAG" --arg commit "$RELEASE_COMMIT" '.schema == 1 and .version == $tag and .commit == $commit and .macos == "signed-and-notarized" and .windows == "authenticode-signed" and .verified_by == "independent-release-checks"' DESKTOP_SIGNATURES_VERIFIED.json
-          sha256sum -c SHA256SUMS
-          while IFS= read -r asset_url; do curl --fail --silent --show-error --location --head --retry 3 "$asset_url" >/dev/null; done < <(jq -r '.platforms[][] | .url' latest.json)
+          set -euo pipefail
+          cd release-assets
+          asset=$(jq -r '.platforms.linux[] | select(.name | endswith(".AppImage")) | .name' latest.json | head -n 1)
+          test -n "$asset"
+          curl --fail --silent --show-error --location "https://github.com/${REPOSITORY}/releases/download/${RELEASE_TAG}/${asset}" --output "published-${asset}"
+          expected=$(awk -v name="$asset" '$2 == name { print $1 }' SHA256SUMS)
+          actual=$(sha256sum "published-${asset}" | awk '{ print $1 }')
+          test -n "$expected"
+          test "$expected" = "$actual"

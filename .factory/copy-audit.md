@@ -14,7 +14,7 @@ banned marketing word appears.
 | For people with photos across several drives who fear removing the only meaningful copy. | 14 | Audience |
 | Try it with sample data | 5 | `demo-isolated` |
 | Opens three ready-to-review groups. | 4 | `match-evidence` |
-| Check desktop downloads | 3 | `verified-downloads-only` |
+| Check desktop downloads | 3 | `desktop-release-assets` |
 | Open this page on a desktop computer to check desktop packages. | 11 | Mobile guidance |
 | Photos stay on this device | 5 | `native-local-privacy` |
 | Works without an account | 4 | `no-account` |
@@ -44,9 +44,9 @@ banned marketing word appears.
 | Close download window | 3 | Accessible name |
 | Desktop app / Desktop downloads | 2 / 2 | Label and heading |
 | Checking the latest release… / Checking release verification… | 4 / 3 | Loading state |
-| Signed downloads are being prepared. | 5 | Empty state |
-| No package is offered until Windows and macOS signature checks pass. | 11 | `verified-downloads-only` |
-| Windows is Authenticode signed. / macOS is signed and notarized. | 4 / 5 | Verified-release state |
+| Downloads are being published. | 4 | Empty state |
+| No package is offered until the full package set and SHA-256 file are published. | 14 | `desktop-release-assets` |
+| Packages are unsigned. / Match the SHA-256 file before opening one. | 3 / 8 | Release state |
 | Download for macOS (Apple silicon) / Download for macOS (Intel) / Download for Windows / Download for Linux | 5 / 4 / 3 / 3 | Result actions |
 | Downloads are not published yet. Check again later. | 8 | Error and next step |
 | View release status on GitHub ↗ | 6 | External status action |
@@ -71,9 +71,10 @@ banned marketing word appears.
 | The app stores a returned license under `sb_license:photo-proof-pile` and checks it with the Sociobot API at most once each day. | 19 | `paid-license` |
 | The request contains only the license token. | 7 | `license-request-privacy` |
 | Use Check desktop downloads on the website. | 6 | Install action |
-| No desktop package is offered until independent Windows and macOS signature checks pass. | 13 | `verified-downloads-only` |
-| The dialog also requires the full package set and published verification files. | 11 | `verified-downloads-only` |
-| Both scripts require the signed-package verification record and compare the downloaded package with the published SHA-256 verification file before installing it. | 19 | Installer tests |
+| A package is offered only when both macOS builds, a Windows installer, Linux packages, SHA256SUMS, and latest.json are published. | 19 | `desktop-release-assets` |
+| Current packages are unsigned: on macOS, Control-click and choose Open; on Windows, inspect the publisher warning before continuing. | 17 | Install disclosure |
+| Both scripts compare the downloaded package with the published SHA-256 verification file before installing it. | 15 | Installer tests |
+| The service allows 30 verification requests per client window. / Request 31 returns HTTP 429 with Retry-After; the app does not retry it automatically. | 9 / 15 | `license-verification-allowance` |
 | The local scanner reads only folders you select. / It compares file bytes for exact copies and image content for photos that look alike. / It also reads the capture time and camera stored inside each photo. / Files in an exact-copy group do not appear again in another match group. | 8 / 15 / 13 / 14 | Matching claims |
 | Moving a file preserves its bytes and embedded photo information. / If a move crosses drives, the app copies the file first and removes the source only after a successful copy. / A name collision receives a numbered file name instead of overwriting either copy. | 10 / 20 / 13 | `cross-drive-safety` |
 

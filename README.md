@@ -23,11 +23,11 @@ The free desktop app scans up to 1,000 image files at a time. A US$29 one-time l
 
 Buy through the [Sociobot checkout](https://api.sociobot.in/api/v1/products/photo-proof-pile/checkout). For refunds, email [support@sociobot.in](mailto:support@sociobot.in?subject=Proof%20Pile%20refund).
 
-The app stores a returned license under `sb_license:photo-proof-pile` and checks it with the Sociobot API at most once each day. The request contains only the license token.
+The app stores a returned license under `sb_license:photo-proof-pile` and checks it with the Sociobot API at most once each day. The request contains only the license token. The service allows 30 verification requests per client window. Request 31 returns HTTP 429 with `Retry-After`; the app does not retry it automatically.
 
 ## Install
 
-Use **Check desktop downloads** on the website. No desktop package is offered until independent Windows and macOS signature checks pass. The dialog also requires the full package set and published verification files.
+Use **Check desktop downloads** on the website. A package is offered only when both macOS builds, a Windows installer, Linux packages, `SHA256SUMS`, and `latest.json` are published. Current packages are unsigned: on macOS, Control-click and choose Open; on Windows, inspect the publisher warning before continuing.
 
 Linux users can run:
 
@@ -41,7 +41,7 @@ Windows users can run in PowerShell:
 irm https://photo-proof-pile.sociobot.in/install.ps1 | iex
 ```
 
-Both scripts require the signed-package verification record and compare the downloaded package with the published SHA-256 verification file before installing it.
+Both scripts compare the downloaded package with the published SHA-256 verification file before installing it.
 
 ## Develop and verify
 

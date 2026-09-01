@@ -91,6 +91,13 @@
     "sandbox": "mock time and the Sociobot response; paste a token, assert no request at 23:59:59, then one request at 24:00:00"
   },
   {
+    "id": "license-verification-allowance",
+    "claim": "Product verification allows 30 requests per client window; request 31 returns 429 with Retry-After.",
+    "where": "README",
+    "test": "npm run test:e2e -- --grep @claim:license-verification-allowance",
+    "sandbox": "recorded billing responses return 200 for 30 invalid-token checks, then 429 with Retry-After; assert the app gives the supplied wait time and makes no automatic retry"
+  },
+  {
     "id": "paid-checkout",
     "claim": "A US$29 one-time purchase uses Sociobot hosted checkout and returns a stored license.",
     "where": "landing page, pricing section, terms, and README",
@@ -147,10 +154,10 @@
     "sandbox": "inspect the shipped PowerShell installer contract; assert package verification happens before msiexec can start"
   },
   {
-    "id": "verified-downloads-only",
-    "claim": "The download dialog offers desktop packages only after Windows and macOS signature verification is published.",
+    "id": "desktop-release-assets",
+    "claim": "The download dialog offers desktop packages only after the full platform set, SHA-256 file, and release manifest are published.",
     "where": "README and download dialog",
-    "test": "npm run test:e2e -- --grep @claim:verified-downloads-only",
-    "sandbox": "mock a full package matrix without the signed-package marker, then add the marker and assert only the verified release exposes package links"
+    "test": "npm run test:e2e -- --grep @claim:desktop-release-assets",
+    "sandbox": "mock incomplete and complete GitHub release asset sets; assert only the complete set exposes platform links"
   }
 ]

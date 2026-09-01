@@ -452,6 +452,32 @@ test("does not save a pasted token when the billing service returns 503", async 
   expect(await page.evaluate(() => localStorage.getItem("sb_license:photo-proof-pile"))).toBeNull();
 });
 
+test("@claim:license-verification-allowance honors the 30-request allowance and Retry-After", async ({ page }) => {
+  let checks = 0;
+  await page.route("https://api.sociobot.in/api/v1/products/photo-proof-pile/verify?license=allowance-token", route => {
+    checks += 1;
+    if (checks <= 30) return route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify({ valid: false, reason: "invalid" }) });
+    return route.fulfill({ status: 429, headers: { "Access-Control-Allow-Origin": "*", "Access-Control-Expose-Headers": "Retry-After", "Retry-After": "4" }, body: "Too many verification requests" });
+  });
+
+  await page.goto("/");
+  await page.getByRole("button", { name: "Restore a purchase" }).click();
+  await page.getByLabel("License token").fill("allowance-token");
+  for (let request = 1; request <= 30; request += 1) {
+    await page.getByRole("button", { name: "Verify license" }).click();
+    await expect.poll(() => checks).toBe(request);
+    await expect(page.getByText("This license is not active. Check the token and try again.")).toBeVisible();
+  }
+  expect(checks).toBe(30);
+
+  await page.getByRole("button", { name: "Verify license" }).click();
+  await expect.poll(() => checks).toBe(31);
+  await expect(page.getByText("License checks are busy. Try again in 4 seconds. Your saved license was not changed.")).toBeVisible();
+  expect(checks).toBe(31);
+  await page.waitForTimeout(100);
+  expect(checks).toBe(31);
+});
+
 test("@claim:paid-checkout shows the price, opens hosted checkout, and stores a returned license", async ({ page }) => {
   let checkoutRequests = 0;
   let verifyRequests = 0;
@@ -589,7 +615,7 @@ test("the skip link moves keyboard focus to main", async ({ page }) => {
   await expect(page.locator("main")).toBeFocused();
 });
 
-test("download picker offers both independently verified macOS architectures", async ({ page }) => {
+test("download picker offers both macOS architectures from a complete release", async ({ page }) => {
   await page.route("https://api.github.com/repos/B-Divyesh/sf-photo-proof-pile/releases?per_page=1", route => route.fulfill({
     status: 200,
     contentType: "application/json",
@@ -599,8 +625,7 @@ test("download picker offers both independently verified macOS architectures", a
       { name: "Proof.Pile_0.1.1_x64_en-US.msi", browser_download_url: "https://example.test/app.msi" },
       { name: "Proof.Pile_0.1.1_amd64.AppImage", browser_download_url: "https://example.test/app.AppImage" },
       { name: "SHA256SUMS", browser_download_url: "https://example.test/SHA256SUMS" },
-      { name: "latest.json", browser_download_url: "https://example.test/latest.json" },
-      { name: "DESKTOP_SIGNATURES_VERIFIED.json", browser_download_url: "https://example.test/signatures.json" }
+      { name: "latest.json", browser_download_url: "https://example.test/latest.json" }
     ] }])
   }));
   await page.goto("/");
@@ -609,10 +634,10 @@ test("download picker offers both independently verified macOS architectures", a
   await expect(page.getByText("v0.1.1 is ready.")).toBeVisible();
   await expect(page.getByRole("link", { name: "Download for macOS (Apple silicon)" })).toHaveAttribute("href", "https://example.test/arm.dmg");
   await expect(page.getByRole("link", { name: "Download for macOS (Intel)" })).toHaveAttribute("href", "https://example.test/intel.dmg");
-  await expect(page.getByText("Windows is Authenticode signed. macOS is signed and notarized.")).toBeVisible();
+  await expect(page.getByText("Packages are unsigned. Match the SHA-256 file before opening one.")).toBeVisible();
 });
 
-test("@claim:verified-downloads-only offers packages only after signature verification is published", async ({ page }) => {
+test("@claim:desktop-release-assets offers packages only after the complete release record is published", async ({ page }) => {
   const consoleErrors: string[] = [];
   page.on("console", message => { if (message.type() === "error") consoleErrors.push(message.text()); });
   await page.route("https://api.github.com/repos/B-Divyesh/sf-photo-proof-pile/releases?per_page=1", route => route.fulfill({
@@ -623,14 +648,13 @@ test("@claim:verified-downloads-only offers packages only after signature verifi
       { name: "Proof.Pile_0.1.23_x64.dmg", browser_download_url: "https://example.test/intel.dmg" },
       { name: "Proof.Pile_0.1.23_x64_en-US.msi", browser_download_url: "https://example.test/app.msi" },
       { name: "Proof.Pile_0.1.23_amd64.AppImage", browser_download_url: "https://example.test/app.AppImage" },
-      { name: "SHA256SUMS", browser_download_url: "https://example.test/SHA256SUMS" },
-      { name: "latest.json", browser_download_url: "https://example.test/latest.json" },
+      { name: "SHA256SUMS", browser_download_url: "https://example.test/SHA256SUMS" }
     ] }])
   }));
   await page.goto("/");
   await page.getByRole("button", { name: "Check desktop downloads" }).click();
-  await expect(page.getByText("Signed downloads are being prepared.")).toBeVisible();
-  await expect(page.getByText("No package is offered until Windows and macOS signature checks pass.")).toBeVisible();
+  await expect(page.getByText("Downloads are being published.")).toBeVisible();
+  await expect(page.getByText("No package is offered until the full package set and SHA-256 file are published.")).toBeVisible();
   await expect(page.getByRole("link", { name: /Download for/ })).toHaveCount(0);
   await page.getByRole("button", { name: "Close download window" }).click();
   await page.evaluate(() => localStorage.clear());
@@ -644,13 +668,12 @@ test("@claim:verified-downloads-only offers packages only after signature verifi
       { name: "Proof.Pile_0.1.23_x64_en-US.msi", browser_download_url: "https://example.test/app.msi" },
       { name: "Proof.Pile_0.1.23_amd64.AppImage", browser_download_url: "https://example.test/app.AppImage" },
       { name: "SHA256SUMS", browser_download_url: "https://example.test/SHA256SUMS" },
-      { name: "latest.json", browser_download_url: "https://example.test/latest.json" },
-      { name: "DESKTOP_SIGNATURES_VERIFIED.json", browser_download_url: "https://example.test/signatures.json" }
+      { name: "latest.json", browser_download_url: "https://example.test/latest.json" }
     ] }])
   }));
   await page.getByRole("button", { name: "Check desktop downloads" }).click();
   await expect(page.getByText("v0.1.23 is ready.")).toBeVisible();
-  await expect(page.getByText("Windows is Authenticode signed. macOS is signed and notarized.")).toBeVisible();
+  await expect(page.getByText("Packages are unsigned. Match the SHA-256 file before opening one.")).toBeVisible();
   await expect(page.getByRole("link", { name: /Download for/ })).toHaveCount(4);
   await expect(page.getByRole("link", { name: "Download for Linux" })).toHaveAttribute("href", "https://example.test/app.AppImage");
   await page.getByRole("button", { name: "Close download window" }).click();
