@@ -1,5 +1,9 @@
 import { describe, expect, it } from "vitest";
-import { readFileSync } from "node:fs";
+import { mkdirSync, mkdtempSync, readFileSync, writeFileSync } from "node:fs";
+import { execFileSync } from "node:child_process";
+import { dirname, join } from "node:path";
+import { tmpdir } from "node:os";
+import { fileURLToPath } from "node:url";
 import { countPlan, decisionCsv, formatBytes, movesFromDecisionCsv, normalizeMoves, sampleGroups } from "../src/model";
 
 describe("review model", () => {
@@ -84,6 +88,7 @@ describe("review model", () => {
 
   it("publishes complete desktop assets with checksums and a release manifest", () => {
     const workflow = readFileSync(new URL("../.github/workflows/release.yml", import.meta.url), "utf8");
+    const preparation = readFileSync(new URL("../scripts/prepare-release-assets.sh", import.meta.url), "utf8");
     expect(workflow).toContain('tags: ["v*"]');
     expect(workflow).toContain("workflow_dispatch:");
     expect(workflow).toContain("macos-latest");
@@ -95,16 +100,46 @@ describe("review model", () => {
     expect(workflow).toContain("SHA256SUMS");
     expect(workflow).toContain("latest.json");
     expect(workflow).toContain("softprops/action-gh-release@v2");
-    expect(workflow).toContain("sha256sum -c SHA256SUMS");
-    expect(workflow).toContain('"unsigned"');
-    expect(workflow).toContain("mkdir -p published");
-    expect(workflow).toContain("find . -type f \\( -name '*.dmg'");
+    expect(preparation).toContain("sha256sum -c SHA256SUMS");
+    expect(preparation).toContain('"unsigned"');
     expect(workflow).toContain("files: release-assets/published/*");
-    expect(workflow).toContain("done < <(find . -type f");
+    expect(workflow).toContain("bash scripts/prepare-release-assets.sh release-assets");
+  });
+
+  it("flattens nested builder artifacts before checksumming and publishing them", () => {
+    const root = mkdtempSync(join(tmpdir(), "proof-pile-release-assets-"));
+    const artifacts = join(root, "release-assets");
+    const files = [
+      ["aarch64-apple-darwin/release/bundle/dmg/Proof Pile_0.1.23_aarch64.dmg", "mac arm"],
+      ["x86_64-apple-darwin/release/bundle/dmg/Proof Pile_0.1.23_x64.dmg", "mac intel"],
+      ["x86_64-pc-windows-msvc/release/bundle/msi/Proof Pile_0.1.23_x64_en-US.msi", "windows"],
+      ["x86_64-unknown-linux-gnu/release/bundle/appimage/Proof Pile_0.1.23_amd64.AppImage", "appimage"],
+      ["x86_64-unknown-linux-gnu/release/bundle/deb/Proof Pile_0.1.23_amd64.deb", "deb"],
+      ["x86_64-unknown-linux-gnu/release/bundle/rpm/Proof Pile-0.1.23-1.x86_64.rpm", "rpm"],
+    ] as const;
+    for (const [relative, content] of files) {
+      const destination = join(artifacts, relative);
+      mkdirSync(dirname(destination), { recursive: true });
+      writeFileSync(destination, content);
+    }
+
+    execFileSync("bash", [fileURLToPath(new URL("../scripts/prepare-release-assets.sh", import.meta.url)), artifacts], {
+      env: { ...process.env, RELEASE_TAG: "v0.1.23", RELEASE_COMMIT: "a".repeat(40), REPOSITORY: "B-Divyesh/sf-photo-proof-pile" },
+    });
+
+    const published = join(artifacts, "published");
+    const manifest = JSON.parse(readFileSync(join(published, "latest.json"), "utf8"));
+    const sums = readFileSync(join(published, "SHA256SUMS"), "utf8");
+    expect(manifest).toMatchObject({ version: "v0.1.23", commit: "a".repeat(40), signatures: { macos: "unsigned", windows: "unsigned" } });
+    expect(manifest.platforms.macos).toHaveLength(2);
+    expect(manifest.platforms.windows).toHaveLength(1);
+    expect(manifest.platforms.linux).toHaveLength(3);
+    for (const [relative] of files) expect(sums).toContain(`  ${relative.split("/").at(-1)}`);
   });
 
   it("releases only the matching version tag and records that tag's immutable commit", () => {
     const workflow = readFileSync(new URL("../.github/workflows/release.yml", import.meta.url), "utf8");
+    const preparation = readFileSync(new URL("../scripts/prepare-release-assets.sh", import.meta.url), "utf8");
     expect(workflow).toContain('expected_tag="v${version}"');
     expect(workflow).toContain('if [ "$release_tag" != "$expected_tag" ]');
     expect(workflow).toContain('ref: ${{ inputs.source_commit || inputs.tag || github.ref }}');
@@ -113,7 +148,7 @@ describe("review model", () => {
     expect(workflow).toContain('RELEASE_COMMIT: ${{ needs.prepare-release.outputs.commit }}');
     expect(workflow).toContain('target_commitish: ${{ needs.prepare-release.outputs.commit }}');
     expect(workflow).toContain('releases/download/${RELEASE_TAG}');
-    expect(workflow).toContain('--arg commit "$RELEASE_COMMIT"');
-    expect(workflow).not.toContain('jq --arg commit "$GITHUB_SHA"');
+    expect(preparation).toContain('--arg commit "$RELEASE_COMMIT"');
+    expect(preparation).not.toContain('jq --arg commit "$GITHUB_SHA"');
   });
 });
