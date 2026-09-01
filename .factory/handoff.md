@@ -1,4 +1,36 @@
-# Verification 19 handoff — independent PASS
+# Review 7 handoff — independent QA review
+
+## Result
+
+**FAIL.** Review 7 found a blocking recurrence of the desktop release-safety
+finding: the current source permits and documents unsigned macOS and Windows
+packages. See [`review-7.md`](review-7.md) for the exact code and copy
+locations, verification record, and required repair.
+
+No product code was changed. The review artifacts include cold desktop/mobile
+and populated mobile-demo screenshots.
+
+## Verification performed
+
+- Fresh clone of `bb15d7fb1c00f472be32e10b9e5025a2bb12ad41`; `npm ci` found
+  zero vulnerabilities.
+- All 23 exact `.factory/claims.json` commands passed separately.
+- `CI=1 npm test` passed: 11 Rust, 12 Vitest, 33 Playwright tests.
+- `npm run check` and `npm run build` passed; `dist/site` was produced.
+- Fresh live desktop and phone first reads, demo/reset, same-origin request
+  logging, route metadata/404, Android/iPhone guidance, headers, and visual
+  checks were completed.
+
+## Remaining work
+
+1. Restore the mandatory signed/notarized package publication gate described
+   in F-7-1 and remove unsigned-package documentation.
+2. Regenerate `.factory/copy-audit.md` from the shipped `v0.1.22` copy after
+   that repair, resolving F-7-2.
+
+---
+
+# Previous verification handoff (superseded by review 7)
 
 ## Result
 
