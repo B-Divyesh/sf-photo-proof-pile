@@ -47,7 +47,7 @@ jobs:
             exit 1
           fi
           release_commit=$(git rev-parse HEAD)
-          tag_commit=$(git rev-parse "${release_tag}^{}" 2>/dev/null || true)
+          tag_commit=$(git rev-parse --verify --quiet "refs/tags/${release_tag}^{}" || true)
           if [ -n "$tag_commit" ] && [ "$tag_commit" != "$release_commit" ]; then
             echo "Release tag does not resolve to the checked-out source." >&2
             exit 1

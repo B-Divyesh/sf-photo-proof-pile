@@ -108,7 +108,7 @@ describe("review model", () => {
     expect(preparation).toContain('"not_signed"');
     expect(workflow).toContain("files: release-assets/published/*");
     expect(workflow).toContain("bash scripts/prepare-release-assets.sh release-assets");
-    expect(workflow).toContain('tag_commit=$(git rev-parse "${release_tag}^{}" 2>/dev/null || true)');
+    expect(workflow).toContain('tag_commit=$(git rev-parse --verify --quiet "refs/tags/${release_tag}^{}" || true)');
     expect(workflow).toContain('if [ -n "$tag_commit" ] && [ "$tag_commit" != "$release_commit" ]');
     expect(workflow).toContain("BUILD_COMMIT: ${{ needs.prepare-release.outputs.commit }}");
     expect(workflow).toContain("Upload the identically stamped static site");
