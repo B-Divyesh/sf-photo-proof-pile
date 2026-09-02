@@ -10,6 +10,8 @@
     "dev:desktop": "tauri dev",
     "build": "npm run build:site",
     "build:site": "tsc --noEmit && vite build --outDir dist/site",
+    "prepare:deployment": "bash scripts/fetch-release-site.sh",
+    "verify:deployment": "bash scripts/verify-deployment-site.sh",
     "build:desktop": "tauri build",
     "check": "tsc --noEmit && cargo fmt --manifest-path src-tauri/Cargo.toml -- --check && cargo clippy --manifest-path src-tauri/Cargo.toml --no-default-features --all-targets -- -D warnings",
     "test": "npm run check:rust && npm run test:unit && npm run test:e2e",

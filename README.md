@@ -56,7 +56,20 @@ npm run build           # static site at dist/site
 npm run build:desktop   # native package for the current platform
 ```
 
-The exact static deployment command is `npm run build:site`. It writes `dist/site`.
+`npm run build:site` writes a local candidate to `dist/site`. Production must
+use the `release-site` artifact from the successful desktop release workflow,
+so the website and packages have one version and source commit:
+
+```sh
+RELEASE_TAG=v0.1.30 \
+RELEASE_COMMIT=b12d5727de44d71c91b4a496eece320e7247a853 \
+REPOSITORY=B-Divyesh/sf-photo-proof-pile \
+npm run prepare:deployment -- 33596875103 dist/site
+```
+
+The preparation command accepts only an empty destination. It rejects a
+failed or different-source workflow, an expired artifact, a mismatched site,
+an incomplete release, or package URLs outside the immutable release tag.
 
 ## How matching works
 
