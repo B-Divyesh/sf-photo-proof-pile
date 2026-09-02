@@ -1,6 +1,6 @@
 # Landing page copy audit
 
-Audited 2 September 2026 for release `v0.1.26`. Counts treat hyphenated
+Audited 2 September 2026 for release `v0.1.28`. Counts treat hyphenated
 terms, prices, and URLs as one word. No reader sentence exceeds 22 words. No
 banned marketing word appears.
 
@@ -35,7 +35,7 @@ banned marketing word appears.
 | Buy via Sociobot checkout ↗ / Restore a purchase | 4 / 3 | Result actions |
 | Sociobot checkout takes payment. / For refunds, email support@sociobot.in. | 4 / 4 | `paid-checkout` |
 | Review duplicate photos before moving extra copies. | 7 | Footer description |
-| Terms / Built by Param Factory ↗ / v0.1.26 · source [commit id] | 1 / 4 / 4 | `desktop-release-identity` |
+| Terms / Built by Param Factory ↗ / v0.1.28 · source [commit id] | 1 / 4 / 4 | `desktop-release-identity` |
 
 ## Download dialog copy
 
@@ -46,7 +46,7 @@ banned marketing word appears.
 | Checking the latest release… / Checking release verification… | 4 / 3 | Loading state |
 | Downloads for this build are being published. | 7 | Empty state |
 | No package is offered until this source, the full package set, and the SHA-256 file match. | 17 | `desktop-release-assets`, `desktop-release-identity` |
-| v0.1.26 is ready from this source. | 7 | `desktop-release-identity` |
+| v0.1.28 is ready from this source. | 7 | `desktop-release-identity` |
 | macOS packages lack Developer ID signing. / Windows packages are unsigned. / Match the SHA-256 file before opening one. | 6 / 5 / 8 | `unsigned-package-state` |
 | Download for macOS (Apple silicon) / Download for macOS (Intel) / Download for Windows / Download for Linux | 5 / 4 / 3 / 3 | Result actions |
 | Downloads are not published yet. Check again later. | 8 | Error and next step |

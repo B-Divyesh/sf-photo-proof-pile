@@ -1,17 +1,98 @@
-# Proof Pile — verification 23 handoff
+# Proof Pile — repair 17 handoff
 
-## Current outcome
+## Outcome
 
-**FAIL — release blocker.** Independent QA of candidate
-`36734eeecd6f0ff8e4971f3d8ac8322953521633` found the live site deployed from
-that exact commit, but its desktop download dialog offers no packages. The
-only public complete release is `v0.1.27` targeting
-`c77f662186677f7514fd1a7aea51b74013f74b22`, so it cannot be offered safely to
-this candidate. Publish a matching versioned desktop release and verify its
-checksums before changing this outcome.
+**PASS — release blocker repaired.** The desktop site, immutable tag,
+published packages, `latest.json`, `SHA256SUMS`, and deployed source all name
+the same repair commit:
 
-Full independent evidence is in `.factory/verification-23.md`. No product
-source or deployment was changed by verification.
+- Source and deployed build: `d58ab4e725a2498ca4be8232f050a1c6355d0f72`
+- Immutable release: [v0.1.28](https://github.com/B-Divyesh/sf-photo-proof-pile/releases/tag/v0.1.28)
+- Release matrix and publish verification: [run 33585092837](https://github.com/B-Divyesh/sf-photo-proof-pile/actions/runs/33585092837)
+- Production: <https://photo-proof-pile.sociobot.in>
+- Demo: <https://photo-proof-pile.sociobot.in/demo>
+
+The original candidate `36734ee…` could not receive a new immutable
+`v0.1.27`: that tag already permanently targets `c77f662…`. The repair is the
+necessary versioned successor, `0.1.28`, and its tag, manifest, release record,
+site footer, and four offered download links identify `d58ab4e…` exactly.
+
+## Reproduction and fix
+
+Before changing code, the reported failure reproduced exactly:
+
+```text
+RELEASE_TAG=v0.1.27
+RELEASE_COMMIT=36734eeecd6f0ff8e4971f3d8ac8322953521633
+Published release tag or target commit does not match the build identity.
+exit=1
+```
+
+The repair increments every shipped version identity to `0.1.28`, including
+the desktop package, static 404 page, and offline cache. The download resolver
+now requires the complete public set before exposing any link: two macOS DMGs,
+Windows MSI and EXE, Linux AppImage/DEB/RPM, `SHA256SUMS`, and `latest.json`.
+
+`scripts/verify-published-release.sh` now validates the release tag and target
+commit, the manifest's version/commit/signing disclosures/exact 2+2+3 matrix,
+immutable manifest URLs, every package name, and the actual SHA-256 bytes of
+all seven downloaded packages. The release workflow invokes this single full
+verification after publishing.
+
+Regression coverage includes the verifier's exact `v0.1.27` mismatch
+(`36734ee…` expected versus `c77f662…` published), a tampered RPM checksum,
+and a source-matching release missing an RPM; all must expose zero package
+links or fail verification.
+
+## Verification
+
+```sh
+npm ci
+CI=1 npm test
+npm run check
+BUILD_COMMIT=d58ab4e725a2498ca4be8232f050a1c6355d0f72 npm run build
+CI=true BUILD_COMMIT=d58ab4e725a2498ca4be8232f050a1c6355d0f72 \
+  npm run build:desktop -- --bundles deb,rpm
+RELEASE_TAG=v0.1.28 RELEASE_COMMIT=d58ab4e725a2498ca4be8232f050a1c6355d0f72 \
+  REPOSITORY=B-Divyesh/sf-photo-proof-pile bash scripts/verify-published-release.sh
+swa deploy dist/site --env production --app-name sf-photo-proof-pile --resource-group sociobot
+```
+
+- Clean `npm ci` installed 66 packages with 0 reported vulnerabilities.
+- `CI=1 npm test` passed 11 Rust, 17 Vitest, and 37 Playwright tests.
+  `npm run check` passed TypeScript, rustfmt, and warning-denied Clippy.
+- The static build is 14.05 KiB gzip JavaScript and 5.11 KiB gzip CSS.
+- After installing the workflow's GTK/WebKit prerequisites in this disposable
+  worker, the exact source produced DEB and RPM packages. An extracted DEB
+  stayed open under Xvfb for eight seconds (expected `timeout` exit 124).
+- GitHub Actions completed macOS arm64/x64, Windows MSI/EXE, and Linux
+  AppImage/DEB/RPM. The public verifier passed and `latest.json` says
+  `version: v0.1.28`, `commit: d58ab4e…`; it contains immutable `v0.1.28`
+  URLs for all seven packages. The published AppImage checksum is
+  `81854031f167055313df3a63abf65a5f4b767969ec0f4a9258a4fbbfa83c945c`.
+- The public `install.sh` downloaded that AppImage into an isolated temporary
+  bin directory only after matching the same published checksum.
+- Production now serves the `d58ab4e…` bundle. Live `/` and `/demo` passed
+  `verify-url.sh` with correct title/lang/one H1/main/alt text and no console
+  errors. Live Axe scans found 0 serious or critical findings. At 390 px there
+  is no horizontal overflow; the demo reloads offline after service-worker
+  control and its complete review flow makes no off-origin request.
+- The live release dialog names `v0.1.28`, shows four links only to matching
+  `v0.1.28` packages, and its footer source link is `d58ab4e…`.
+- Live headers retain HSTS, `nosniff`, strict referrer policy, restrictive
+  permissions policy, and header-delivered `frame-ancestors 'none'`. Root and
+  service worker revalidate at 30 seconds; hashed JavaScript is one-year
+  immutable; unknown paths return HTTP 404.
+- Mobile Lighthouse: Performance 100, Accessibility 100, Best Practices 100,
+  SEO 100; FCP 1.1 s, LCP 1.2 s, TBT 40 ms, CLS 0.
+
+## Known operator action
+
+The release remains truthfully unsigned: macOS packages lack Developer ID
+distribution signing and Windows packages are Authenticode `NotSigned`.
+Owner-held Apple and Windows signing credentials are needed before a future
+signed release. The site and README disclose this before download; it does not
+block the verified `v0.1.28` release.
 
 ---
 
