@@ -1,4 +1,126 @@
-# Proof Pile — verification 26 handoff
+# Proof Pile — repair 20 handoff
+
+## Outcome
+
+**PASS — verification 26's production/release identity blocker is repaired.**
+Production now serves the immutable `release-site` artifact from successful
+GitHub Actions run
+[33596875103](https://github.com/B-Divyesh/sf-photo-proof-pile/actions/runs/33596875103):
+
+- Site and installer version: `v0.1.30`
+- Site and release source: `b12d5727de44d71c91b4a496eece320e7247a853`
+- Desktop release: [v0.1.30](https://github.com/B-Divyesh/sf-photo-proof-pile/releases/tag/v0.1.30)
+- Production: <https://photo-proof-pile.sociobot.in>
+- Deployment ID: `d5144c91-d53e-4846-98dd-3ce964bc1c0d`
+- Repair guard commit: `f43c40b` (pushed to `origin/main`)
+
+The live download dialog now requests `releases/tags/v0.1.30`, says that
+`v0.1.30` is ready from this source, and exposes four platform choices. Both
+live installer scripts require `v0.1.30` at `b12d5727…`. The Linux installer
+downloaded the public AppImage, verified SHA-256
+`2c5642df10cc97d7cac71531b2329e396d3415e6025fad4f06b3ce6c93c69fa3`,
+and its extracted `AppRun` remained open for the eight-second smoke window.
+
+## Root cause and repair
+
+The production build command created a normal source build. The candidate's
+source version was `0.1.29`, while its completed versioned-repair workflow had
+stamped the native packages and `release-site` artifact as `0.1.30`. Deploying
+that normal build produced the impossible pair `v0.1.29` at `b12d5727…`.
+
+The failure was reproduced exactly: a fresh
+`BUILD_COMMIT=b12d5727… npm run build:site` was passed to the new deployment
+gate as `v0.1.30`; it exited 1 before any upload with:
+
+```text
+Deployment site verification failed: Linux installer release tag does not match v0.1.30.
+```
+
+The repository now has two explicit production controls:
+
+- `scripts/fetch-release-site.sh` accepts only a successful release workflow
+  whose full `head_sha` matches the requested source, and downloads its single
+  unexpired `release-site` artifact.
+- `scripts/verify-deployment-site.sh` checks the app bundle, 404, service
+  worker, Linux and Windows installers, GitHub release, complete 2 + 2 + 3
+  package matrix, unsigned-package disclosures, manifest, source commit, and
+  immutable package URLs before deployment.
+
+`npm run prepare:deployment` and `npm run verify:deployment` expose these
+steps. Regression tests use the verifier's exact `v0.1.29` site / `v0.1.30`
+release / `b12d5727…` mismatch and prove it is rejected before network access.
+A matching artifact fixture passes, and another test locks the workflow-run
+source, success, expiry, and post-download verification gates.
+
+## Verification evidence
+
+Clean and local checks:
+
+- `npm ci`: 66 packages installed; zero reported vulnerabilities.
+- `npm run check`: TypeScript, rustfmt, and warnings-denied Clippy passed.
+- `CI=1 npm test`: 11 Rust, 22 Vitest, and 37 Playwright tests passed.
+- Every exact command in `.factory/claims.json` passed separately: 25/25.
+- `BUILD_COMMIT=b12d5727… npm run build:site`: passed. JavaScript is
+  14.08 + 1.01 + 0.52 KiB gzip; CSS is 5.11 KiB gzip; the hero is 29,922
+  bytes.
+- `CI=true BUILD_COMMIT=b12d5727… npm run build:desktop -- --bundles deb,rpm`:
+  passed after installing the workflow's declared Linux prerequisites.
+- The locally built DEB extracted into a fresh consumer root; its binary
+  remained open under Xvfb for eight seconds (expected timeout 124).
+- `scripts/verify-published-release.sh` downloaded all seven public packages
+  and matched each byte to `SHA256SUMS`.
+
+Production checks after deployment:
+
+- The deployment guard accepted the artifact as `v0.1.30` at `b12d5727…`.
+  All 27 publicly served files match that artifact byte-for-byte; Azure
+  consumes the 28th file, `staticwebapp.config.json`, as configuration.
+- `/`, `/demo`, `/app`, `/privacy`, and `/terms` return 200. The designed
+  unknown route returns HTTP 404. The fleet URL verifier passed `/` and
+  `/demo` with correct titles, `lang=en`, one H1, one main, complete alt text,
+  labeled buttons, and zero console errors.
+- Ten live light/dark Axe runs across all five routes found zero serious or
+  critical issues. The desktop demo, keyboard group/decision controls, safe
+  dialog focus, 390 px layout, 200% text, 44 px targets, and reduced-motion
+  path passed.
+- The full demo showed three groups and eight files, rejected an unsafe plan,
+  quarantined two reviewed sample copies, exported nine CSV rows, and retained
+  recovery after reload. Every demo request was same-origin.
+- The service worker controlled `/demo`, had no waiting update, used cache
+  `proof-pile-v0.1.30`, and reloaded the three-group demo offline with HTTP
+  200.
+- The live release dialog exposed the two macOS architectures, Windows MSI,
+  and Linux AppImage under immutable `v0.1.30` URLs. No browser console error
+  or page exception occurred.
+- Browser response headers include HSTS, `nosniff`, strict-origin referrer
+  policy, restrictive permissions policy, and header-delivered CSP with
+  `frame-ancestors 'none'`. A live invalid-license request returned 200 with
+  `valid: false`, exact-origin CORS, and `Cache-Control: no-store`.
+- Mobile Lighthouse: Performance 100, Accessibility 100, Best Practices 100,
+  SEO 100; FCP 0.9 s, LCP 1.1 s, TBT 10 ms, CLS 0, transfer 141,265 bytes.
+
+Evidence is in `.factory/repair-20-artifacts/`: `live-qa.json`, desktop and
+390 px screenshots, fleet URL reports/screenshots, and
+`lighthouse-live.json`. The repeatable live audit is
+`.factory/repair-20-live.mjs`.
+
+## Known gaps and operator action
+
+No release blocker remains. Packages are intentionally unsigned and disclose
+that state before download. A future signed release still needs owner-held
+Apple Developer ID and Windows Authenticode credentials
+(`APPLE_CERTIFICATE` and `WINDOWS_CERT_PFX`). No signing credential is stored
+in this repository.
+
+The deployed product remains candidate `b12d5727…`, because verification 26
+specifically required that candidate's already-built `v0.1.30` artifact. The
+later `f43c40b` repository commit contains only deployment guards, regression
+coverage, documentation, and this evidence; it does not replace the desktop
+candidate or alter product behavior.
+
+---
+
+# Historical: Proof Pile — verification 26 handoff
 
 ## Current outcome
 

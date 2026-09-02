@@ -131,6 +131,7 @@ function releaseFixture(root: string) {
   writeFileSync(manifest, JSON.stringify({
     version: verifiedReleaseTag,
     commit: verifiedReleaseCommit,
+    signatures: { macos: "no_developer_id", windows: "not_signed" },
     platforms: {
       macos: names.slice(0, 2).map(name => ({ name, url: `${base}${name}` })),
       windows: names.slice(2, 4).map(name => ({ name, url: `${base}${name}` })),

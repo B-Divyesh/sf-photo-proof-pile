@@ -78,6 +78,7 @@ manifest_json="$work_dir/latest.json"
 fetch "${RELEASE_MANIFEST_URL:-$manifest_url}" "$manifest_json"
 jq -e --arg tag "$RELEASE_TAG" --arg commit "$RELEASE_COMMIT" --arg base "$immutable_base" '
   .version == $tag and .commit == $commit and
+  .signatures.macos == "no_developer_id" and .signatures.windows == "not_signed" and
   (.platforms.macos | length == 2) and
   (.platforms.windows | length == 2) and
   (.platforms.linux | length == 3) and

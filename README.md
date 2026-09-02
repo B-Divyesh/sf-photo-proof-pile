@@ -70,6 +70,8 @@ npm run prepare:deployment -- 33596875103 dist/site
 The preparation command accepts only an empty destination. It rejects a
 failed or different-source workflow, an expired artifact, a mismatched site,
 an incomplete release, or package URLs outside the immutable release tag.
+Downloading an Actions artifact requires a `GITHUB_TOKEN` with read access to
+this repository.
 
 ## How matching works
 

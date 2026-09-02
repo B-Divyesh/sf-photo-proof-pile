@@ -1,0 +1,366 @@
+{
+  "checkedAt": "2026-09-02T07:33:13.528Z",
+  "tag": "v0.1.30",
+  "commit": "b12d5727de44d71c91b4a496eece320e7247a853",
+  "routes": [
+    {
+      "route": "/",
+      "scheme": "light",
+      "status": 200,
+      "title": "Proof Pile — Review photo copies before cleanup",
+      "lang": "en",
+      "h1": 1,
+      "main": 1,
+      "missingAlt": 0
+    },
+    {
+      "route": "/demo",
+      "scheme": "light",
+      "status": 200,
+      "title": "Demo — Proof Pile",
+      "lang": "en",
+      "h1": 1,
+      "main": 1,
+      "missingAlt": 0
+    },
+    {
+      "route": "/app",
+      "scheme": "light",
+      "status": 200,
+      "title": "Proof Pile — Review photo copies",
+      "lang": "en",
+      "h1": 1,
+      "main": 1,
+      "missingAlt": 0
+    },
+    {
+      "route": "/privacy",
+      "scheme": "light",
+      "status": 200,
+      "title": "Privacy — Proof Pile",
+      "lang": "en",
+      "h1": 1,
+      "main": 1,
+      "missingAlt": 0
+    },
+    {
+      "route": "/terms",
+      "scheme": "light",
+      "status": 200,
+      "title": "Terms — Proof Pile",
+      "lang": "en",
+      "h1": 1,
+      "main": 1,
+      "missingAlt": 0
+    },
+    {
+      "route": "/",
+      "scheme": "dark",
+      "status": 200,
+      "title": "Proof Pile — Review photo copies before cleanup",
+      "lang": "en",
+      "h1": 1,
+      "main": 1,
+      "missingAlt": 0
+    },
+    {
+      "route": "/demo",
+      "scheme": "dark",
+      "status": 200,
+      "title": "Demo — Proof Pile",
+      "lang": "en",
+      "h1": 1,
+      "main": 1,
+      "missingAlt": 0
+    },
+    {
+      "route": "/app",
+      "scheme": "dark",
+      "status": 200,
+      "title": "Proof Pile — Review photo copies",
+      "lang": "en",
+      "h1": 1,
+      "main": 1,
+      "missingAlt": 0
+    },
+    {
+      "route": "/privacy",
+      "scheme": "dark",
+      "status": 200,
+      "title": "Privacy — Proof Pile",
+      "lang": "en",
+      "h1": 1,
+      "main": 1,
+      "missingAlt": 0
+    },
+    {
+      "route": "/terms",
+      "scheme": "dark",
+      "status": 200,
+      "title": "Terms — Proof Pile",
+      "lang": "en",
+      "h1": 1,
+      "main": 1,
+      "missingAlt": 0
+    }
+  ],
+  "axe": [
+    {
+      "route": "/",
+      "scheme": "light",
+      "seriousCritical": []
+    },
+    {
+      "route": "/demo",
+      "scheme": "light",
+      "seriousCritical": []
+    },
+    {
+      "route": "/app",
+      "scheme": "light",
+      "seriousCritical": []
+    },
+    {
+      "route": "/privacy",
+      "scheme": "light",
+      "seriousCritical": []
+    },
+    {
+      "route": "/terms",
+      "scheme": "light",
+      "seriousCritical": []
+    },
+    {
+      "route": "/",
+      "scheme": "dark",
+      "seriousCritical": []
+    },
+    {
+      "route": "/demo",
+      "scheme": "dark",
+      "seriousCritical": []
+    },
+    {
+      "route": "/app",
+      "scheme": "dark",
+      "seriousCritical": []
+    },
+    {
+      "route": "/privacy",
+      "scheme": "dark",
+      "seriousCritical": []
+    },
+    {
+      "route": "/terms",
+      "scheme": "dark",
+      "seriousCritical": []
+    }
+  ],
+  "checks": {
+    "notFound": {
+      "status": 404,
+      "title": "Page not found — Proof Pile",
+      "expected404Console": [
+        "console https://photo-proof-pile.sociobot.in/repair-20-missing: Failed to load resource: the server responded with a status of 404 ()"
+      ]
+    },
+    "demo": {
+      "groups": 3,
+      "files": 8,
+      "csvRows": 9,
+      "confirmation": "Move 2 files to /Sample drive/Proof Pile Quarantine? You can restore them from the decision log.",
+      "keyboard": true,
+      "onlySameOrigin": true,
+      "requests": [
+        {
+          "method": "GET",
+          "url": "https://photo-proof-pile.sociobot.in/",
+          "postData": null
+        },
+        {
+          "method": "GET",
+          "url": "https://photo-proof-pile.sociobot.in/assets/index-DlYtPpp9.js",
+          "postData": null
+        },
+        {
+          "method": "GET",
+          "url": "https://photo-proof-pile.sociobot.in/assets/index-BuLYwteV.css",
+          "postData": null
+        },
+        {
+          "method": "GET",
+          "url": "https://photo-proof-pile.sociobot.in/hero-proof-table.webp",
+          "postData": null
+        },
+        {
+          "method": "GET",
+          "url": "https://photo-proof-pile.sociobot.in/samples/lake-a.svg",
+          "postData": null
+        },
+        {
+          "method": "GET",
+          "url": "https://photo-proof-pile.sociobot.in/walkthrough/01-groups.webp",
+          "postData": null
+        },
+        {
+          "method": "GET",
+          "url": "https://photo-proof-pile.sociobot.in/walkthrough/02-evidence.webp",
+          "postData": null
+        },
+        {
+          "method": "GET",
+          "url": "https://photo-proof-pile.sociobot.in/walkthrough/03-quarantine.webp",
+          "postData": null
+        },
+        {
+          "method": "GET",
+          "url": "https://photo-proof-pile.sociobot.in/",
+          "postData": null
+        },
+        {
+          "method": "GET",
+          "url": "https://photo-proof-pile.sociobot.in/assets/index-DlYtPpp9.js",
+          "postData": null
+        },
+        {
+          "method": "GET",
+          "url": "https://photo-proof-pile.sociobot.in/assets/index-BuLYwteV.css",
+          "postData": null
+        },
+        {
+          "method": "GET",
+          "url": "https://photo-proof-pile.sociobot.in/hero-proof-table.webp",
+          "postData": null
+        },
+        {
+          "method": "GET",
+          "url": "https://photo-proof-pile.sociobot.in/samples/lake-a.svg",
+          "postData": null
+        },
+        {
+          "method": "GET",
+          "url": "https://photo-proof-pile.sociobot.in/walkthrough/01-groups.webp",
+          "postData": null
+        },
+        {
+          "method": "GET",
+          "url": "https://photo-proof-pile.sociobot.in/walkthrough/02-evidence.webp",
+          "postData": null
+        },
+        {
+          "method": "GET",
+          "url": "https://photo-proof-pile.sociobot.in/walkthrough/03-quarantine.webp",
+          "postData": null
+        },
+        {
+          "method": "GET",
+          "url": "https://photo-proof-pile.sociobot.in/samples/birthday.svg",
+          "postData": null
+        },
+        {
+          "method": "GET",
+          "url": "https://photo-proof-pile.sociobot.in/samples/dog.svg",
+          "postData": null
+        },
+        {
+          "method": "GET",
+          "url": "https://photo-proof-pile.sociobot.in/demo",
+          "postData": null
+        },
+        {
+          "method": "GET",
+          "url": "https://photo-proof-pile.sociobot.in/assets/index-DlYtPpp9.js",
+          "postData": null
+        },
+        {
+          "method": "GET",
+          "url": "https://photo-proof-pile.sociobot.in/assets/index-BuLYwteV.css",
+          "postData": null
+        },
+        {
+          "method": "GET",
+          "url": "https://photo-proof-pile.sociobot.in/samples/lake-a.svg",
+          "postData": null
+        },
+        {
+          "method": "GET",
+          "url": "https://photo-proof-pile.sociobot.in/samples/birthday.svg",
+          "postData": null
+        },
+        {
+          "method": "GET",
+          "url": "https://photo-proof-pile.sociobot.in/samples/dog.svg",
+          "postData": null
+        }
+      ]
+    },
+    "mobile:/": {
+      "status": 200,
+      "width": 390,
+      "enlargedWidth": 390,
+      "undersized": []
+    },
+    "mobile:/demo": {
+      "status": 200,
+      "width": 390,
+      "enlargedWidth": 390,
+      "undersized": []
+    },
+    "mobile:/app": {
+      "status": 200,
+      "width": 390,
+      "enlargedWidth": 390,
+      "undersized": []
+    },
+    "mobile:/privacy": {
+      "status": 200,
+      "width": 390,
+      "enlargedWidth": 390,
+      "undersized": []
+    },
+    "mobile:/terms": {
+      "status": 200,
+      "width": 390,
+      "enlargedWidth": 390,
+      "undersized": []
+    },
+    "mobile:/repair-20-mobile-missing": {
+      "status": 404,
+      "width": 390,
+      "enlargedWidth": 390,
+      "undersized": []
+    },
+    "reducedMotion": "1e-05s",
+    "pwa": {
+      "controlled": true,
+      "waiting": false,
+      "caches": [
+        "proof-pile-v0.1.30"
+      ],
+      "offlineStatus": 200
+    },
+    "release": {
+      "sourceHref": "https://github.com/B-Divyesh/sf-photo-proof-pile/commit/b12d5727de44d71c91b4a496eece320e7247a853",
+      "downloads": [
+        {
+          "text": "Download for macOS (Apple silicon)",
+          "href": "https://github.com/B-Divyesh/sf-photo-proof-pile/releases/download/v0.1.30/Proof-Pile_0.1.30_aarch64.dmg"
+        },
+        {
+          "text": "Download for macOS (Intel)",
+          "href": "https://github.com/B-Divyesh/sf-photo-proof-pile/releases/download/v0.1.30/Proof-Pile_0.1.30_x64.dmg"
+        },
+        {
+          "text": "Download for Windows",
+          "href": "https://github.com/B-Divyesh/sf-photo-proof-pile/releases/download/v0.1.30/Proof-Pile_0.1.30_x64_en-US.msi"
+        },
+        {
+          "text": "Download for Linux",
+          "href": "https://github.com/B-Divyesh/sf-photo-proof-pile/releases/download/v0.1.30/Proof-Pile_0.1.30_amd64.AppImage"
+        }
+      ],
+      "releaseApi": "https://api.github.com/repos/B-Divyesh/sf-photo-proof-pile/releases/tags/v0.1.30"
+    }
+  },
+  "errors": []
+}
