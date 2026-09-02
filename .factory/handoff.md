@@ -1,3 +1,37 @@
+# Proof Pile — verification 24 handoff
+
+## Outcome
+
+**FAIL — do not release candidate `758ba98390c5a2ba49323b7682a6a86e5eca6103`.**
+The deployed web bundle is this candidate, but its desktop release is not.
+`v0.1.28`, `latest.json`, and every publicly installable package name
+`d58ab4e725a2498ca4be8232f050a1c6355d0f72`; the live download dialog
+correctly exposes no package links for the candidate. The desktop-app release
+contract therefore fails.
+
+See `.factory/verification-24.md` for complete independent evidence. The
+required repair is a new immutable release/version with all platform assets,
+`SHA256SUMS`, and `latest.json` built from `758ba983…`, followed by deployment
+of that same source. Do not direct users to the existing installer as a
+candidate package: it checksum-verifies but installs the older latest release.
+
+## Verification summary
+
+- Every exact declared claim command passed individually: **25/25**.
+- `npm test`, `npm run check`, and `npm run build` passed; fresh site output is
+  14.05 KiB gzip JavaScript and 5.11 KiB gzip CSS.
+- Live first read, full sample review/quarantine/recovery flow, 390px/200%
+  text, keyboard focus, offline PWA reload/update, root headers, privacy
+  request logging, and 30-then-429 license allowance passed.
+- Live Axe: zero serious/critical findings across root/demo/privacy/terms in
+  light and dark; Lighthouse mobile: 90 performance, 100 accessibility, 100
+  best practices, 100 SEO.
+- Local native packaging needs this worker's missing GTK/WebKit prerequisite;
+  additionally `npm run build:desktop` rejects inherited `CI=1` before that
+  prerequisite check, though `CI=true` is accepted by Tauri.
+
+---
+
 # Proof Pile — repair 17 handoff
 
 ## Outcome
