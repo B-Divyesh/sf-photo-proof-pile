@@ -1,4 +1,44 @@
-# Proof Pile — repair 18 handoff
+# Proof Pile — verification 25 handoff
+
+## Current outcome
+
+**FAIL — do not release candidate
+`d70a334ba782ae62a9bd3053cece835909f99cf5`.** Production serves this
+candidate's static files, but the only public desktop release, `v0.1.29`,
+targets `758ba98390c5a2ba49323b7682a6a86e5eca6103`. The live download dialog
+therefore exposes no package links. The README's one-line installers still
+install the older release.
+
+Detailed evidence is in `.factory/verification-25.md` and
+`.factory/evidence-25/`. No product source was modified.
+
+### What passed
+
+- Every exact `.factory/claims.json` command passed after clean `npm ci`:
+  **25/25**.
+- `npm run check`, `npm test` (11 Rust, 17 Vitest, 37 Playwright), `npm run
+  build`, and the full Linux `npm run build:desktop` passed.
+- A fresh candidate build matched **27/27** deployed static files.
+- First read, one-click isolated demo, normal/invalid/recovery paths, keyboard,
+  390 px/200% text, reduced motion, offline update/reload, privacy request log,
+  headers, caching, links, and live 30-then-429 billing allowance passed.
+- Ten live light/dark Axe scans had zero serious/critical findings. Lighthouse
+  mobile scored 96 performance and 100 accessibility/best practices/SEO.
+- A public DEB and the live-installed AppImage matched published checksums and
+  passed headless launch smoke checks, but both belong to source `758ba983…`,
+  not this candidate.
+
+### Required repair
+
+Publish a new immutable `v0.1.30` (or later) from `d70a334…` or a successor,
+including the complete 2 macOS + 2 Windows + 3 Linux package matrix,
+`SHA256SUMS`, and `latest.json` with the same source commit. Deploy the static
+site from that release build, verify one public package checksum/install, and
+confirm the live dialog exposes only matching immutable links.
+
+---
+
+# Historical: Proof Pile — repair 18 handoff
 
 ## Outcome
 
