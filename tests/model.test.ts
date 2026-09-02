@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { mkdirSync, mkdtempSync, readFileSync, writeFileSync } from "node:fs";
+import { chmodSync, mkdirSync, mkdtempSync, readFileSync, writeFileSync } from "node:fs";
 import { execFileSync } from "node:child_process";
 import { dirname, join } from "node:path";
 import { tmpdir } from "node:os";
@@ -155,6 +155,70 @@ describe("review model", () => {
     expect(workflow).toContain('releases/download/${RELEASE_TAG}');
     expect(preparation).toContain('--arg commit "$RELEASE_COMMIT"');
     expect(preparation).not.toContain('jq --arg commit "$GITHUB_SHA"');
+    expect(workflow).toContain("Verify public release identity, manifest, and checksums");
+    expect(workflow).toContain("bash scripts/verify-published-release.sh");
+  });
+
+  it("rejects the verifier's exact v0.1.26 release target mismatch before a package is accepted", () => {
+    const root = mkdtempSync(join(tmpdir(), "proof-pile-published-release-"));
+    const expectedCommit = "fe01d819990d8cab9e2aba148b388c214b8c84dd";
+    const oldCommit = "11b315afb2a454b8618659fd648a6e8e1e069ce8";
+    const tag = "v0.1.26";
+    const repository = "B-Divyesh/sf-photo-proof-pile";
+    const assets = [
+      "Proof-Pile_0.1.26_aarch64.dmg", "Proof-Pile_0.1.26_x64.dmg", "Proof-Pile_0.1.26_x64_en-US.msi",
+      "Proof-Pile_0.1.26_amd64.AppImage", "Proof-Pile_0.1.26_amd64.deb", "latest.json", "SHA256SUMS"
+    ];
+    const release = {
+      tag_name: tag,
+      target_commitish: oldCommit,
+      assets: assets.map(name => ({ name, browser_download_url: `https://fixture.test/${name}` }))
+    };
+    const manifest = {
+      version: tag,
+      commit: oldCommit,
+      platforms: {
+        macos: assets.slice(0, 2).map(name => ({ name, url: `https://github.com/${repository}/releases/download/${tag}/${name}` })),
+        windows: [{ name: assets[2], url: `https://github.com/${repository}/releases/download/${tag}/${assets[2]}` }],
+        linux: assets.slice(3, 5).map(name => ({ name, url: `https://github.com/${repository}/releases/download/${tag}/${name}` }))
+      }
+    };
+    const releasePath = join(root, "release.json");
+    const manifestPath = join(root, "latest.json");
+    const checksumPath = join(root, "SHA256SUMS");
+    writeFileSync(releasePath, JSON.stringify(release));
+    writeFileSync(manifestPath, JSON.stringify(manifest));
+    writeFileSync(checksumPath, assets.slice(0, 5).map((name, index) => `${String(index).padStart(64, "0")}  ${name}`).join("\n"));
+    const curlPath = join(root, "curl");
+    writeFileSync(curlPath, `#!/bin/sh
+out=""
+previous=""
+for arg in "$@"; do
+  if [ "$previous" = "--output" ]; then out="$arg"; fi
+  previous="$arg"
+done
+for url do :; done
+case "$url" in
+  *latest.json) cp "$RELEASE_FIXTURE_LATEST" "$out" ;;
+  *SHA256SUMS) cp "$RELEASE_FIXTURE_SUMS" "$out" ;;
+  *) cp "$RELEASE_FIXTURE" "$out" ;;
+esac
+`);
+    chmodSync(curlPath, 0o755);
+    const run = () => execFileSync("bash", [fileURLToPath(new URL("../scripts/verify-published-release.sh", import.meta.url))], {
+      env: {
+        ...process.env,
+        PATH: `${root}:${process.env.PATH}`,
+        RELEASE_TAG: tag,
+        RELEASE_COMMIT: expectedCommit,
+        REPOSITORY: repository,
+        RELEASE_FIXTURE: releasePath,
+        RELEASE_FIXTURE_LATEST: manifestPath,
+        RELEASE_FIXTURE_SUMS: checksumPath
+      },
+      stdio: "pipe"
+    });
+    expect(run).toThrow(/Published release tag or target commit does not match the build identity/);
   });
 
   it("@claim:desktop-release-identity rejects the verifier's exact v0.1.23 source mismatch", () => {

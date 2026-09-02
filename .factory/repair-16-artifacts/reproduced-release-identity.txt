@@ -1,0 +1,6 @@
+candidate=fe01d819990d8cab9e2aba148b388c214b8c84dd
+release_tag=v0.1.26
+release_target=11b315afb2a454b8618659fd648a6e8e1e069ce8
+identity_match=false
+exit_status=1
+release_identity_verifier_exit_status=1

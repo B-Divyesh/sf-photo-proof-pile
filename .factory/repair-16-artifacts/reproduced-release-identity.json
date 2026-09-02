@@ -1,0 +1,17 @@
+{
+  "candidate": "fe01d819990d8cab9e2aba148b388c214b8c84dd",
+  "release_tag": "v0.1.26",
+  "release_target": "11b315afb2a454b8618659fd648a6e8e1e069ce8",
+  "matching": false,
+  "assets": [
+    "latest.json",
+    "Proof-Pile-0.1.26-1.x86_64.rpm",
+    "Proof-Pile_0.1.26_aarch64.dmg",
+    "Proof-Pile_0.1.26_amd64.AppImage",
+    "Proof-Pile_0.1.26_amd64.deb",
+    "Proof-Pile_0.1.26_x64-setup.exe",
+    "Proof-Pile_0.1.26_x64.dmg",
+    "Proof-Pile_0.1.26_x64_en-US.msi",
+    "SHA256SUMS"
+  ]
+}
