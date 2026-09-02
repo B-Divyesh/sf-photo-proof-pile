@@ -1,0 +1,354 @@
+{
+  "checkedAt": "2026-09-02T06:45:42.040Z",
+  "candidate": "b12d5727de44d71c91b4a496eece320e7247a853",
+  "routes": [
+    {
+      "route": "/",
+      "scheme": "light",
+      "status": 200,
+      "title": "Proof Pile — Review photo copies before cleanup",
+      "lang": "en",
+      "h1": 1,
+      "main": 1,
+      "missingAlt": 0
+    },
+    {
+      "route": "/demo",
+      "scheme": "light",
+      "status": 200,
+      "title": "Demo — Proof Pile",
+      "lang": "en",
+      "h1": 1,
+      "main": 1,
+      "missingAlt": 0
+    },
+    {
+      "route": "/app",
+      "scheme": "light",
+      "status": 200,
+      "title": "Proof Pile — Review photo copies",
+      "lang": "en",
+      "h1": 1,
+      "main": 1,
+      "missingAlt": 0
+    },
+    {
+      "route": "/privacy",
+      "scheme": "light",
+      "status": 200,
+      "title": "Privacy — Proof Pile",
+      "lang": "en",
+      "h1": 1,
+      "main": 1,
+      "missingAlt": 0
+    },
+    {
+      "route": "/terms",
+      "scheme": "light",
+      "status": 200,
+      "title": "Terms — Proof Pile",
+      "lang": "en",
+      "h1": 1,
+      "main": 1,
+      "missingAlt": 0
+    },
+    {
+      "route": "/",
+      "scheme": "dark",
+      "status": 200,
+      "title": "Proof Pile — Review photo copies before cleanup",
+      "lang": "en",
+      "h1": 1,
+      "main": 1,
+      "missingAlt": 0
+    },
+    {
+      "route": "/demo",
+      "scheme": "dark",
+      "status": 200,
+      "title": "Demo — Proof Pile",
+      "lang": "en",
+      "h1": 1,
+      "main": 1,
+      "missingAlt": 0
+    },
+    {
+      "route": "/app",
+      "scheme": "dark",
+      "status": 200,
+      "title": "Proof Pile — Review photo copies",
+      "lang": "en",
+      "h1": 1,
+      "main": 1,
+      "missingAlt": 0
+    },
+    {
+      "route": "/privacy",
+      "scheme": "dark",
+      "status": 200,
+      "title": "Privacy — Proof Pile",
+      "lang": "en",
+      "h1": 1,
+      "main": 1,
+      "missingAlt": 0
+    },
+    {
+      "route": "/terms",
+      "scheme": "dark",
+      "status": 200,
+      "title": "Terms — Proof Pile",
+      "lang": "en",
+      "h1": 1,
+      "main": 1,
+      "missingAlt": 0
+    }
+  ],
+  "axe": [
+    {
+      "route": "/",
+      "scheme": "light",
+      "seriousCritical": []
+    },
+    {
+      "route": "/demo",
+      "scheme": "light",
+      "seriousCritical": []
+    },
+    {
+      "route": "/app",
+      "scheme": "light",
+      "seriousCritical": []
+    },
+    {
+      "route": "/privacy",
+      "scheme": "light",
+      "seriousCritical": []
+    },
+    {
+      "route": "/terms",
+      "scheme": "light",
+      "seriousCritical": []
+    },
+    {
+      "route": "/",
+      "scheme": "dark",
+      "seriousCritical": []
+    },
+    {
+      "route": "/demo",
+      "scheme": "dark",
+      "seriousCritical": []
+    },
+    {
+      "route": "/app",
+      "scheme": "dark",
+      "seriousCritical": []
+    },
+    {
+      "route": "/privacy",
+      "scheme": "dark",
+      "seriousCritical": []
+    },
+    {
+      "route": "/terms",
+      "scheme": "dark",
+      "seriousCritical": []
+    }
+  ],
+  "errors": [],
+  "checks": {
+    "firstRead": {
+      "h1": "Review photo copies before you remove them",
+      "who": "For people with photos across several drives who fear removing the only meaningful copy.",
+      "action": "Try it with sample data",
+      "outcome": "Opens three ready-to-review groups.",
+      "focus": {
+        "outlineWidth": "3px",
+        "outlineStyle": "solid",
+        "outlineColor": "rgb(49, 95, 137)"
+      }
+    },
+    "demo": {
+      "groups": 3,
+      "files": 8,
+      "confirmation": "Move 2 files to /Sample drive/Proof Pile Quarantine? You can restore them from the decision log.",
+      "csvRows": 9,
+      "invalidCsvRejected": true,
+      "keyboard": true,
+      "onlySameOrigin": true,
+      "requests": [
+        {
+          "method": "GET",
+          "url": "https://photo-proof-pile.sociobot.in/",
+          "postData": null
+        },
+        {
+          "method": "GET",
+          "url": "https://photo-proof-pile.sociobot.in/assets/index-DuvLgn2w.js",
+          "postData": null
+        },
+        {
+          "method": "GET",
+          "url": "https://photo-proof-pile.sociobot.in/assets/index-BuLYwteV.css",
+          "postData": null
+        },
+        {
+          "method": "GET",
+          "url": "https://photo-proof-pile.sociobot.in/hero-proof-table.webp",
+          "postData": null
+        },
+        {
+          "method": "GET",
+          "url": "https://photo-proof-pile.sociobot.in/samples/lake-a.svg",
+          "postData": null
+        },
+        {
+          "method": "GET",
+          "url": "https://photo-proof-pile.sociobot.in/walkthrough/01-groups.webp",
+          "postData": null
+        },
+        {
+          "method": "GET",
+          "url": "https://photo-proof-pile.sociobot.in/walkthrough/02-evidence.webp",
+          "postData": null
+        },
+        {
+          "method": "GET",
+          "url": "https://photo-proof-pile.sociobot.in/walkthrough/03-quarantine.webp",
+          "postData": null
+        },
+        {
+          "method": "GET",
+          "url": "https://photo-proof-pile.sociobot.in/",
+          "postData": null
+        },
+        {
+          "method": "GET",
+          "url": "https://photo-proof-pile.sociobot.in/assets/index-DuvLgn2w.js",
+          "postData": null
+        },
+        {
+          "method": "GET",
+          "url": "https://photo-proof-pile.sociobot.in/assets/index-BuLYwteV.css",
+          "postData": null
+        },
+        {
+          "method": "GET",
+          "url": "https://photo-proof-pile.sociobot.in/hero-proof-table.webp",
+          "postData": null
+        },
+        {
+          "method": "GET",
+          "url": "https://photo-proof-pile.sociobot.in/samples/lake-a.svg",
+          "postData": null
+        },
+        {
+          "method": "GET",
+          "url": "https://photo-proof-pile.sociobot.in/walkthrough/01-groups.webp",
+          "postData": null
+        },
+        {
+          "method": "GET",
+          "url": "https://photo-proof-pile.sociobot.in/walkthrough/02-evidence.webp",
+          "postData": null
+        },
+        {
+          "method": "GET",
+          "url": "https://photo-proof-pile.sociobot.in/walkthrough/03-quarantine.webp",
+          "postData": null
+        },
+        {
+          "method": "GET",
+          "url": "https://photo-proof-pile.sociobot.in/samples/birthday.svg",
+          "postData": null
+        },
+        {
+          "method": "GET",
+          "url": "https://photo-proof-pile.sociobot.in/samples/dog.svg",
+          "postData": null
+        },
+        {
+          "method": "GET",
+          "url": "https://photo-proof-pile.sociobot.in/demo",
+          "postData": null
+        },
+        {
+          "method": "GET",
+          "url": "https://photo-proof-pile.sociobot.in/assets/index-DuvLgn2w.js",
+          "postData": null
+        },
+        {
+          "method": "GET",
+          "url": "https://photo-proof-pile.sociobot.in/assets/index-BuLYwteV.css",
+          "postData": null
+        },
+        {
+          "method": "GET",
+          "url": "https://photo-proof-pile.sociobot.in/samples/lake-a.svg",
+          "postData": null
+        },
+        {
+          "method": "GET",
+          "url": "https://photo-proof-pile.sociobot.in/samples/birthday.svg",
+          "postData": null
+        },
+        {
+          "method": "GET",
+          "url": "https://photo-proof-pile.sociobot.in/samples/dog.svg",
+          "postData": null
+        }
+      ]
+    },
+    "mobile:/": {
+      "status": 200,
+      "width": 390,
+      "enlargedWidth": 390,
+      "undersizedTargets": []
+    },
+    "mobile:/demo": {
+      "status": 200,
+      "width": 390,
+      "enlargedWidth": 390,
+      "undersizedTargets": []
+    },
+    "mobile:/app": {
+      "status": 200,
+      "width": 390,
+      "enlargedWidth": 390,
+      "undersizedTargets": []
+    },
+    "mobile:/privacy": {
+      "status": 200,
+      "width": 390,
+      "enlargedWidth": 390,
+      "undersizedTargets": []
+    },
+    "mobile:/terms": {
+      "status": 200,
+      "width": 390,
+      "enlargedWidth": 390,
+      "undersizedTargets": []
+    },
+    "mobile:/qa-25-missing": {
+      "status": 404,
+      "width": 390,
+      "enlargedWidth": 390,
+      "undersizedTargets": []
+    },
+    "reducedMotion": "1e-05s",
+    "pwa": {
+      "controlled": true,
+      "waiting": false,
+      "caches": [
+        "proof-pile-v29"
+      ],
+      "offlineStatus": 200
+    },
+    "release": {
+      "releaseState": "×\n\nDESKTOP APP\n\nDesktop downloads\n\nDownloads for this build are being published.\n\nNo package is offered until this source, the full package set, and the SHA-256 file match.",
+      "downloadLinks": 0,
+      "deployedCandidate": "b12d5727de44d71c91b4a496eece320e7247a853",
+      "expectedResult": "refusal because the live v0.1.29 identity cannot accept the candidate's v0.1.30 release"
+    }
+  }
+}

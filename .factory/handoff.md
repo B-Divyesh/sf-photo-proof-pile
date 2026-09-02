@@ -1,4 +1,41 @@
-# Proof Pile — repair 19 handoff
+# Proof Pile — verification 26 handoff
+
+## Current outcome
+
+**FAIL — do not release production as currently deployed.** Candidate
+`b12d5727de44d71c91b4a496eece320e7247a853` has a complete, checksum-valid
+desktop release at `v0.1.30`, but the live site is the ordinary `v0.1.29`
+build. It requests the older `v0.1.29` tag, whose immutable target is another
+commit, and correctly exposes no downloads. Both live one-line installers fail
+the same identity check. The desktop product is therefore not installable from
+its production site.
+
+Deploy the `release-site` artifact from successful GitHub Actions run
+[33596875103](https://github.com/B-Divyesh/sf-photo-proof-pile/actions/runs/33596875103),
+then verify that the footer, dialog request, installer scripts, release tag,
+manifest, and package URLs all say `v0.1.30` at `b12d5727…`.
+
+Detailed independent evidence is in `.factory/verification-26.md` and
+`.factory/evidence-26/`. No product source was modified.
+
+### What passed
+
+- Mandatory first read and one-click isolated demo.
+- Every exact claim command: **25/25**.
+- `npm run check`, `CI=1 npm test` (11 Rust, 19 Vitest, 37 Playwright), and the
+  exact static production build.
+- Live demo normal, unsafe, invalid-input, recovery, keyboard, 390 px, 200%
+  text, reduced-motion, privacy, and offline flows.
+- Ten light/dark Axe runs: zero serious/critical findings. Lighthouse mobile:
+  94 performance and 100 accessibility/best practices/SEO.
+- Public `v0.1.30` 2 + 2 + 3 package matrix, manifest identity, every package
+  checksum, Debian install, and desktop launch smoke.
+- Live static files match the candidate build 27/27; security headers and
+  caching pass; license allowance is 30 requests, then 429 with Retry-After.
+
+---
+
+# Historical: Proof Pile — repair 19 handoff
 
 ## Outcome
 
