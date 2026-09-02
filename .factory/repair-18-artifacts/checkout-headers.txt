@@ -1,0 +1,5 @@
+HTTP/2 303
+access-control-allow-credentials: true
+location: https://checkout.dodopayments.com/session/[redacted]
+vary: origin, access-control-request-method, access-control-request-headers
+content-length: 0

@@ -1,0 +1,218 @@
+[
+  {
+    "path": "404.css",
+    "status": 200,
+    "bytes": 2819,
+    "localSha256": "566292d0589e2d8474302252f850bf78cab563a5368797a324c73098a4cf22dc",
+    "liveSha256": "566292d0589e2d8474302252f850bf78cab563a5368797a324c73098a4cf22dc",
+    "match": true
+  },
+  {
+    "path": "404.html",
+    "status": 200,
+    "bytes": 2576,
+    "localSha256": "45ce0cc3214268c5e4fbdacc8f2b0cd7f581091fac7691a6cbffbcb5ba16d021",
+    "liveSha256": "45ce0cc3214268c5e4fbdacc8f2b0cd7f581091fac7691a6cbffbcb5ba16d021",
+    "match": true
+  },
+  {
+    "path": "apple-touch-icon.png",
+    "status": 200,
+    "bytes": 43681,
+    "localSha256": "b4d414ee26c0b084866e886894b8c1d08209da76bd4da4426a95b5aadddeaa28",
+    "liveSha256": "b4d414ee26c0b084866e886894b8c1d08209da76bd4da4426a95b5aadddeaa28",
+    "match": true
+  },
+  {
+    "path": "assets/core-DhEqZVGG.js",
+    "status": 200,
+    "bytes": 2483,
+    "localSha256": "a2adb48dc04bd633b61d007396e0810a2d68658ca9a22f3f232d98415b2e983a",
+    "liveSha256": "a2adb48dc04bd633b61d007396e0810a2d68658ca9a22f3f232d98415b2e983a",
+    "match": true
+  },
+  {
+    "path": "assets/core-DhEqZVGG.js.map",
+    "status": 200,
+    "bytes": 17142,
+    "localSha256": "23f43bf6dc54a67792a95b931deaf4c2488be99d500dbaa334bd9b76c38504c1",
+    "liveSha256": "23f43bf6dc54a67792a95b931deaf4c2488be99d500dbaa334bd9b76c38504c1",
+    "match": true
+  },
+  {
+    "path": "assets/index-BuLYwteV.css",
+    "status": 200,
+    "bytes": 18640,
+    "localSha256": "fc7560032d661bf0a50d86d46cc378d08e064ae26fbeb2ca0454872a009b6a33",
+    "liveSha256": "fc7560032d661bf0a50d86d46cc378d08e064ae26fbeb2ca0454872a009b6a33",
+    "match": true
+  },
+  {
+    "path": "assets/index-D9_B7hh1.js",
+    "status": 200,
+    "bytes": 1300,
+    "localSha256": "f4e8fb783f075351d04a23b38c9148dfe99044ac6333a64bbfcc35b358647bf0",
+    "liveSha256": "f4e8fb783f075351d04a23b38c9148dfe99044ac6333a64bbfcc35b358647bf0",
+    "match": true
+  },
+  {
+    "path": "assets/index-D9_B7hh1.js.map",
+    "status": 200,
+    "bytes": 8796,
+    "localSha256": "031fd763259ea5eb908f46a143651f83263f087e13f01f7e0df2e12d1a836f89",
+    "liveSha256": "031fd763259ea5eb908f46a143651f83263f087e13f01f7e0df2e12d1a836f89",
+    "match": true
+  },
+  {
+    "path": "assets/index-DoYMMR9h.js",
+    "status": 200,
+    "bytes": 40696,
+    "localSha256": "9ecb6380360aba803b95f6a95b36f08e03221e8cce519fe504ebd65eadb93b70",
+    "liveSha256": "9ecb6380360aba803b95f6a95b36f08e03221e8cce519fe504ebd65eadb93b70",
+    "match": true
+  },
+  {
+    "path": "assets/index-DoYMMR9h.js.map",
+    "status": 200,
+    "bytes": 86342,
+    "localSha256": "c7fba89a94a7d316545341911573ca261b637c37b587d97be3344750f9b33dac",
+    "liveSha256": "c7fba89a94a7d316545341911573ca261b637c37b587d97be3344750f9b33dac",
+    "match": true
+  },
+  {
+    "path": "favicon.svg",
+    "status": 200,
+    "bytes": 392,
+    "localSha256": "6453f423a14da0ebd305488dc876e9e383b23f762241361bfe45fd2f34104b28",
+    "liveSha256": "6453f423a14da0ebd305488dc876e9e383b23f762241361bfe45fd2f34104b28",
+    "match": true
+  },
+  {
+    "path": "hero-proof-table.webp",
+    "status": 200,
+    "bytes": 29922,
+    "localSha256": "466341b945e6c4b99a6ed7c8c9326cbf342687738868d5c2d7106b89c8d01fef",
+    "liveSha256": "466341b945e6c4b99a6ed7c8c9326cbf342687738868d5c2d7106b89c8d01fef",
+    "match": true
+  },
+  {
+    "path": "index.html",
+    "status": 200,
+    "bytes": 1762,
+    "localSha256": "6c31703d63babc57816cfcab7ad5f045f821d724fdaf07c5d8e06c5dec173b3b",
+    "liveSha256": "6c31703d63babc57816cfcab7ad5f045f821d724fdaf07c5d8e06c5dec173b3b",
+    "match": true
+  },
+  {
+    "path": "install.ps1",
+    "status": 200,
+    "bytes": 1333,
+    "localSha256": "9d1e13eb2c7d52e1a3f63c9c27d123ff8377f8bdb5c68801c049490d5faac4c3",
+    "liveSha256": "9d1e13eb2c7d52e1a3f63c9c27d123ff8377f8bdb5c68801c049490d5faac4c3",
+    "match": true
+  },
+  {
+    "path": "install.sh",
+    "status": 200,
+    "bytes": 1314,
+    "localSha256": "2da59a9e93b8d2b31e8d6b9476bc2d98ab1be66753659f2d5842bd7d4a2b83e1",
+    "liveSha256": "2da59a9e93b8d2b31e8d6b9476bc2d98ab1be66753659f2d5842bd7d4a2b83e1",
+    "match": true
+  },
+  {
+    "path": "manifest.webmanifest",
+    "status": 200,
+    "bytes": 248,
+    "localSha256": "bd18d42636648da0c6c4780c17b304efa48433909a9c8775464922741389fd3f",
+    "liveSha256": "bd18d42636648da0c6c4780c17b304efa48433909a9c8775464922741389fd3f",
+    "match": true
+  },
+  {
+    "path": "og-proof-pile.webp",
+    "status": 200,
+    "bytes": 25466,
+    "localSha256": "aa5504e223d68ea4806ec504cf71b6df244515b708749687c327d56a5abf6906",
+    "liveSha256": "aa5504e223d68ea4806ec504cf71b6df244515b708749687c327d56a5abf6906",
+    "match": true
+  },
+  {
+    "path": "robots.txt",
+    "status": 200,
+    "bytes": 81,
+    "localSha256": "3b29a7a2ea3ea4c33d497b2c68091dfdf6444088fd812a96a4295528dc88190a",
+    "liveSha256": "3b29a7a2ea3ea4c33d497b2c68091dfdf6444088fd812a96a4295528dc88190a",
+    "match": true
+  },
+  {
+    "path": "samples/birthday.svg",
+    "status": 200,
+    "bytes": 545,
+    "localSha256": "8140ee148095f17fb0cf27ed68b38877345ddddc15e8e586736d7b30e51404f2",
+    "liveSha256": "8140ee148095f17fb0cf27ed68b38877345ddddc15e8e586736d7b30e51404f2",
+    "match": true
+  },
+  {
+    "path": "samples/dog.svg",
+    "status": 200,
+    "bytes": 542,
+    "localSha256": "5c9fa5b58eccacde44f8978c330b683339874902f6821f5a7937a855a6f7c384",
+    "liveSha256": "5c9fa5b58eccacde44f8978c330b683339874902f6821f5a7937a855a6f7c384",
+    "match": true
+  },
+  {
+    "path": "samples/lake-a.svg",
+    "status": 200,
+    "bytes": 388,
+    "localSha256": "ab9f9ae71689cfad8f4a93ec78bc998915ed0c99559ed2a91e278a799bbac603",
+    "liveSha256": "ab9f9ae71689cfad8f4a93ec78bc998915ed0c99559ed2a91e278a799bbac603",
+    "match": true
+  },
+  {
+    "path": "samples/lake-b.svg",
+    "status": 200,
+    "bytes": 388,
+    "localSha256": "66bf6328e39d4252c3c42462a991e9392d231875e921c5cc7288a4296dda29cd",
+    "liveSha256": "66bf6328e39d4252c3c42462a991e9392d231875e921c5cc7288a4296dda29cd",
+    "match": true
+  },
+  {
+    "path": "sitemap.xml",
+    "status": 200,
+    "bytes": 439,
+    "localSha256": "f85de643fca0d6298a974885e26172d3f44f3e7bfa4615ce1f2be9b78d82963c",
+    "liveSha256": "f85de643fca0d6298a974885e26172d3f44f3e7bfa4615ce1f2be9b78d82963c",
+    "match": true
+  },
+  {
+    "path": "sw.js",
+    "status": 200,
+    "bytes": 1429,
+    "localSha256": "6802ab97c05fc5e5a9f87826204eae3ce24fb5f841eeb20b8c056451d50a507d",
+    "liveSha256": "6802ab97c05fc5e5a9f87826204eae3ce24fb5f841eeb20b8c056451d50a507d",
+    "match": true
+  },
+  {
+    "path": "walkthrough/01-groups.webp",
+    "status": 200,
+    "bytes": 24408,
+    "localSha256": "872af5ee2e408fd73e1fd4f75b400ca1493f3ebc43de97c581d3b04880b479be",
+    "liveSha256": "872af5ee2e408fd73e1fd4f75b400ca1493f3ebc43de97c581d3b04880b479be",
+    "match": true
+  },
+  {
+    "path": "walkthrough/02-evidence.webp",
+    "status": 200,
+    "bytes": 20220,
+    "localSha256": "6437e97e1afd4cc72da601935e994416687fcca8a19311175963cae8af92a7ec",
+    "liveSha256": "6437e97e1afd4cc72da601935e994416687fcca8a19311175963cae8af92a7ec",
+    "match": true
+  },
+  {
+    "path": "walkthrough/03-quarantine.webp",
+    "status": 200,
+    "bytes": 28348,
+    "localSha256": "0d164a9ad64db7cde289e9ee3d25e3bc08cc3ee38f082cb907d6b8f4308d42a6",
+    "liveSha256": "0d164a9ad64db7cde289e9ee3d25e3bc08cc3ee38f082cb907d6b8f4308d42a6",
+    "match": true
+  }
+]

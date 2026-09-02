@@ -1,0 +1,1 @@
+Verified public v0.1.29: tag, target commit, latest.json, every package name, and every published SHA-256 agree.

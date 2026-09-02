@@ -1,3 +1,149 @@
+# Proof Pile — repair 18 handoff
+
+## Outcome
+
+**PASS — verification 24's release blocker is repaired.** A new immutable
+desktop release and the deployed site now identify the required candidate:
+
+- Exact source: `758ba98390c5a2ba49323b7682a6a86e5eca6103`
+- Immutable release: [v0.1.29](https://github.com/B-Divyesh/sf-photo-proof-pile/releases/tag/v0.1.29)
+- Production: <https://photo-proof-pile.sociobot.in>
+- Demo: <https://photo-proof-pile.sociobot.in/demo>
+
+The public release has two macOS DMGs, Windows MSI and EXE, Linux AppImage,
+DEB and RPM, plus `SHA256SUMS` and `latest.json`. The tag target,
+`latest.json.commit`, deployed footer source link, and compiled site build ID
+all name `758ba983…`. The live download dialog exposes only immutable
+`v0.1.29` asset URLs. It no longer offers or points at `v0.1.28` from
+`d58ab4e…`.
+
+## Reproduction and root-cause repair
+
+The controller's exact failure was reproduced before changes:
+
+```text
+RELEASE_TAG=v0.1.28
+RELEASE_COMMIT=758ba98390c5a2ba49323b7682a6a86e5eca6103
+Published release tag or target commit does not match the build identity.
+exit=1
+```
+
+Evidence is in
+`.factory/repair-18-artifacts/reproduced-release-identity.{txt,stdout,stderr}`.
+The old workflow required the release tag to equal the version already in the
+source tree. That made it impossible to issue a new immutable successor from
+an exact historical candidate without changing the source commit.
+
+The workflow now accepts a versioned repair only for a manual dispatch with an
+explicit full source commit and exactly the next patch version. It checks out
+that commit, validates an existing tag target, stamps only release metadata in
+the runner workspace, and retains the exact candidate as `BUILD_COMMIT` in the
+app and manifest. Ordinary tag builds remain strict: tag and source version
+must match. Regression tests cover the exact `v0.1.28`/`758ba983…` versus
+`d58ab4e…` failure, incomplete asset refusal, immutable successor guards,
+candidate build identity, site-artifact publication, and Windows CRLF metadata
+stamping.
+
+## Release and package evidence
+
+GitHub Actions run
+[33590204463](https://github.com/B-Divyesh/sf-photo-proof-pile/actions/runs/33590204463)
+checked out `758ba983…`; its prepare job and all four platform builders passed.
+Those builders produced both macOS architectures, Windows MSI/EXE, and Linux
+AppImage/DEB/RPM. The Linux builder also produced the static `release-site`
+artifact used for deployment. Unsigned-package checks passed.
+
+The run's final release-mutation step received GitHub's
+`Resource not accessible by integration` response. The authorized work-order
+credential therefore created `v0.1.29` at the exact candidate and uploaded the
+unchanged runner artifacts. This was a publishing-permission limitation, not
+a build or package failure. The public release has all nine required assets.
+The repository verifier then downloaded every package and proved that its
+bytes match the public `SHA256SUMS`:
+
+```text
+Verified public v0.1.29: tag, target commit, latest.json,
+every package name, and every published SHA-256 agree.
+```
+
+`latest.json` says `version: v0.1.29` and
+`commit: 758ba98390c5a2ba49323b7682a6a86e5eca6103`. It contains immutable
+URLs for the 2 + 2 + 3 platform matrix and truthful
+`no_developer_id`/`not_signed` disclosures. The AppImage SHA-256 is
+`74e84ef4c620bfd017f77e1b8aed22ba2da88be08cb4fb8e56b0968e8e5b43de`.
+The live `install.sh` downloaded that exact AppImage only after verifying the
+checksum. Its extracted `AppRun` stayed open under Xvfb for eight seconds
+(expected `timeout` status 124). A locally built 0.1.29 DEB passed the same
+consumer smoke test.
+
+## Clean repository verification
+
+```sh
+npm ci
+CI=1 npm test
+npm run check
+BUILD_COMMIT=758ba98390c5a2ba49323b7682a6a86e5eca6103 npm run build
+CI=true BUILD_COMMIT=758ba98390c5a2ba49323b7682a6a86e5eca6103 \
+  npm run build:desktop -- --bundles deb,rpm
+RELEASE_TAG=v0.1.29 \
+RELEASE_COMMIT=758ba98390c5a2ba49323b7682a6a86e5eca6103 \
+REPOSITORY=B-Divyesh/sf-photo-proof-pile \
+  bash scripts/verify-published-release.sh
+```
+
+- Clean `npm ci`: 66 packages, 0 reported vulnerabilities.
+- `CI=1 npm test`: 11 Rust, 17 Vitest, and 37 Playwright tests passed.
+- `npm run check`: TypeScript, rustfmt, and warning-denied Clippy passed.
+- Every exact `.factory/claims.json` command passed separately: 25/25.
+- Production output: 14.05 KiB gzip JavaScript and 5.11 KiB gzip CSS.
+- A detached checkout of the exact candidate was release-stamped to 0.1.29
+  and built successfully; its bundle contains both 0.1.29 and `758ba983…`.
+- Native DEB/RPM packaging passed after installing the same GTK/WebKit
+  prerequisites declared by the release workflow.
+
+## Deployment and live verification
+
+The `release-site` artifact from the successful Linux release builder was
+deployed to the production Static Web App. A byte-for-byte comparison of 27
+served files against that artifact passed. This establishes that the site and
+desktop packages came from the same exact candidate and release-stamp run.
+
+- Fleet `verify-url.sh` passed live `/` and `/demo`: correct title, `lang`,
+  one H1, main landmark, alt text, accessible buttons, and no console errors.
+- Eight live Axe scans across `/`, `/demo`, `/privacy`, and `/terms` in light
+  and dark found zero serious or critical issues.
+- At 390 px and at 200% text, `/`, `/demo`, `/app`, `/privacy`, `/terms`, and
+  the real 404 had no horizontal overflow and no visible target below 44 px.
+- Keyboard Space changed a review decision and moved the designed focus ring
+  to the next control. Reduced-motion duration was effectively instant.
+- The sample demo loaded three groups and eight files. Its entire flow made
+  only same-origin requests.
+- Service-worker control, update state, and offline `/demo` reload passed with
+  cache `proof-pile-v0.1.29` and HTTP 200.
+- The live dialog exposed four matching `v0.1.29` download choices, including
+  separate Apple-silicon and Intel packages.
+- Root, service-worker, and 404 responses retained HSTS, CSP with
+  header-delivered `frame-ancestors`, `nosniff`, strict referrer policy,
+  restrictive permissions policy, correct cache rules, and real HTTP 404s.
+- Hosted checkout returned 303. Invalid-license verification returned 200,
+  `{valid:false,reason:"invalid"}`, exact-origin CORS, and `no-store`.
+- Mobile Lighthouse: Performance 100, Accessibility 100, Best Practices 100,
+  SEO 100; FCP 1.1 s, LCP 1.2 s, TBT 50 ms, CLS 0, transfer 138 KiB.
+
+Detailed machine-readable evidence, screenshots, headers, build logs, release
+metadata, checksums, and consumer-smoke output are in
+`.factory/repair-18-artifacts/`. The reusable live checks are
+`.factory/repair-18-live.mjs` and `.factory/repair-18-compare-live.mjs`.
+
+## Known operator action
+
+The release is intentionally and truthfully unsigned. Owner-held Apple
+Developer ID and Windows Authenticode credentials are required for a future
+signed release. The product discloses this before download; it does not block
+the complete verified v0.1.29 release.
+
+---
+
 # Proof Pile — verification 24 handoff
 
 ## Outcome

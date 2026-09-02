@@ -1,0 +1,198 @@
+{
+  "checkedAt": "2026-09-02T04:31:59.598Z",
+  "routes": [
+    {
+      "route": "/",
+      "scheme": "light",
+      "status": 200,
+      "title": "Proof Pile — Review photo copies before cleanup",
+      "lang": "en",
+      "h1": 1,
+      "main": 1,
+      "missingAlt": 0
+    },
+    {
+      "route": "/demo",
+      "scheme": "light",
+      "status": 200,
+      "title": "Demo — Proof Pile",
+      "lang": "en",
+      "h1": 1,
+      "main": 1,
+      "missingAlt": 0
+    },
+    {
+      "route": "/privacy",
+      "scheme": "light",
+      "status": 200,
+      "title": "Privacy — Proof Pile",
+      "lang": "en",
+      "h1": 1,
+      "main": 1,
+      "missingAlt": 0
+    },
+    {
+      "route": "/terms",
+      "scheme": "light",
+      "status": 200,
+      "title": "Terms — Proof Pile",
+      "lang": "en",
+      "h1": 1,
+      "main": 1,
+      "missingAlt": 0
+    },
+    {
+      "route": "/",
+      "scheme": "dark",
+      "status": 200,
+      "title": "Proof Pile — Review photo copies before cleanup",
+      "lang": "en",
+      "h1": 1,
+      "main": 1,
+      "missingAlt": 0
+    },
+    {
+      "route": "/demo",
+      "scheme": "dark",
+      "status": 200,
+      "title": "Demo — Proof Pile",
+      "lang": "en",
+      "h1": 1,
+      "main": 1,
+      "missingAlt": 0
+    },
+    {
+      "route": "/privacy",
+      "scheme": "dark",
+      "status": 200,
+      "title": "Privacy — Proof Pile",
+      "lang": "en",
+      "h1": 1,
+      "main": 1,
+      "missingAlt": 0
+    },
+    {
+      "route": "/terms",
+      "scheme": "dark",
+      "status": 200,
+      "title": "Terms — Proof Pile",
+      "lang": "en",
+      "h1": 1,
+      "main": 1,
+      "missingAlt": 0
+    }
+  ],
+  "axe": [
+    {
+      "route": "/",
+      "scheme": "light",
+      "seriousCritical": []
+    },
+    {
+      "route": "/demo",
+      "scheme": "light",
+      "seriousCritical": []
+    },
+    {
+      "route": "/privacy",
+      "scheme": "light",
+      "seriousCritical": []
+    },
+    {
+      "route": "/terms",
+      "scheme": "light",
+      "seriousCritical": []
+    },
+    {
+      "route": "/",
+      "scheme": "dark",
+      "seriousCritical": []
+    },
+    {
+      "route": "/demo",
+      "scheme": "dark",
+      "seriousCritical": []
+    },
+    {
+      "route": "/privacy",
+      "scheme": "dark",
+      "seriousCritical": []
+    },
+    {
+      "route": "/terms",
+      "scheme": "dark",
+      "seriousCritical": []
+    }
+  ],
+  "errors": [],
+  "checks": {
+    "demo": {
+      "groups": 3,
+      "files": 8,
+      "focus": {
+        "width": "3px",
+        "style": "solid"
+      },
+      "onlySameOrigin": true
+    },
+    "mobile:/": {
+      "normalWidth": 390,
+      "enlargedWidth": 390,
+      "undersizedTargets": []
+    },
+    "mobile:/demo": {
+      "normalWidth": 390,
+      "enlargedWidth": 390,
+      "undersizedTargets": []
+    },
+    "mobile:/app": {
+      "normalWidth": 390,
+      "enlargedWidth": 390,
+      "undersizedTargets": []
+    },
+    "mobile:/privacy": {
+      "normalWidth": 390,
+      "enlargedWidth": 390,
+      "undersizedTargets": []
+    },
+    "mobile:/terms": {
+      "normalWidth": 390,
+      "enlargedWidth": 390,
+      "undersizedTargets": []
+    },
+    "mobile:/repair-18-missing": {
+      "normalWidth": 390,
+      "enlargedWidth": 390,
+      "undersizedTargets": []
+    },
+    "reducedMotion": "1e-05s",
+    "pwa": {
+      "controlled": true,
+      "waiting": false,
+      "caches": [
+        "proof-pile-v0.1.29"
+      ],
+      "offlineStatus": 200
+    },
+    "release": {
+      "downloads": [
+        {
+          "label": "Download for macOS (Apple silicon)",
+          "href": "https://github.com/B-Divyesh/sf-photo-proof-pile/releases/download/v0.1.29/Proof-Pile_0.1.29_aarch64.dmg"
+        },
+        {
+          "label": "Download for macOS (Intel)",
+          "href": "https://github.com/B-Divyesh/sf-photo-proof-pile/releases/download/v0.1.29/Proof-Pile_0.1.29_x64.dmg"
+        },
+        {
+          "label": "Download for Windows",
+          "href": "https://github.com/B-Divyesh/sf-photo-proof-pile/releases/download/v0.1.29/Proof-Pile_0.1.29_x64_en-US.msi"
+        },
+        {
+          "label": "Download for Linux",
+          "href": "https://github.com/B-Divyesh/sf-photo-proof-pile/releases/download/v0.1.29/Proof-Pile_0.1.29_amd64.AppImage"
+        }
+      ]
+    }
+  }
+}

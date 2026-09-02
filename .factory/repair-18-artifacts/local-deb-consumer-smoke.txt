@@ -1,0 +1,1 @@
+consumer-exit=124 (124 means it stayed open until timeout)
