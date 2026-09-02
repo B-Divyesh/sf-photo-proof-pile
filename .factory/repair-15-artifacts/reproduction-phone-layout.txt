@@ -1,0 +1,17 @@
+Command:
+npx playwright test tests/app.spec.ts --grep 'phone|mobile presentation'
+
+Candidate:
+6fa9a22916105fc20c1a97983e9343e242615dd8
+
+Result before repair:
+1 failed, 3 passed
+
+Failure:
+tests/app.spec.ts:537:1 › the phone layout keeps actions usable
+Expected visible header and footer links to be at least 44 CSS px high.
+The footer source-commit link measured 15 CSS px high.
+
+Root cause:
+The 390px media rule applied the 44px target only to links inside footer nav.
+The source-commit link is inside footer .fine, outside that nav.

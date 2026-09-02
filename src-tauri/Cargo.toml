@@ -1,6 +1,6 @@
 [package]
 name = "proof-pile"
-version = "0.1.25"
+version = "0.1.26"
 description = "Evidence-first duplicate photo cleanup"
 authors = ["Param Factory"]
 edition = "2021"

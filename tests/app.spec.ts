@@ -3,7 +3,7 @@ import AxeBuilder from "@axe-core/playwright";
 import { execFileSync } from "node:child_process";
 
 const sourceCommit = execFileSync("git", ["rev-parse", "HEAD"], { encoding: "utf8" }).trim();
-const releaseApi = "https://api.github.com/repos/B-Divyesh/sf-photo-proof-pile/releases/tags/v0.1.25";
+const releaseApi = "https://api.github.com/repos/B-Divyesh/sf-photo-proof-pile/releases/tags/v0.1.26";
 
 async function withIsolatedPage<T>(browser: Browser, run: (page: Page, context: BrowserContext) => Promise<T>, options?: BrowserContextOptions): Promise<T> {
   const context = await browser.newContext(options);
@@ -552,6 +552,16 @@ test("the phone layout keeps actions usable", async ({ page }) => {
   }
 });
 
+test("the source commit link has a 44px phone touch target", async ({ page }) => {
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page.goto("/demo");
+  const sourceLink = page.getByRole("link", { name: /^View source commit/ });
+  await sourceLink.scrollIntoViewIfNeeded();
+  const box = await sourceLink.boundingBox();
+  expect(box?.width).toBeGreaterThanOrEqual(44);
+  expect(box?.height).toBeGreaterThanOrEqual(44);
+});
+
 test("review decision controls meet the 44px target baseline on desktop and phone", async ({ page }) => {
   for (const viewport of [{ width: 1440, height: 900 }, { width: 390, height: 844 }]) {
     await page.setViewportSize(viewport);
@@ -628,18 +638,18 @@ test("download picker offers both macOS architectures from a matching complete r
   await page.route(releaseApi, route => route.fulfill({
     status: 200,
     contentType: "application/json",
-    body: JSON.stringify({ tag_name: "v0.1.25", target_commitish: sourceCommit, assets: [
-      { name: "Proof.Pile_0.1.25_aarch64.dmg", browser_download_url: "https://example.test/arm.dmg" },
-      { name: "Proof.Pile_0.1.25_x86_64.dmg", browser_download_url: "https://example.test/intel.dmg" },
-      { name: "Proof.Pile_0.1.25_x64_en-US.msi", browser_download_url: "https://example.test/app.msi" },
-      { name: "Proof.Pile_0.1.25_amd64.AppImage", browser_download_url: "https://example.test/app.AppImage" },
+    body: JSON.stringify({ tag_name: "v0.1.26", target_commitish: sourceCommit, assets: [
+      { name: "Proof.Pile_0.1.26_aarch64.dmg", browser_download_url: "https://example.test/arm.dmg" },
+      { name: "Proof.Pile_0.1.26_x86_64.dmg", browser_download_url: "https://example.test/intel.dmg" },
+      { name: "Proof.Pile_0.1.26_x64_en-US.msi", browser_download_url: "https://example.test/app.msi" },
+      { name: "Proof.Pile_0.1.26_amd64.AppImage", browser_download_url: "https://example.test/app.AppImage" },
       { name: "SHA256SUMS", browser_download_url: "https://example.test/SHA256SUMS" },
       { name: "latest.json", browser_download_url: "https://example.test/latest.json" }
     ] })
   }));
   await page.goto("/");
   await page.getByRole("button", { name: "Check desktop downloads" }).click();
-  await expect(page.getByText("v0.1.25 is ready from this source.")).toBeVisible();
+  await expect(page.getByText("v0.1.26 is ready from this source.")).toBeVisible();
   await expect(page.getByRole("link", { name: "Download for macOS (Apple silicon)" })).toHaveAttribute("href", "https://example.test/arm.dmg");
   await expect(page.getByRole("link", { name: "Download for macOS (Intel)" })).toHaveAttribute("href", "https://example.test/intel.dmg");
   await expect(page.getByText("macOS packages lack Developer ID signing. Windows packages are unsigned. Match the SHA-256 file before opening one.")).toBeVisible();
@@ -651,11 +661,11 @@ test("@claim:desktop-release-assets offers packages only after the complete rele
   await page.route(releaseApi, route => route.fulfill({
     status: 200,
     contentType: "application/json",
-    body: JSON.stringify({ tag_name: "v0.1.25", target_commitish: sourceCommit, assets: [
-      { name: "Proof.Pile_0.1.25_aarch64.dmg", browser_download_url: "https://example.test/arm.dmg" },
-      { name: "Proof.Pile_0.1.25_x64.dmg", browser_download_url: "https://example.test/intel.dmg" },
-      { name: "Proof.Pile_0.1.25_x64_en-US.msi", browser_download_url: "https://example.test/app.msi" },
-      { name: "Proof.Pile_0.1.25_amd64.AppImage", browser_download_url: "https://example.test/app.AppImage" },
+    body: JSON.stringify({ tag_name: "v0.1.26", target_commitish: sourceCommit, assets: [
+      { name: "Proof.Pile_0.1.26_aarch64.dmg", browser_download_url: "https://example.test/arm.dmg" },
+      { name: "Proof.Pile_0.1.26_x64.dmg", browser_download_url: "https://example.test/intel.dmg" },
+      { name: "Proof.Pile_0.1.26_x64_en-US.msi", browser_download_url: "https://example.test/app.msi" },
+      { name: "Proof.Pile_0.1.26_amd64.AppImage", browser_download_url: "https://example.test/app.AppImage" },
       { name: "SHA256SUMS", browser_download_url: "https://example.test/SHA256SUMS" }
     ] })
   }));
@@ -670,17 +680,17 @@ test("@claim:desktop-release-assets offers packages only after the complete rele
   await page.route(releaseApi, route => route.fulfill({
     status: 200,
     contentType: "application/json",
-    body: JSON.stringify({ tag_name: "v0.1.25", target_commitish: sourceCommit, assets: [
-      { name: "Proof.Pile_0.1.25_aarch64.dmg", browser_download_url: "https://example.test/arm.dmg" },
-      { name: "Proof.Pile_0.1.25_x64.dmg", browser_download_url: "https://example.test/intel.dmg" },
-      { name: "Proof.Pile_0.1.25_x64_en-US.msi", browser_download_url: "https://example.test/app.msi" },
-      { name: "Proof.Pile_0.1.25_amd64.AppImage", browser_download_url: "https://example.test/app.AppImage" },
+    body: JSON.stringify({ tag_name: "v0.1.26", target_commitish: sourceCommit, assets: [
+      { name: "Proof.Pile_0.1.26_aarch64.dmg", browser_download_url: "https://example.test/arm.dmg" },
+      { name: "Proof.Pile_0.1.26_x64.dmg", browser_download_url: "https://example.test/intel.dmg" },
+      { name: "Proof.Pile_0.1.26_x64_en-US.msi", browser_download_url: "https://example.test/app.msi" },
+      { name: "Proof.Pile_0.1.26_amd64.AppImage", browser_download_url: "https://example.test/app.AppImage" },
       { name: "SHA256SUMS", browser_download_url: "https://example.test/SHA256SUMS" },
       { name: "latest.json", browser_download_url: "https://example.test/latest.json" }
     ] })
   }));
   await page.getByRole("button", { name: "Check desktop downloads" }).click();
-  await expect(page.getByText("v0.1.25 is ready from this source.")).toBeVisible();
+  await expect(page.getByText("v0.1.26 is ready from this source.")).toBeVisible();
   await expect(page.getByText("macOS packages lack Developer ID signing. Windows packages are unsigned. Match the SHA-256 file before opening one.")).toBeVisible();
   await expect(page.getByRole("link", { name: /Download for/ })).toHaveCount(4);
   await expect(page.getByRole("link", { name: "Download for Linux" })).toHaveAttribute("href", "https://example.test/app.AppImage");
@@ -699,11 +709,11 @@ test("@claim:desktop-release-identity refuses a complete package set from anothe
   await page.route(releaseApi, route => route.fulfill({
     status: 200,
     contentType: "application/json",
-    body: JSON.stringify({ tag_name: "v0.1.25", target_commitish: "10c5525cc2c227d275296ba1cb583b1a83f3c8d1", assets: [
-      { name: "Proof-Pile_0.1.25_aarch64.dmg", browser_download_url: "https://example.test/arm.dmg" },
-      { name: "Proof-Pile_0.1.25_x64.dmg", browser_download_url: "https://example.test/intel.dmg" },
-      { name: "Proof-Pile_0.1.25_x64_en-US.msi", browser_download_url: "https://example.test/app.msi" },
-      { name: "Proof-Pile_0.1.25_amd64.AppImage", browser_download_url: "https://example.test/app.AppImage" },
+    body: JSON.stringify({ tag_name: "v0.1.26", target_commitish: "10c5525cc2c227d275296ba1cb583b1a83f3c8d1", assets: [
+      { name: "Proof-Pile_0.1.26_aarch64.dmg", browser_download_url: "https://example.test/arm.dmg" },
+      { name: "Proof-Pile_0.1.26_x64.dmg", browser_download_url: "https://example.test/intel.dmg" },
+      { name: "Proof-Pile_0.1.26_x64_en-US.msi", browser_download_url: "https://example.test/app.msi" },
+      { name: "Proof-Pile_0.1.26_amd64.AppImage", browser_download_url: "https://example.test/app.AppImage" },
       { name: "SHA256SUMS", browser_download_url: "https://example.test/SHA256SUMS" },
       { name: "latest.json", browser_download_url: "https://example.test/latest.json" }
     ] })

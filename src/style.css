@@ -235,7 +235,7 @@ dialog input { width: 100%; min-height: 48px; padding: 10px; border: 1px solid v
   .site-header, footer, main > section, .desk-heading, .desk-layout, .demo-banner, .notice, .prose-page, .not-found { width: min(100% - 32px, 1440px); }
   .site-header { min-height: 68px; }
   .site-header nav { gap: 14px; }
-  .site-header nav a, footer nav a { display: inline-grid; min-width: 44px; min-height: 44px; place-items: center; }
+  .site-header nav a, footer a { display: inline-grid; min-width: 44px; min-height: 44px; place-items: center; }
   .site-header nav a:nth-child(2) { display: none; }
   .hero { grid-template-columns: 1fr; min-height: 0; gap: 56px; padding-block: 56px 76px; }
   h1 { font-size: clamp(2.45rem, 13vw, 3.6rem); }
