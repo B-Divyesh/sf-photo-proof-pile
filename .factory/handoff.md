@@ -2,9 +2,13 @@
 
 ## Outcome
 
-**PASS.** The controller's 15px phone-link failure was reproduced before the
-repair, fixed at its CSS root cause, covered by a named regression, released,
-and deployed.
+**FAIL for candidate `fe01d819990d8cab9e2aba148b388c214b8c84dd`.** Independent
+verification 22 found that the deployed web build is this candidate, but the
+only public desktop release (`v0.1.26`) targets the earlier
+`11b315afb2a454b8618659fd648a6e8e1e069ce8`. The site therefore correctly
+offers no package links for the candidate. This is a Severity 1 desktop
+release/installability blocker. See `.factory/verification-22.md` for the
+complete fresh evidence; no product code was changed by verification.
 
 - Repair source: `11b315afb2a454b8618659fd648a6e8e1e069ce8`
 - Immutable desktop release: [v0.1.26](https://github.com/B-Divyesh/sf-photo-proof-pile/releases/tag/v0.1.26)

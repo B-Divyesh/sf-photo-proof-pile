@@ -1,5 +1,5 @@
 {
-  "checkedAt": "2026-09-02T00:48:31.101Z",
+  "checkedAt": "2026-09-02T01:17:55.960Z",
   "routes": [
     {
       "route": "/",
@@ -18,7 +18,7 @@
       "sourceBox": {
         "x": 114.703125,
         "y": 3115.859375,
-        "width": 83.765625,
+        "width": 84.75,
         "height": 44
       }
     },
@@ -120,24 +120,7 @@
       "offlineStatus": 200
     },
     "release": {
-      "downloads": [
-        {
-          "label": "Download for macOS (Apple silicon)",
-          "href": "https://github.com/B-Divyesh/sf-photo-proof-pile/releases/download/v0.1.26/Proof-Pile_0.1.26_aarch64.dmg"
-        },
-        {
-          "label": "Download for macOS (Intel)",
-          "href": "https://github.com/B-Divyesh/sf-photo-proof-pile/releases/download/v0.1.26/Proof-Pile_0.1.26_x64.dmg"
-        },
-        {
-          "label": "Download for Windows",
-          "href": "https://github.com/B-Divyesh/sf-photo-proof-pile/releases/download/v0.1.26/Proof-Pile_0.1.26_x64-setup.exe"
-        },
-        {
-          "label": "Download for Linux",
-          "href": "https://github.com/B-Divyesh/sf-photo-proof-pile/releases/download/v0.1.26/Proof-Pile_0.1.26_amd64.AppImage"
-        }
-      ]
+      "downloads": []
     }
   },
   "errors": []
