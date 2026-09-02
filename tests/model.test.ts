@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { chmodSync, mkdirSync, mkdtempSync, readFileSync, writeFileSync } from "node:fs";
 import { execFileSync } from "node:child_process";
+import { createHash } from "node:crypto";
 import { dirname, join } from "node:path";
 import { tmpdir } from "node:os";
 import { fileURLToPath } from "node:url";
@@ -90,6 +91,7 @@ describe("review model", () => {
   it("publishes complete desktop assets with checksums and a release manifest", () => {
     const workflow = readFileSync(new URL("../.github/workflows/release.yml", import.meta.url), "utf8");
     const preparation = readFileSync(new URL("../scripts/prepare-release-assets.sh", import.meta.url), "utf8");
+    const verification = readFileSync(new URL("../scripts/verify-published-release.sh", import.meta.url), "utf8");
     expect(workflow).toContain('tags: ["v*"]');
     expect(workflow).toContain("workflow_dispatch:");
     expect(workflow).toContain("macos-latest");
@@ -99,7 +101,7 @@ describe("review model", () => {
     expect(workflow).toContain("bundles: msi,nsis");
     expect(workflow).toContain("bundles: appimage,deb,rpm");
     expect(workflow).toContain("SHA256SUMS");
-    expect(workflow).toContain("latest.json");
+    expect(preparation).toContain("latest.json");
     expect(workflow).toContain("softprops/action-gh-release@v2");
     expect(preparation).toContain("sha256sum -c SHA256SUMS");
     expect(preparation).toContain('"no_developer_id"');
@@ -109,6 +111,7 @@ describe("review model", () => {
     expect(workflow).toContain('tag_commit=$(git rev-parse "${release_tag}^{}")');
     expect(workflow).toContain('if [ "$tag_commit" != "$release_commit" ]');
     expect(workflow).toContain("BUILD_COMMIT: ${{ needs.prepare-release.outputs.commit }}");
+    expect(verification).toContain("Published SHA-256 mismatch for $asset.");
   });
 
   it("flattens nested builder artifacts before checksumming and publishing them", () => {
@@ -118,6 +121,7 @@ describe("review model", () => {
       ["aarch64-apple-darwin/release/bundle/dmg/Proof Pile_0.1.23_aarch64.dmg", "mac arm"],
       ["x86_64-apple-darwin/release/bundle/dmg/Proof Pile_0.1.23_x64.dmg", "mac intel"],
       ["x86_64-pc-windows-msvc/release/bundle/msi/Proof Pile_0.1.23_x64_en-US.msi", "windows"],
+      ["x86_64-pc-windows-msvc/release/bundle/nsis/Proof Pile_0.1.23_x64-setup.exe", "windows exe"],
       ["x86_64-unknown-linux-gnu/release/bundle/appimage/Proof Pile_0.1.23_amd64.AppImage", "appimage"],
       ["x86_64-unknown-linux-gnu/release/bundle/deb/Proof Pile_0.1.23_amd64.deb", "deb"],
       ["x86_64-unknown-linux-gnu/release/bundle/rpm/Proof Pile-0.1.23-1.x86_64.rpm", "rpm"],
@@ -137,7 +141,7 @@ describe("review model", () => {
     const sums = readFileSync(join(published, "SHA256SUMS"), "utf8");
     expect(manifest).toMatchObject({ version: "v0.1.23", commit: "a".repeat(40), signatures: { macos: "no_developer_id", windows: "not_signed" } });
     expect(manifest.platforms.macos).toHaveLength(2);
-    expect(manifest.platforms.windows).toHaveLength(1);
+    expect(manifest.platforms.windows).toHaveLength(2);
     expect(manifest.platforms.linux).toHaveLength(3);
     for (const [relative] of files) expect(sums).toContain(`  ${relative.split("/").at(-1)?.replaceAll(" ", "-")}`);
   });
@@ -145,6 +149,7 @@ describe("review model", () => {
   it("releases only the matching version tag and records that tag's immutable commit", () => {
     const workflow = readFileSync(new URL("../.github/workflows/release.yml", import.meta.url), "utf8");
     const preparation = readFileSync(new URL("../scripts/prepare-release-assets.sh", import.meta.url), "utf8");
+    const verification = readFileSync(new URL("../scripts/verify-published-release.sh", import.meta.url), "utf8");
     expect(workflow).toContain('expected_tag="v${version}"');
     expect(workflow).toContain('if [ "$release_tag" != "$expected_tag" ]');
     expect(workflow).toContain('ref: ${{ inputs.source_commit || inputs.tag || github.ref }}');
@@ -152,22 +157,25 @@ describe("review model", () => {
     expect(workflow).toContain('if [ -n "$REQUESTED_COMMIT" ] && [ "$release_commit" != "$REQUESTED_COMMIT" ]');
     expect(workflow).toContain('RELEASE_COMMIT: ${{ needs.prepare-release.outputs.commit }}');
     expect(workflow).toContain('target_commitish: ${{ needs.prepare-release.outputs.commit }}');
-    expect(workflow).toContain('releases/download/${RELEASE_TAG}');
+    expect(verification).toContain('releases/download/${RELEASE_TAG}');
     expect(preparation).toContain('--arg commit "$RELEASE_COMMIT"');
     expect(preparation).not.toContain('jq --arg commit "$GITHUB_SHA"');
     expect(workflow).toContain("Verify public release identity, manifest, and checksums");
     expect(workflow).toContain("bash scripts/verify-published-release.sh");
+    expect(workflow).not.toContain("Verify one published Linux asset against SHA256SUMS");
+    expect(preparation).toContain('sha256sum -c SHA256SUMS');
   });
 
-  it("rejects the verifier's exact v0.1.26 release target mismatch before a package is accepted", () => {
+  it("rejects verification 23's exact v0.1.27 candidate/release target mismatch before a package is accepted", () => {
     const root = mkdtempSync(join(tmpdir(), "proof-pile-published-release-"));
-    const expectedCommit = "fe01d819990d8cab9e2aba148b388c214b8c84dd";
-    const oldCommit = "11b315afb2a454b8618659fd648a6e8e1e069ce8";
-    const tag = "v0.1.26";
+    const expectedCommit = "36734eeecd6f0ff8e4971f3d8ac8322953521633";
+    const oldCommit = "c77f662186677f7514fd1a7aea51b74013f74b22";
+    const tag = "v0.1.27";
     const repository = "B-Divyesh/sf-photo-proof-pile";
     const assets = [
-      "Proof-Pile_0.1.26_aarch64.dmg", "Proof-Pile_0.1.26_x64.dmg", "Proof-Pile_0.1.26_x64_en-US.msi",
-      "Proof-Pile_0.1.26_amd64.AppImage", "Proof-Pile_0.1.26_amd64.deb", "latest.json", "SHA256SUMS"
+      "Proof-Pile_0.1.27_aarch64.dmg", "Proof-Pile_0.1.27_x64.dmg", "Proof-Pile_0.1.27_x64_en-US.msi",
+      "Proof-Pile_0.1.27_x64-setup.exe", "Proof-Pile_0.1.27_amd64.AppImage", "Proof-Pile_0.1.27_amd64.deb",
+      "Proof-Pile-0.1.27-1.x86_64.rpm", "latest.json", "SHA256SUMS"
     ];
     const release = {
       tag_name: tag,
@@ -188,7 +196,7 @@ describe("review model", () => {
     const checksumPath = join(root, "SHA256SUMS");
     writeFileSync(releasePath, JSON.stringify(release));
     writeFileSync(manifestPath, JSON.stringify(manifest));
-    writeFileSync(checksumPath, assets.slice(0, 5).map((name, index) => `${String(index).padStart(64, "0")}  ${name}`).join("\n"));
+    writeFileSync(checksumPath, assets.slice(0, 7).map((name, index) => `${String(index).padStart(64, "0")}  ${name}`).join("\n"));
     const curlPath = join(root, "curl");
     writeFileSync(curlPath, `#!/bin/sh
 out=""
@@ -221,10 +229,82 @@ esac
     expect(run).toThrow(/Published release tag or target commit does not match the build identity/);
   });
 
+  it("verifies every published desktop package byte against SHA256SUMS", () => {
+    const root = mkdtempSync(join(tmpdir(), "proof-pile-release-checksums-"));
+    const assetsRoot = join(root, "assets");
+    mkdirSync(assetsRoot);
+    const tag = "v0.1.28";
+    const commit = "b".repeat(40);
+    const repository = "B-Divyesh/sf-photo-proof-pile";
+    const packageNames = [
+      "Proof-Pile_0.1.28_aarch64.dmg", "Proof-Pile_0.1.28_x64.dmg",
+      "Proof-Pile_0.1.28_x64_en-US.msi", "Proof-Pile_0.1.28_x64-setup.exe",
+      "Proof-Pile_0.1.28_amd64.AppImage", "Proof-Pile_0.1.28_amd64.deb", "Proof-Pile-0.1.28-1.x86_64.rpm"
+    ];
+    const contents = new Map(packageNames.map((name, index) => [name, `package-${index}`]));
+    for (const [name, content] of contents) writeFileSync(join(assetsRoot, name), content);
+    const releasePath = join(root, "release.json");
+    const manifestPath = join(root, "latest.json");
+    const checksumPath = join(root, "SHA256SUMS");
+    const url = (name: string) => `https://github.com/${repository}/releases/download/${tag}/${name}`;
+    writeFileSync(releasePath, JSON.stringify({
+      tag_name: tag,
+      target_commitish: commit,
+      assets: [...packageNames, "latest.json", "SHA256SUMS"].map(name => ({ name, browser_download_url: url(name) }))
+    }));
+    writeFileSync(manifestPath, JSON.stringify({
+      version: tag,
+      commit,
+      signatures: { macos: "no_developer_id", windows: "not_signed" },
+      platforms: {
+        macos: packageNames.slice(0, 2).map(name => ({ name, url: url(name) })),
+        windows: packageNames.slice(2, 4).map(name => ({ name, url: url(name) })),
+        linux: packageNames.slice(4).map(name => ({ name, url: url(name) }))
+      }
+    }));
+    writeFileSync(checksumPath, packageNames.map(name => `${createHash("sha256").update(contents.get(name)!).digest("hex")}  ${name}`).join("\n"));
+    const curlPath = join(root, "curl");
+    writeFileSync(curlPath, `#!/bin/sh
+out=""
+url=""
+previous=""
+for arg in "$@"; do
+  if [ "$previous" = "--output" ]; then out="$arg"; fi
+  case "$arg" in http*) url="$arg" ;; esac
+  previous="$arg"
+done
+case "$url" in
+  *releases/tags*) cp "$RELEASE_FIXTURE" "$out" ;;
+  *latest.json) cp "$RELEASE_FIXTURE_LATEST" "$out" ;;
+  *SHA256SUMS) cp "$RELEASE_FIXTURE_SUMS" "$out" ;;
+  *) cp "$RELEASE_FIXTURE_ASSETS/\${url##*/}" "$out" ;;
+esac
+`);
+    chmodSync(curlPath, 0o755);
+    const run = () => execFileSync("bash", [fileURLToPath(new URL("../scripts/verify-published-release.sh", import.meta.url))], {
+      env: {
+        ...process.env,
+        PATH: `${root}:${process.env.PATH}`,
+        RELEASE_TAG: tag,
+        RELEASE_COMMIT: commit,
+        REPOSITORY: repository,
+        RELEASE_FIXTURE: releasePath,
+        RELEASE_FIXTURE_LATEST: manifestPath,
+        RELEASE_FIXTURE_SUMS: checksumPath,
+        RELEASE_FIXTURE_ASSETS: assetsRoot
+      },
+      stdio: "pipe"
+    });
+    expect(() => run()).not.toThrow();
+    writeFileSync(join(assetsRoot, packageNames[6]), "tampered-rpm");
+    expect(run).toThrow(new RegExp(`Published SHA-256 mismatch for ${packageNames[6]}`));
+  });
+
   it("@claim:desktop-release-identity rejects the verifier's exact v0.1.23 source mismatch", () => {
     const assets = [
       "Proof-Pile_0.1.23_aarch64.dmg", "Proof-Pile_0.1.23_x64.dmg", "Proof-Pile_0.1.23_x64_en-US.msi",
-      "Proof-Pile_0.1.23_amd64.AppImage", "SHA256SUMS", "latest.json"
+      "Proof-Pile_0.1.23_x64-setup.exe", "Proof-Pile_0.1.23_amd64.AppImage", "Proof-Pile_0.1.23_amd64.deb",
+      "Proof-Pile-0.1.23-1.x86_64.rpm", "SHA256SUMS", "latest.json"
     ].map(name => ({ name, browser_download_url: `https://example.test/${name}` }));
     const published = resolvePublishedDesktopRelease({
       tag_name: "v0.1.23",

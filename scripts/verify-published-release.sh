@@ -41,9 +41,17 @@ fetch "$(asset_url SHA256SUMS)" "$checksums"
 
 jq -e --arg tag "$RELEASE_TAG" --arg commit "$RELEASE_COMMIT" '
   .version == $tag and .commit == $commit and
-  (.platforms.macos | type == "array" and length >= 2) and
-  (.platforms.windows | type == "array" and length >= 1) and
-  (.platforms.linux | type == "array" and length >= 2)
+  .signatures.macos == "no_developer_id" and .signatures.windows == "not_signed" and
+  (.platforms.macos | type == "array" and length == 2) and
+  (.platforms.windows | type == "array" and length == 2) and
+  (.platforms.linux | type == "array" and length == 3) and
+  ([.platforms.macos[].name] | any(test("(aarch64|arm64)"; "i"))) and
+  ([.platforms.macos[].name] | any(test("(x86_64|x64|intel)"; "i"))) and
+  ([.platforms.windows[].name] | any(test("\\.msi$"; "i"))) and
+  ([.platforms.windows[].name] | any(test("\\.exe$"; "i"))) and
+  ([.platforms.linux[].name] | any(test("\\.AppImage$"; "i"))) and
+  ([.platforms.linux[].name] | any(test("\\.deb$"; "i"))) and
+  ([.platforms.linux[].name] | any(test("\\.rpm$"; "i")))
 ' "$manifest_json" >/dev/null || {
   echo "latest.json does not match the release identity or platform matrix." >&2
   exit 1
@@ -70,10 +78,22 @@ if ! cmp -s "$work_dir/manifest-assets" "$work_dir/release-assets"; then
 fi
 
 while IFS= read -r asset; do
-  awk -v name="$asset" '$2 == name { found = 1 } END { exit found ? 0 : 1 }' "$checksums" || {
+  expected=$(awk -v name="$asset" '$2 == name { print $1; count += 1 } END { if (count != 1) exit 1 }' "$checksums") || {
     echo "SHA256SUMS has no entry for $asset." >&2
     exit 1
   }
+  if ! [[ "$expected" =~ ^[[:xdigit:]]{64}$ ]]; then
+    echo "SHA256SUMS has an invalid SHA-256 for $asset." >&2
+    exit 1
+  fi
+
+  downloaded="$work_dir/$asset"
+  fetch "$(asset_url "$asset")" "$downloaded"
+  actual=$(sha256sum "$downloaded" | awk '{ print $1 }')
+  if [ "$expected" != "$actual" ]; then
+    echo "Published SHA-256 mismatch for $asset." >&2
+    exit 1
+  fi
 done < "$work_dir/release-assets"
 
-echo "Verified public ${RELEASE_TAG}: tag, target commit, latest.json, package names, and SHA256SUMS agree."
+echo "Verified public ${RELEASE_TAG}: tag, target commit, latest.json, every package name, and every published SHA-256 agree."

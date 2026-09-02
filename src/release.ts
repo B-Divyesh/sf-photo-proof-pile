@@ -30,10 +30,13 @@ export function resolvePublishedDesktopRelease(value: unknown, identity: Release
   const assets = release.assets.filter((asset): asset is ReleaseAsset => Boolean(asset && typeof asset.name === "string" && typeof asset.browser_download_url === "string"));
   const macArm = assets.find(item => /\.dmg$/i.test(item.name) && /(aarch64|arm64)/i.test(item.name));
   const macIntel = assets.find(item => /\.dmg$/i.test(item.name) && /(x86_64|x64|intel)/i.test(item.name));
-  const windows = assets.find(item => /\.(msi|exe)$/i.test(item.name));
-  const linux = assets.find(item => /\.(AppImage|deb)$/i.test(item.name));
+  const windows = assets.find(item => /\.msi$/i.test(item.name));
+  const windowsExe = assets.find(item => /\.exe$/i.test(item.name));
+  const linux = assets.find(item => /\.AppImage$/i.test(item.name));
+  const linuxDeb = assets.find(item => /\.deb$/i.test(item.name));
+  const linuxRpm = assets.find(item => /\.rpm$/i.test(item.name));
   const checksums = assets.some(item => item.name === "SHA256SUMS");
   const manifest = assets.some(item => item.name === "latest.json");
-  if (!checksums || !manifest || !macArm || !macIntel || !windows || !linux) return null;
+  if (!checksums || !manifest || !macArm || !macIntel || !windows || !windowsExe || !linux || !linuxDeb || !linuxRpm) return null;
   return { tag_name: release.tag_name, target_commitish: release.target_commitish, assets, macArm, macIntel, windows, linux };
 }

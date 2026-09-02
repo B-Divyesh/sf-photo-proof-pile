@@ -645,7 +645,10 @@ test("download picker offers both macOS architectures from a matching complete r
       { name: `Proof.Pile_${releaseVersion}_aarch64.dmg`, browser_download_url: "https://example.test/arm.dmg" },
       { name: `Proof.Pile_${releaseVersion}_x86_64.dmg`, browser_download_url: "https://example.test/intel.dmg" },
       { name: `Proof.Pile_${releaseVersion}_x64_en-US.msi`, browser_download_url: "https://example.test/app.msi" },
+      { name: `Proof.Pile_${releaseVersion}_x64-setup.exe`, browser_download_url: "https://example.test/app.exe" },
       { name: `Proof.Pile_${releaseVersion}_amd64.AppImage`, browser_download_url: "https://example.test/app.AppImage" },
+      { name: `Proof.Pile_${releaseVersion}_amd64.deb`, browser_download_url: "https://example.test/app.deb" },
+      { name: `Proof-Pile-${releaseVersion}-1.x86_64.rpm`, browser_download_url: "https://example.test/app.rpm" },
       { name: "SHA256SUMS", browser_download_url: "https://example.test/SHA256SUMS" },
       { name: "latest.json", browser_download_url: "https://example.test/latest.json" }
     ] })
@@ -658,6 +661,27 @@ test("download picker offers both macOS architectures from a matching complete r
   await expect(page.getByText("macOS packages lack Developer ID signing. Windows packages are unsigned. Match the SHA-256 file before opening one.")).toBeVisible();
 });
 
+test("download picker hides every link when a matching release lacks one platform package", async ({ page }) => {
+  await page.route(releaseApi, route => route.fulfill({
+    status: 200,
+    contentType: "application/json",
+    body: JSON.stringify({ tag_name: releaseTag, target_commitish: sourceCommit, assets: [
+      { name: `Proof.Pile_${releaseVersion}_aarch64.dmg`, browser_download_url: "https://example.test/arm.dmg" },
+      { name: `Proof.Pile_${releaseVersion}_x64.dmg`, browser_download_url: "https://example.test/intel.dmg" },
+      { name: `Proof.Pile_${releaseVersion}_x64_en-US.msi`, browser_download_url: "https://example.test/app.msi" },
+      { name: `Proof.Pile_${releaseVersion}_x64-setup.exe`, browser_download_url: "https://example.test/app.exe" },
+      { name: `Proof.Pile_${releaseVersion}_amd64.AppImage`, browser_download_url: "https://example.test/app.AppImage" },
+      { name: `Proof.Pile_${releaseVersion}_amd64.deb`, browser_download_url: "https://example.test/app.deb" },
+      { name: "SHA256SUMS", browser_download_url: "https://example.test/SHA256SUMS" },
+      { name: "latest.json", browser_download_url: "https://example.test/latest.json" }
+    ] })
+  }));
+  await page.goto("/");
+  await page.getByRole("button", { name: "Check desktop downloads" }).click();
+  await expect(page.getByText("Downloads for this build are being published.")).toBeVisible();
+  await expect(page.getByRole("link", { name: /Download for/ })).toHaveCount(0);
+});
+
 test("@claim:desktop-release-assets offers packages only after the complete release record is published", async ({ page }) => {
   const consoleErrors: string[] = [];
   page.on("console", message => { if (message.type() === "error") consoleErrors.push(message.text()); });
@@ -668,7 +692,10 @@ test("@claim:desktop-release-assets offers packages only after the complete rele
       { name: `Proof.Pile_${releaseVersion}_aarch64.dmg`, browser_download_url: "https://example.test/arm.dmg" },
       { name: `Proof.Pile_${releaseVersion}_x64.dmg`, browser_download_url: "https://example.test/intel.dmg" },
       { name: `Proof.Pile_${releaseVersion}_x64_en-US.msi`, browser_download_url: "https://example.test/app.msi" },
+      { name: `Proof.Pile_${releaseVersion}_x64-setup.exe`, browser_download_url: "https://example.test/app.exe" },
       { name: `Proof.Pile_${releaseVersion}_amd64.AppImage`, browser_download_url: "https://example.test/app.AppImage" },
+      { name: `Proof.Pile_${releaseVersion}_amd64.deb`, browser_download_url: "https://example.test/app.deb" },
+      { name: `Proof-Pile-${releaseVersion}-1.x86_64.rpm`, browser_download_url: "https://example.test/app.rpm" },
       { name: "SHA256SUMS", browser_download_url: "https://example.test/SHA256SUMS" }
     ] })
   }));
@@ -687,7 +714,10 @@ test("@claim:desktop-release-assets offers packages only after the complete rele
       { name: `Proof.Pile_${releaseVersion}_aarch64.dmg`, browser_download_url: "https://example.test/arm.dmg" },
       { name: `Proof.Pile_${releaseVersion}_x64.dmg`, browser_download_url: "https://example.test/intel.dmg" },
       { name: `Proof.Pile_${releaseVersion}_x64_en-US.msi`, browser_download_url: "https://example.test/app.msi" },
+      { name: `Proof.Pile_${releaseVersion}_x64-setup.exe`, browser_download_url: "https://example.test/app.exe" },
       { name: `Proof.Pile_${releaseVersion}_amd64.AppImage`, browser_download_url: "https://example.test/app.AppImage" },
+      { name: `Proof.Pile_${releaseVersion}_amd64.deb`, browser_download_url: "https://example.test/app.deb" },
+      { name: `Proof-Pile-${releaseVersion}-1.x86_64.rpm`, browser_download_url: "https://example.test/app.rpm" },
       { name: "SHA256SUMS", browser_download_url: "https://example.test/SHA256SUMS" },
       { name: "latest.json", browser_download_url: "https://example.test/latest.json" }
     ] })
@@ -716,7 +746,10 @@ test("@claim:desktop-release-identity refuses a complete package set from anothe
       { name: `Proof-Pile_${releaseVersion}_aarch64.dmg`, browser_download_url: "https://example.test/arm.dmg" },
       { name: `Proof-Pile_${releaseVersion}_x64.dmg`, browser_download_url: "https://example.test/intel.dmg" },
       { name: `Proof-Pile_${releaseVersion}_x64_en-US.msi`, browser_download_url: "https://example.test/app.msi" },
+      { name: `Proof-Pile_${releaseVersion}_x64-setup.exe`, browser_download_url: "https://example.test/app.exe" },
       { name: `Proof-Pile_${releaseVersion}_amd64.AppImage`, browser_download_url: "https://example.test/app.AppImage" },
+      { name: `Proof-Pile_${releaseVersion}_amd64.deb`, browser_download_url: "https://example.test/app.deb" },
+      { name: `Proof-Pile-${releaseVersion}-1.x86_64.rpm`, browser_download_url: "https://example.test/app.rpm" },
       { name: "SHA256SUMS", browser_download_url: "https://example.test/SHA256SUMS" },
       { name: "latest.json", browser_download_url: "https://example.test/latest.json" }
     ] })

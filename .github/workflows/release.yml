@@ -159,18 +159,3 @@ jobs:
           RELEASE_COMMIT: ${{ needs.prepare-release.outputs.commit }}
           REPOSITORY: ${{ github.repository }}
         run: bash scripts/verify-published-release.sh
-      - name: Verify one published Linux asset against SHA256SUMS
-        shell: bash
-        env:
-          RELEASE_TAG: ${{ needs.prepare-release.outputs.tag }}
-          REPOSITORY: ${{ github.repository }}
-        run: |
-          set -euo pipefail
-          cd release-assets/published
-          asset=$(jq -r '.platforms.linux[] | select(.name | endswith(".AppImage")) | .name' latest.json | head -n 1)
-          test -n "$asset"
-          curl --fail --silent --show-error --location "https://github.com/${REPOSITORY}/releases/download/${RELEASE_TAG}/${asset}" --output "published-${asset}"
-          expected=$(awk -v name="$asset" '$2 == name { print $1 }' SHA256SUMS)
-          actual=$(sha256sum "published-${asset}" | awk '{ print $1 }')
-          test -n "$expected"
-          test "$expected" = "$actual"
