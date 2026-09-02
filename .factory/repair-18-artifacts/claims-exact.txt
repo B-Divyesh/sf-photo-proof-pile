@@ -1,0 +1,466 @@
+
+=== demo-isolated ===
+npm run test:e2e -- --grep @claim:demo-isolated
+
+> photo-proof-pile@0.1.29 test:e2e
+> playwright test --grep @claim:demo-isolated
+
+[WebServer] (node:6568) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[WebServer] (Use `node --trace-warnings ...` to show where the warning was created)
+[WebServer] (node:6601) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[WebServer] (Use `node --trace-warnings ...` to show where the warning was created)
+
+Running 1 test using 1 worker
+
+(node:6622) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:6622) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ✓  1 [chromium] › tests/app.spec.ts:119:1 › @claim:demo-isolated keeps real storage untouched and discards only the sample session (753ms)
+
+  1 passed (6.3s)
+
+=== match-evidence ===
+npm run test:e2e -- --grep @claim:match-evidence
+
+> photo-proof-pile@0.1.29 test:e2e
+> playwright test --grep @claim:match-evidence
+
+[WebServer] (node:6742) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[WebServer] (Use `node --trace-warnings ...` to show where the warning was created)
+[WebServer] (node:6775) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[WebServer] (Use `node --trace-warnings ...` to show where the warning was created)
+
+Running 1 test using 1 worker
+
+(node:6795) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:6795) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ✓  1 [chromium] › tests/app.spec.ts:143:1 › @claim:match-evidence shows every sample file with its complete evidence (1.7s)
+
+  1 passed (7.2s)
+
+=== csv-export ===
+npm run test:e2e -- --grep @claim:csv-export
+
+> photo-proof-pile@0.1.29 test:e2e
+> playwright test --grep @claim:csv-export
+
+[WebServer] (node:6918) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[WebServer] (Use `node --trace-warnings ...` to show where the warning was created)
+[WebServer] (node:6950) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[WebServer] (Use `node --trace-warnings ...` to show where the warning was created)
+
+Running 1 test using 1 worker
+
+(node:6970) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:6970) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ✓  1 [chromium] › tests/app.spec.ts:184:1 › @claim:csv-export downloads one decision row per sample file (623ms)
+
+  1 passed (6.2s)
+
+=== reversible-plan ===
+npm run test:e2e -- --grep @claim:reversible-plan
+
+> photo-proof-pile@0.1.29 test:e2e
+> playwright test --grep @claim:reversible-plan
+
+[WebServer] (node:7096) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[WebServer] (Use `node --trace-warnings ...` to show where the warning was created)
+[WebServer] (node:7129) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[WebServer] (Use `node --trace-warnings ...` to show where the warning was created)
+
+Running 1 test using 1 worker
+
+(node:7149) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:7149) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ✓  1 [chromium] › tests/app.spec.ts:198:1 › @claim:reversible-plan persists recovery records, exports them, and imports them again (1.7s)
+
+  1 passed (7.2s)
+
+=== review-before-move ===
+npm run test:claim:review-before-move
+
+> photo-proof-pile@0.1.29 test:claim:review-before-move
+> cargo test --manifest-path src-tauri/Cargo.toml --no-default-features claim_review_before_move && playwright test --grep @claim:review-before-move
+
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.42s
+     Running unittests src/lib.rs (src-tauri/target/debug/deps/proof_pile_core-237cd6816482856a)
+
+running 1 test
+test tests::claim_review_before_move_rejects_unreviewed_native_plans ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 10 filtered out; finished in 0.00s
+
+[WebServer] (node:7296) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[WebServer] (Use `node --trace-warnings ...` to show where the warning was created)
+[WebServer] (node:7331) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[WebServer] (Use `node --trace-warnings ...` to show where the warning was created)
+
+Running 1 test using 1 worker
+
+(node:7351) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:7351) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ✓  1 [chromium] › tests/app.spec.ts:272:1 › @claim:review-before-move requires reviewed choices and confirms the exact destination (1.4s)
+
+  1 passed (7.0s)
+
+=== local-privacy ===
+npm run test:e2e -- --grep @claim:local-privacy
+
+> photo-proof-pile@0.1.29 test:e2e
+> playwright test --grep @claim:local-privacy
+
+[WebServer] (node:7474) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[WebServer] (Use `node --trace-warnings ...` to show where the warning was created)
+[WebServer] (node:7507) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[WebServer] (Use `node --trace-warnings ...` to show where the warning was created)
+
+Running 1 test using 1 worker
+
+(node:7527) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:7527) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ✓  1 [chromium] › tests/app.spec.ts:323:1 › @claim:local-privacy sends no sample photo data off origin (929ms)
+
+  1 passed (6.7s)
+
+=== no-ad-tracking ===
+npm run test:e2e -- --grep @claim:no-ad-tracking
+
+> photo-proof-pile@0.1.29 test:e2e
+> playwright test --grep @claim:no-ad-tracking
+
+[WebServer] (node:7649) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[WebServer] (Use `node --trace-warnings ...` to show where the warning was created)
+[WebServer] (node:7681) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[WebServer] (Use `node --trace-warnings ...` to show where the warning was created)
+
+Running 1 test using 1 worker
+
+(node:7701) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:7701) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ✓  1 [chromium] › tests/app.spec.ts:336:1 › @claim:no-ad-tracking loads no advertising or tracking scripts (916ms)
+
+  1 passed (7.7s)
+
+=== native-local-privacy ===
+cargo test --manifest-path src-tauri/Cargo.toml --no-default-features claim_native_local_privacy
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.21s
+     Running unittests src/lib.rs (src-tauri/target/debug/deps/proof_pile_core-237cd6816482856a)
+
+running 1 test
+test tests::claim_native_local_privacy_runs_scan_and_quarantine_without_network_clients ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 10 filtered out; finished in 0.11s
+
+
+=== license-request-privacy ===
+npm run test:e2e -- --grep @claim:license-request-privacy
+
+> photo-proof-pile@0.1.29 test:e2e
+> playwright test --grep @claim:license-request-privacy
+
+[WebServer] (node:7835) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[WebServer] (Use `node --trace-warnings ...` to show where the warning was created)
+[WebServer] (node:7867) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[WebServer] (Use `node --trace-warnings ...` to show where the warning was created)
+
+Running 1 test using 1 worker
+
+(node:7887) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:7887) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ✓  1 [chromium] › tests/app.spec.ts:349:1 › @claim:license-request-privacy sends only the license token to Sociobot (467ms)
+
+  1 passed (6.0s)
+
+=== no-account ===
+npm run test:e2e -- --grep @claim:no-account
+
+> photo-proof-pile@0.1.29 test:e2e
+> playwright test --grep @claim:no-account
+
+[WebServer] (node:8027) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[WebServer] (Use `node --trace-warnings ...` to show where the warning was created)
+[WebServer] (node:8059) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[WebServer] (Use `node --trace-warnings ...` to show where the warning was created)
+
+Running 1 test using 1 worker
+
+(node:8079) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:8079) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ✓  1 [chromium] › tests/app.spec.ts:371:1 › @claim:no-account starts a review without sign-in (558ms)
+
+  1 passed (7.2s)
+
+=== free-scan-limit ===
+cargo test --manifest-path src-tauri/Cargo.toml --no-default-features claim_free_scan_limit
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.25s
+     Running unittests src/lib.rs (src-tauri/target/debug/deps/proof_pile_core-237cd6816482856a)
+
+running 1 test
+test tests::claim_free_scan_limit ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 10 filtered out; finished in 0.57s
+
+
+=== free-safety-tools ===
+npm run test:e2e -- --grep @claim:free-safety-tools
+
+> photo-proof-pile@0.1.29 test:e2e
+> playwright test --grep @claim:free-safety-tools
+
+[WebServer] (node:8223) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[WebServer] (Use `node --trace-warnings ...` to show where the warning was created)
+[WebServer] (node:8256) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[WebServer] (Use `node --trace-warnings ...` to show where the warning was created)
+
+Running 1 test using 1 worker
+
+(node:8276) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:8276) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ✓  1 [chromium] › tests/app.spec.ts:228:1 › @claim:free-safety-tools keeps quarantine, restore, and decision-log recovery available without a license (1.5s)
+
+  1 passed (7.2s)
+
+=== paid-license ===
+npm run test:e2e -- --grep @claim:paid-license
+
+> photo-proof-pile@0.1.29 test:e2e
+> playwright test --grep @claim:paid-license
+
+[WebServer] (node:8397) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[WebServer] (Use `node --trace-warnings ...` to show where the warning was created)
+[WebServer] (node:8429) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[WebServer] (Use `node --trace-warnings ...` to show where the warning was created)
+
+Running 1 test using 1 worker
+
+(node:8449) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:8449) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ✓  1 [chromium] › tests/app.spec.ts:378:1 › @claim:paid-license restores a license and checks it at most once per 24 hours (1.4s)
+
+  1 passed (6.9s)
+
+=== license-verification-allowance ===
+npm run test:e2e -- --grep @claim:license-verification-allowance
+
+> photo-proof-pile@0.1.29 test:e2e
+> playwright test --grep @claim:license-verification-allowance
+
+[WebServer] (node:8570) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[WebServer] (Use `node --trace-warnings ...` to show where the warning was created)
+[WebServer] (node:8603) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[WebServer] (Use `node --trace-warnings ...` to show where the warning was created)
+
+Running 1 test using 1 worker
+
+(node:8623) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:8623) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ✓  1 [chromium] › tests/app.spec.ts:462:1 › @claim:license-verification-allowance honors the 30-request allowance and Retry-After (3.0s)
+
+  1 passed (8.6s)
+
+=== paid-checkout ===
+npm run test:e2e -- --grep @claim:paid-checkout
+
+> photo-proof-pile@0.1.29 test:e2e
+> playwright test --grep @claim:paid-checkout
+
+[WebServer] (node:8765) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[WebServer] (Use `node --trace-warnings ...` to show where the warning was created)
+[WebServer] (node:8797) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[WebServer] (Use `node --trace-warnings ...` to show where the warning was created)
+
+Running 1 test using 1 worker
+
+(node:8817) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:8817) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ✓  1 [chromium] › tests/app.spec.ts:493:1 › @claim:paid-checkout shows the price, opens hosted checkout, and stores a returned license (853ms)
+
+  1 passed (6.4s)
+
+=== licensed-scan-limit ===
+cargo test --manifest-path src-tauri/Cargo.toml --no-default-features claim_licensed_scan_limit
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.18s
+     Running unittests src/lib.rs (src-tauri/target/debug/deps/proof_pile_core-237cd6816482856a)
+
+running 1 test
+test tests::claim_licensed_scan_limit_is_removed ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 10 filtered out; finished in 0.57s
+
+
+=== offline-reload ===
+npm run test:e2e -- --grep @claim:offline-reload
+
+> photo-proof-pile@0.1.29 test:e2e
+> playwright test --grep @claim:offline-reload
+
+[WebServer] (node:8963) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[WebServer] (Use `node --trace-warnings ...` to show where the warning was created)
+[WebServer] (node:8995) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[WebServer] (Use `node --trace-warnings ...` to show where the warning was created)
+
+Running 1 test using 1 worker
+
+(node:9015) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:9015) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ✓  1 [chromium] › tests/app.spec.ts:517:1 › @claim:offline-reload reloads the demo without a network (846ms)
+
+  1 passed (6.4s)
+
+=== native-matching ===
+cargo test --manifest-path src-tauri/Cargo.toml --no-default-features claim_native_matching
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.19s
+     Running unittests src/lib.rs (src-tauri/target/debug/deps/proof_pile_core-237cd6816482856a)
+
+running 1 test
+test tests::claim_native_matching_groups_exact_visual_and_exif_moments ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 10 filtered out; finished in 0.41s
+
+
+=== scan-scope ===
+cargo test --manifest-path src-tauri/Cargo.toml --no-default-features claim_scan_scope
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.20s
+     Running unittests src/lib.rs (src-tauri/target/debug/deps/proof_pile_core-237cd6816482856a)
+
+running 1 test
+test tests::claim_scan_scope_only_reads_selected_folders_without_changing_sources ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 10 filtered out; finished in 0.09s
+
+
+=== cross-drive-safety ===
+cargo test --manifest-path src-tauri/Cargo.toml --no-default-features claim_cross_drive_safety
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.19s
+     Running unittests src/lib.rs (src-tauri/target/debug/deps/proof_pile_core-237cd6816482856a)
+
+running 1 test
+test tests::claim_cross_drive_safety_preserves_dates_and_never_overwrites ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 10 filtered out; finished in 0.00s
+
+
+=== installer-checksum ===
+npm run test:unit -- --testNamePattern @claim:installer-checksum
+
+> photo-proof-pile@0.1.29 test:unit
+> vitest run --testNamePattern @claim:installer-checksum
+
+
+ RUN  v3.2.7 /work/repo
+
+ ↓ tests/model.test.ts (15 tests | 15 skipped)
+ ✓ tests/installer.test.ts (2 tests | 1 skipped) 128ms
+
+ Test Files  1 passed | 1 skipped (2)
+      Tests  1 passed | 16 skipped (17)
+   Start at  04:06:15
+   Duration  819ms (transform 246ms, setup 0ms, collect 350ms, tests 128ms, environment 1ms, prepare 284ms)
+
+
+=== windows-installer-checksum ===
+npm run test:unit -- --testNamePattern @claim:windows-installer-checksum
+
+> photo-proof-pile@0.1.29 test:unit
+> vitest run --testNamePattern @claim:windows-installer-checksum
+
+
+ RUN  v3.2.7 /work/repo
+
+ ✓ tests/installer.test.ts (2 tests | 1 skipped) 5ms
+ ↓ tests/model.test.ts (15 tests | 15 skipped)
+
+ Test Files  1 passed | 1 skipped (2)
+      Tests  1 passed | 16 skipped (17)
+   Start at  04:06:16
+   Duration  778ms (transform 186ms, setup 0ms, collect 261ms, tests 5ms, environment 0ms, prepare 288ms)
+
+
+=== desktop-release-assets ===
+npm run test:e2e -- --grep @claim:desktop-release-assets
+
+> photo-proof-pile@0.1.29 test:e2e
+> playwright test --grep @claim:desktop-release-assets
+
+[WebServer] (node:9522) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[WebServer] (Use `node --trace-warnings ...` to show where the warning was created)
+[WebServer] (node:9554) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[WebServer] (Use `node --trace-warnings ...` to show where the warning was created)
+
+Running 1 test using 1 worker
+
+(node:9574) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:9574) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ✓  1 [chromium] › tests/app.spec.ts:685:1 › @claim:desktop-release-assets offers packages only after the complete release record is published (953ms)
+
+  1 passed (6.5s)
+
+=== desktop-release-identity ===
+npm run test:e2e -- --grep @claim:desktop-release-identity
+
+> photo-proof-pile@0.1.29 test:e2e
+> playwright test --grep @claim:desktop-release-identity
+
+[WebServer] (node:9695) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[WebServer] (Use `node --trace-warnings ...` to show where the warning was created)
+[WebServer] (node:9727) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[WebServer] (Use `node --trace-warnings ...` to show where the warning was created)
+
+Running 1 test using 1 worker
+
+(node:9747) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:9747) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ✓  1 [chromium] › tests/app.spec.ts:741:1 › @claim:desktop-release-identity refuses a complete package set from another source (644ms)
+
+  1 passed (6.2s)
+
+=== unsigned-package-state ===
+npm run test:unit -- --testNamePattern @claim:unsigned-package-state
+
+> photo-proof-pile@0.1.29 test:unit
+> vitest run --testNamePattern @claim:unsigned-package-state
+
+
+ RUN  v3.2.7 /work/repo
+
+ ↓ tests/installer.test.ts (2 tests | 2 skipped)
+ ✓ tests/model.test.ts (15 tests | 14 skipped) 3ms
+
+ Test Files  1 passed | 1 skipped (2)
+      Tests  1 passed | 16 skipped (17)
+   Start at  04:06:33
+   Duration  838ms (transform 268ms, setup 0ms, collect 249ms, tests 3ms, environment 1ms, prepare 313ms)
+
+
+ALL 25 CLAIM COMMANDS PASSED

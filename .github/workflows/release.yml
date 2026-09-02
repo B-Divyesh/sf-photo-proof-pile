@@ -10,8 +10,8 @@ on:
         required: true
         type: string
       source_commit:
-        description: Exact source commit to package; leave empty for the selected tag
-        required: false
+        description: Exact immutable source commit to package
+        required: true
         type: string
 
 permissions:
@@ -23,6 +23,8 @@ jobs:
     outputs:
       tag: ${{ steps.identity.outputs.tag }}
       commit: ${{ steps.identity.outputs.commit }}
+      source_version: ${{ steps.identity.outputs.source_version }}
+      release_version: ${{ steps.identity.outputs.release_version }}
     steps:
       - uses: actions/checkout@v4
         with:
@@ -35,17 +37,18 @@ jobs:
           REQUESTED_TAG: ${{ inputs.tag }}
           REQUESTED_COMMIT: ${{ inputs.source_commit }}
           REF_NAME: ${{ github.ref_name }}
+          EVENT_NAME: ${{ github.event_name }}
         run: |
-          version=$(node -p "require('./package.json').version")
-          expected_tag="v${version}"
+          source_version=$(node -p "require('./package.json').version")
           release_tag="${REQUESTED_TAG:-$REF_NAME}"
-          if [ "$release_tag" != "$expected_tag" ]; then
-            echo "Release tag $release_tag does not match package version $expected_tag." >&2
+          release_version="${release_tag#v}"
+          if ! node -e 'if (!/^\d+\.\d+\.\d+$/.test(process.argv[1])) process.exit(1)' "$release_version"; then
+            echo "Release tag $release_tag is not a stable semantic version." >&2
             exit 1
           fi
           release_commit=$(git rev-parse HEAD)
-          tag_commit=$(git rev-parse "${release_tag}^{}")
-          if [ "$tag_commit" != "$release_commit" ]; then
+          tag_commit=$(git rev-parse "${release_tag}^{}" 2>/dev/null || true)
+          if [ -n "$tag_commit" ] && [ "$tag_commit" != "$release_commit" ]; then
             echo "Release tag does not resolve to the checked-out source." >&2
             exit 1
           fi
@@ -53,8 +56,28 @@ jobs:
             echo "Checked-out source does not match requested commit." >&2
             exit 1
           fi
+          if [ "$EVENT_NAME" = "push" ] && [ "$release_tag" != "v${source_version}" ]; then
+            echo "Tag release $release_tag does not match source version v${source_version}." >&2
+            exit 1
+          fi
+          if [ "$release_version" != "$source_version" ]; then
+            if [ "$EVENT_NAME" != "workflow_dispatch" ] || [ -z "$REQUESTED_COMMIT" ]; then
+              echo "A versioned repair requires workflow_dispatch and an exact source commit." >&2
+              exit 1
+            fi
+            node - "$source_version" "$release_version" <<'NODE'
+          const [source, release] = process.argv.slice(2).map(value => value.split(".").map(Number));
+          if (release[0] !== source[0] || release[1] !== source[1] || release[2] !== source[2] + 1) process.exit(1);
+          NODE
+            if [ -n "$tag_commit" ]; then
+              echo "A versioned repair must publish a new immutable tag." >&2
+              exit 1
+            fi
+          fi
           echo "tag=$release_tag" >> "$GITHUB_OUTPUT"
           echo "commit=$release_commit" >> "$GITHUB_OUTPUT"
+          echo "source_version=$source_version" >> "$GITHUB_OUTPUT"
+          echo "release_version=$release_version" >> "$GITHUB_OUTPUT"
 
   build:
     needs: prepare-release
@@ -103,6 +126,42 @@ jobs:
         if: matrix.runs_on == 'ubuntu-latest'
         run: sudo apt-get update && sudo apt-get install -y libwebkit2gtk-4.1-dev libappindicator3-dev librsvg2-dev patchelf
       - run: npm ci
+      - name: Stamp release version without changing source identity
+        if: needs.prepare-release.outputs.release_version != needs.prepare-release.outputs.source_version
+        shell: bash
+        env:
+          SOURCE_VERSION: ${{ needs.prepare-release.outputs.source_version }}
+          RELEASE_VERSION: ${{ needs.prepare-release.outputs.release_version }}
+        run: |
+          node --input-type=module <<'NODE'
+          import { readFileSync, writeFileSync } from "node:fs";
+
+          const source = process.env.SOURCE_VERSION;
+          const release = process.env.RELEASE_VERSION;
+          const replaceOnce = (path, before, after) => {
+            const value = readFileSync(path, "utf8");
+            const found = before instanceof RegExp ? before.test(value) : value.includes(before);
+            if (!found) throw new Error(`${path} does not contain the expected source value`);
+            writeFileSync(path, value.replace(before, after));
+          };
+          const updateJson = (path, update) => {
+            const value = JSON.parse(readFileSync(path, "utf8"));
+            update(value);
+            writeFileSync(path, `${JSON.stringify(value, null, 2)}\n`);
+          };
+
+          updateJson("package.json", value => { value.version = release; });
+          updateJson("package-lock.json", value => {
+            value.version = release;
+            value.packages[""].version = release;
+          });
+          updateJson("src-tauri/tauri.conf.json", value => { value.version = release; });
+          replaceOnce("src-tauri/Cargo.toml", `version = "${source}"`, `version = "${release}"`);
+          replaceOnce("src-tauri/Cargo.lock", `name = "proof-pile"\nversion = "${source}"`, `name = "proof-pile"\nversion = "${release}"`);
+          replaceOnce("src/main.ts", `const VERSION = "${source}"`, `const VERSION = "${release}"`);
+          replaceOnce("public/404.html", `<p>v${source}</p>`, `<p>v${release}</p>`);
+          replaceOnce("public/sw.js", /const CACHE = "[^"]+";/, `const CACHE = "proof-pile-v${release}";`);
+          NODE
       - name: Build desktop packages
         env:
           BUILD_COMMIT: ${{ needs.prepare-release.outputs.commit }}
@@ -119,6 +178,13 @@ jobs:
         with:
           name: desktop-${{ matrix.name }}
           path: ${{ matrix.package_path }}
+          if-no-files-found: error
+      - name: Upload the identically stamped static site
+        if: matrix.name == 'linux'
+        uses: actions/upload-artifact@v4
+        with:
+          name: release-site
+          path: dist/site
           if-no-files-found: error
 
   publish:

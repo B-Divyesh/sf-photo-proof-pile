@@ -108,9 +108,10 @@ describe("review model", () => {
     expect(preparation).toContain('"not_signed"');
     expect(workflow).toContain("files: release-assets/published/*");
     expect(workflow).toContain("bash scripts/prepare-release-assets.sh release-assets");
-    expect(workflow).toContain('tag_commit=$(git rev-parse "${release_tag}^{}")');
-    expect(workflow).toContain('if [ "$tag_commit" != "$release_commit" ]');
+    expect(workflow).toContain('tag_commit=$(git rev-parse "${release_tag}^{}" 2>/dev/null || true)');
+    expect(workflow).toContain('if [ -n "$tag_commit" ] && [ "$tag_commit" != "$release_commit" ]');
     expect(workflow).toContain("BUILD_COMMIT: ${{ needs.prepare-release.outputs.commit }}");
+    expect(workflow).toContain("Upload the identically stamped static site");
     expect(verification).toContain("Published SHA-256 mismatch for $asset.");
   });
 
@@ -150,11 +151,14 @@ describe("review model", () => {
     const workflow = readFileSync(new URL("../.github/workflows/release.yml", import.meta.url), "utf8");
     const preparation = readFileSync(new URL("../scripts/prepare-release-assets.sh", import.meta.url), "utf8");
     const verification = readFileSync(new URL("../scripts/verify-published-release.sh", import.meta.url), "utf8");
-    expect(workflow).toContain('expected_tag="v${version}"');
-    expect(workflow).toContain('if [ "$release_tag" != "$expected_tag" ]');
+    expect(workflow).toContain('if [ "$EVENT_NAME" = "push" ] && [ "$release_tag" != "v${source_version}" ]');
     expect(workflow).toContain('ref: ${{ inputs.source_commit || inputs.tag || github.ref }}');
     expect(workflow).toContain('release_commit=$(git rev-parse HEAD)');
     expect(workflow).toContain('if [ -n "$REQUESTED_COMMIT" ] && [ "$release_commit" != "$REQUESTED_COMMIT" ]');
+    expect(workflow).toContain('if [ "$release_version" != "$source_version" ]');
+    expect(workflow).toContain("A versioned repair requires workflow_dispatch and an exact source commit.");
+    expect(workflow).toContain("Stamp release version without changing source identity");
+    expect(workflow).toContain('release[2] !== source[2] + 1');
     expect(workflow).toContain('RELEASE_COMMIT: ${{ needs.prepare-release.outputs.commit }}');
     expect(workflow).toContain('target_commitish: ${{ needs.prepare-release.outputs.commit }}');
     expect(verification).toContain('releases/download/${RELEASE_TAG}');
@@ -166,16 +170,16 @@ describe("review model", () => {
     expect(preparation).toContain('sha256sum -c SHA256SUMS');
   });
 
-  it("rejects verification 23's exact v0.1.27 candidate/release target mismatch before a package is accepted", () => {
+  it("rejects verification 24's exact v0.1.28 candidate/release target mismatch before a package is accepted", () => {
     const root = mkdtempSync(join(tmpdir(), "proof-pile-published-release-"));
-    const expectedCommit = "36734eeecd6f0ff8e4971f3d8ac8322953521633";
-    const oldCommit = "c77f662186677f7514fd1a7aea51b74013f74b22";
-    const tag = "v0.1.27";
+    const expectedCommit = "758ba98390c5a2ba49323b7682a6a86e5eca6103";
+    const oldCommit = "d58ab4e725a2498ca4be8232f050a1c6355d0f72";
+    const tag = "v0.1.28";
     const repository = "B-Divyesh/sf-photo-proof-pile";
     const assets = [
-      "Proof-Pile_0.1.27_aarch64.dmg", "Proof-Pile_0.1.27_x64.dmg", "Proof-Pile_0.1.27_x64_en-US.msi",
-      "Proof-Pile_0.1.27_x64-setup.exe", "Proof-Pile_0.1.27_amd64.AppImage", "Proof-Pile_0.1.27_amd64.deb",
-      "Proof-Pile-0.1.27-1.x86_64.rpm", "latest.json", "SHA256SUMS"
+      "Proof-Pile_0.1.28_aarch64.dmg", "Proof-Pile_0.1.28_x64.dmg", "Proof-Pile_0.1.28_x64_en-US.msi",
+      "Proof-Pile_0.1.28_x64-setup.exe", "Proof-Pile_0.1.28_amd64.AppImage", "Proof-Pile_0.1.28_amd64.deb",
+      "Proof-Pile-0.1.28-1.x86_64.rpm", "latest.json", "SHA256SUMS"
     ];
     const release = {
       tag_name: tag,
@@ -300,17 +304,17 @@ esac
     expect(run).toThrow(new RegExp(`Published SHA-256 mismatch for ${packageNames[6]}`));
   });
 
-  it("@claim:desktop-release-identity rejects the verifier's exact v0.1.23 source mismatch", () => {
+  it("@claim:desktop-release-identity rejects the verifier's exact v0.1.28 source mismatch", () => {
     const assets = [
-      "Proof-Pile_0.1.23_aarch64.dmg", "Proof-Pile_0.1.23_x64.dmg", "Proof-Pile_0.1.23_x64_en-US.msi",
-      "Proof-Pile_0.1.23_x64-setup.exe", "Proof-Pile_0.1.23_amd64.AppImage", "Proof-Pile_0.1.23_amd64.deb",
-      "Proof-Pile-0.1.23-1.x86_64.rpm", "SHA256SUMS", "latest.json"
+      "Proof-Pile_0.1.28_aarch64.dmg", "Proof-Pile_0.1.28_x64.dmg", "Proof-Pile_0.1.28_x64_en-US.msi",
+      "Proof-Pile_0.1.28_x64-setup.exe", "Proof-Pile_0.1.28_amd64.AppImage", "Proof-Pile_0.1.28_amd64.deb",
+      "Proof-Pile-0.1.28-1.x86_64.rpm", "SHA256SUMS", "latest.json"
     ].map(name => ({ name, browser_download_url: `https://example.test/${name}` }));
     const published = resolvePublishedDesktopRelease({
-      tag_name: "v0.1.23",
-      target_commitish: "10c5525cc2c227d275296ba1cb583b1a83f3c8d1",
+      tag_name: "v0.1.28",
+      target_commitish: "d58ab4e725a2498ca4be8232f050a1c6355d0f72",
       assets
-    }, { version: "0.1.23", commit: "f0fd4b8e37c1da44380ab111b368279795c4b815" });
+    }, { version: "0.1.28", commit: "758ba98390c5a2ba49323b7682a6a86e5eca6103" });
     expect(published).toBeNull();
   });
 
