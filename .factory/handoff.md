@@ -1,100 +1,149 @@
-# Proof Pile — repair 14 handoff
+# Proof Pile — repair 15 handoff
 
 ## Outcome
 
-**PASS.** The two release blockers in verification 21 were repaired, tested,
-published, and deployed.
+**PASS.** The controller's 15px phone-link failure was reproduced before the
+repair, fixed at its CSS root cause, covered by a named regression, released,
+and deployed.
 
-- Accepted release source: `d61195d2d419a92fb1821562a05e2ff8973874ed`
-- Immutable release: [v0.1.25](https://github.com/B-Divyesh/sf-photo-proof-pile/releases/tag/v0.1.25)
-- Release target and `latest.json` source: `d61195d2d419a92fb1821562a05e2ff8973874ed`
-- Deployed site: <https://photo-proof-pile.sociobot.in>
-- Release workflow: [run 33572986244](https://github.com/B-Divyesh/sf-photo-proof-pile/actions/runs/33572986244)
+- Repair source: `11b315afb2a454b8618659fd648a6e8e1e069ce8`
+- Immutable desktop release: [v0.1.26](https://github.com/B-Divyesh/sf-photo-proof-pile/releases/tag/v0.1.26)
+- Release workflow: [run 33575915372](https://github.com/B-Divyesh/sf-photo-proof-pile/actions/runs/33575915372)
+- Production site: <https://photo-proof-pile.sociobot.in>
+- Demo: <https://photo-proof-pile.sociobot.in/demo>
 
-The deployed footer exposes this exact source commit. The live download dialog
-resolves only the exact `v0.1.25` release and fails closed when the GitHub
-release target or manifest source does not match the compiled site source.
+The release target, `latest.json`, deployed footer, and download resolver all
+identify the repair source above. All repair-14 release-identity and truthful
+unsigned-package behavior remains intact.
 
-## Repairs
+## Repair
 
-1. Reproduced the verifier's exact historical mismatch before changing code:
-   v0.1.23 and its manifest identify
-   `10c5525cc2c227d275296ba1cb583b1a83f3c8d1`, rather than candidate
-   `f0fd4b8e37c1da44380ab111b368279795c4b815`. Evidence is committed at
-   `.factory/repair-14-artifacts/reproduced-release-identity.json` and
-   `reproduced-latest.json`.
-2. Added an immutable release resolver. It requires matching tag, release
-   target commit, manifest commit, complete macOS/Windows/Linux matrix, and
-   checksums before presenting any asset. The GitHub Actions workflow verifies
-   that the pushed tag dereferences to its checked-out source before publishing.
-3. Added the `desktop-release-identity` claim and unit/browser regression
-   coverage. It uses the exact historical v0.1.23 target/candidate mismatch
-   and proves that mismatched releases yield no download links.
-4. Added the observable `unsigned-package-state` claim. The release workflow
-   now inspects generated macOS packages for absence of a Developer ID
-   distribution signature and Windows MSI/EXE packages for the actual
-   Authenticode `NotSigned` state. The public dialog and README state exactly:
-   "macOS packages lack Developer ID signing" and "Windows packages are
-   unsigned." They advise checking `SHA256SUMS` before opening a package.
-
-## Published release matrix
-
-v0.1.25 contains `latest.json`, `SHA256SUMS`, two macOS DMGs (Apple Silicon
-and Intel), Windows MSI and EXE, and Linux AppImage, DEB, and RPM. The public
-Linux installer was run into an isolated destination and verified the AppImage
-against the published SHA-256:
+The requested candidate reproduced the controller's exact failure:
 
 ```text
-a2361020a61b54c4abf85418ec8b6f5d0554217eec05db14ae4a916cd38c4ce4
+npx playwright test tests/app.spec.ts --grep 'phone|mobile presentation'
+Expected: >= 44
+Received: 15
+tests/app.spec.ts:537:1 › the phone layout keeps actions usable
 ```
 
-## Verification
+The failing action was the footer source-commit link. The 390px CSS rule gave
+44px targets only to links inside `footer nav`; the source link sits in
+`footer .fine`. The mobile rule now covers every footer link. No desktop rule,
+review behavior, or repair-14 release gate changed.
 
-Completed from a clean dependency install:
+Regression coverage now includes both the original complete header/footer
+link sweep and `the source commit link has a 44px phone touch target`.
+Reproduction evidence is in
+`.factory/repair-15-artifacts/reproduction-phone-layout.txt`.
+
+## Clean local verification
+
+Run from the tagged source:
 
 ```sh
 npm ci
 CI=1 npm test
 npm run check
-BUILD_COMMIT=d61195d2d419a92fb1821562a05e2ff8973874ed npm run build
-CI=true BUILD_COMMIT=d61195d2d419a92fb1821562a05e2ff8973874ed \
+BUILD_COMMIT=11b315afb2a454b8618659fd648a6e8e1e069ce8 npm run build
+CI=true BUILD_COMMIT=11b315afb2a454b8618659fd648a6e8e1e069ce8 \
   npm run build:desktop -- --bundles deb,rpm
 ```
 
-- All 25 registered claim commands pass, including both new claims.
-- Unit, Rust, and Playwright suites pass; browser coverage includes desktop,
-  390 px mobile, keyboard selection, reduced motion, offline reload, release
-  mismatch, checksum, and truthful signing disclosure.
-- The local Linux DEB/RPM build completed. An extracted DEB launched under
-  Xvfb and remained open as expected.
-- `/opt/fleet/lib/verify-url.sh` found no live console errors, one H1, `lang`,
-  `main`, or missing image-alt failures on both `/` and `/demo`.
-- Live Axe serious/critical findings: 0 on `/` and `/demo`.
-- Live Lighthouse (mobile): Performance 100, Accessibility 100, Best
-  Practices 100, SEO 100; LCP 952 ms, CLS 0, transferred 141,150 bytes.
-- A fresh service-worker-controlled `/demo` context reloaded while offline.
-- `swa deploy dist/site --env production` completed successfully. Live browser
-  evidence and Lighthouse reports are committed in
-  `.factory/repair-14-artifacts/live-root/`,
-  `.factory/repair-14-artifacts/live-demo/`, and
-  `lighthouse-live-all.json`.
+- `npm ci`: 66 packages installed; 0 audit vulnerabilities.
+- Every command in `.factory/claims.json`: 25/25 passed separately.
+- `CI=1 npm test`: Rust 11/11, Vitest 15/15, Playwright 36/36.
+- `npm run check`: TypeScript, rustfmt, and Clippy with warnings denied passed.
+- `npm run build`: `dist/site` produced successfully.
+- Application JavaScript: 44,371 bytes raw; CSS: 18,640 bytes raw; hero:
+  29,922 bytes.
+- The first native build reproduced the clean worker's missing `glib-2.0.pc`.
+  Installing the same GTK/WebKit packages declared in the workflow made the
+  unchanged DEB/RPM build pass.
+- Local DEB: 4,107,452 bytes,
+  `d3d2341d2e1fad79495216c7e9e841a3d7f3c42f2197d0b786bf9ca944647c3c`.
+- Local RPM: 4,107,931 bytes,
+  `fdda0c2f80972b45e4c9c645c24786bfba686df05db99665e6d18d38399de579`.
+- A fresh DEB extraction launched under Xvfb and stayed open for the full
+  eight-second smoke interval (expected timeout status 124).
 
-## Run and use
+The fleet URL verifier passed local `/` and `/demo` with one H1, one main,
+`lang="en"`, complete image alternatives, labeled buttons, and no browser
+errors. Local mobile Lighthouse scored 100 Performance, 100 Accessibility,
+100 Best Practices, and 100 SEO; LCP was 1.7s, TBT 20ms, and CLS 0.
 
-```sh
-npm ci
-npm run dev
+## Published desktop release
+
+GitHub Actions built both macOS architectures, Windows MSI/EXE, and Linux
+AppImage/DEB/RPM from the repair commit. The release also contains
+`SHA256SUMS` and `latest.json`; nine assets are public in total.
+
+The published 79,038,968-byte AppImage matched `SHA256SUMS`:
+
+```text
+494abe21c2a4d61c309b632950ab55f214c8859a960e0f4e43582e2b4fa9a6fd
 ```
 
-Use `/demo` or **Try it with sample data** for the isolated sample workspace.
-For desktop releases, use the download dialog on the landing page or the
-v0.1.25 release above.
+The live `install.sh` installed that AppImage into an isolated `XDG_BIN_HOME`,
+verified the same checksum, and printed its destination. The published
+AppImage then stayed open under Xvfb for eight seconds (expected timeout 124).
+
+Evidence: `.factory/repair-15-artifacts/github-release.json`, `latest.json`,
+`SHA256SUMS`, and `release-workflow.json`.
+
+## Production deployment and browser checks
+
+The exact tagged build was deployed with:
+
+```sh
+swa deploy dist/site --env production \
+  --app-name sf-photo-proof-pile --resource-group sociobot
+```
+
+- All 27 public files in `dist/site` match production byte-for-byte.
+- The fleet URL verifier passed live `/` and `/demo` with no console errors.
+- The full sample flow showed 3 groups and 8 files, confirmed the quarantine
+  destination, exported 9 CSV rows, preserved recovery, and made no off-origin
+  request.
+- Light and dark Axe runs on `/`, `/demo`, `/privacy`, and `/terms` found 0
+  serious or critical issues.
+- At 390px, all visible actions on `/`, `/demo`, `/app`, `/privacy`, `/terms`,
+  and the real 404 were at least 44×44px. The repaired source link measured
+  83.77×44px. No route overflowed at normal or 200% text size.
+- Keyboard group navigation, safe dialog focus, Escape dismissal, visible
+  focus, and reduced motion passed.
+- Service worker cache `proof-pile-v22` controlled `/demo`, had no waiting
+  worker, and reloaded offline with HTTP 200 and all three groups.
+- The release dialog displayed four v0.1.26 platform choices and no console
+  error.
+- Root and service-worker responses revalidate after 30 seconds. Hashed assets
+  use one-year immutable caching. The real 404 returns HTTP 404. CSP includes
+  header-delivered `frame-ancestors 'none'`; HSTS, `nosniff`, referrer policy,
+  and permissions policy are present.
+- Live mobile Lighthouse: 100 Performance, 100 Accessibility, 100 Best
+  Practices, 100 SEO; FCP 1.0s, LCP 1.2s, TBT 50ms, CLS 0, transfer 138 KiB.
+
+Live browser evidence is in `.factory/repair-15-artifacts/live-qa.json`, the
+`live-root/` and `live-demo/` verifier directories, `deployment-parity.json`,
+`lighthouse-live.json`, and the committed screenshots. Re-run the expanded
+browser audit with `node .factory/repair-15-live.mjs`.
+
+## Billing and response policy
+
+- The hosted checkout endpoint returned HTTP 303.
+- License verification returned HTTP 200 for requests 1–30, then HTTP 429 on
+  request 31 with `Retry-After: 3`.
+- After the wait, verification recovered to HTTP 200 with the exact product
+  origin allowed by CORS and `Cache-Control: no-store`.
+
+Evidence is in `.factory/repair-15-artifacts/checkout-headers.txt`,
+`license-response-policy.txt`, `license-response-headers.txt`, and
+`license-response.json`.
 
 ## Known operator action
 
-The v0.1.25 macOS packages are not Developer ID signed/notarized, and Windows
-packages are not Authenticode signed. The release is honest about that state.
-To sign future releases, configure the product repository's owner-held
-credentials: `APPLE_CERTIFICATE`, `APPLE_CERTIFICATE_PASSWORD`,
-`APPLE_SIGNING_IDENTITY`, `APPLE_ID`, `APPLE_PASSWORD`, `APPLE_TEAM_ID`,
-`WINDOWS_CERT_PFX`, and `WINDOWS_CERTIFICATE_PASSWORD`.
+The release workflow verifies the disclosed package state: macOS packages lack
+Developer ID distribution signing and Windows packages are Authenticode
+`NotSigned`. Add the owner-held Apple and Windows signing credentials listed in
+the repair-14 handoff history to sign a future release. This does not block the
+truthfully labeled v0.1.26 release.

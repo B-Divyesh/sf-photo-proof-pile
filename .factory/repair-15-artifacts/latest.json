@@ -1,0 +1,44 @@
+{
+  "version": "v0.1.26",
+  "commit": "11b315afb2a454b8618659fd648a6e8e1e069ce8",
+  "signatures": {
+    "macos": "no_developer_id",
+    "windows": "not_signed"
+  },
+  "platforms": {
+    "macos": [
+      {
+        "name": "Proof-Pile_0.1.26_aarch64.dmg",
+        "url": "https://github.com/B-Divyesh/sf-photo-proof-pile/releases/download/v0.1.26/Proof-Pile_0.1.26_aarch64.dmg"
+      },
+      {
+        "name": "Proof-Pile_0.1.26_x64.dmg",
+        "url": "https://github.com/B-Divyesh/sf-photo-proof-pile/releases/download/v0.1.26/Proof-Pile_0.1.26_x64.dmg"
+      }
+    ],
+    "windows": [
+      {
+        "name": "Proof-Pile_0.1.26_x64-setup.exe",
+        "url": "https://github.com/B-Divyesh/sf-photo-proof-pile/releases/download/v0.1.26/Proof-Pile_0.1.26_x64-setup.exe"
+      },
+      {
+        "name": "Proof-Pile_0.1.26_x64_en-US.msi",
+        "url": "https://github.com/B-Divyesh/sf-photo-proof-pile/releases/download/v0.1.26/Proof-Pile_0.1.26_x64_en-US.msi"
+      }
+    ],
+    "linux": [
+      {
+        "name": "Proof-Pile-0.1.26-1.x86_64.rpm",
+        "url": "https://github.com/B-Divyesh/sf-photo-proof-pile/releases/download/v0.1.26/Proof-Pile-0.1.26-1.x86_64.rpm"
+      },
+      {
+        "name": "Proof-Pile_0.1.26_amd64.AppImage",
+        "url": "https://github.com/B-Divyesh/sf-photo-proof-pile/releases/download/v0.1.26/Proof-Pile_0.1.26_amd64.AppImage"
+      },
+      {
+        "name": "Proof-Pile_0.1.26_amd64.deb",
+        "url": "https://github.com/B-Divyesh/sf-photo-proof-pile/releases/download/v0.1.26/Proof-Pile_0.1.26_amd64.deb"
+      }
+    ]
+  }
+}

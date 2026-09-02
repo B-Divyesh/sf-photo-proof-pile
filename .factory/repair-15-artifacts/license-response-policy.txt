@@ -1,0 +1,9 @@
+Endpoint: GET https://api.sociobot.in/api/v1/products/photo-proof-pile/verify
+Origin: https://photo-proof-pile.sociobot.in
+Token: inactive repair-only token
+
+Requests 1 through 30: HTTP 200
+Request 31: HTTP 429
+Retry-After: 3 seconds
+
+Checked: 2 September 2026 UTC

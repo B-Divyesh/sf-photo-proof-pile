@@ -1,0 +1,144 @@
+{
+  "checkedAt": "2026-09-02T00:48:31.101Z",
+  "routes": [
+    {
+      "route": "/",
+      "status": 200,
+      "normalWidth": 390,
+      "enlargedWidth": 390,
+      "undersizedTargets": [],
+      "sourceBox": null
+    },
+    {
+      "route": "/demo",
+      "status": 200,
+      "normalWidth": 390,
+      "enlargedWidth": 390,
+      "undersizedTargets": [],
+      "sourceBox": {
+        "x": 114.703125,
+        "y": 3115.859375,
+        "width": 83.765625,
+        "height": 44
+      }
+    },
+    {
+      "route": "/app",
+      "status": 200,
+      "normalWidth": 390,
+      "enlargedWidth": 390,
+      "undersizedTargets": [],
+      "sourceBox": null
+    },
+    {
+      "route": "/privacy",
+      "status": 200,
+      "normalWidth": 390,
+      "enlargedWidth": 390,
+      "undersizedTargets": [],
+      "sourceBox": null
+    },
+    {
+      "route": "/terms",
+      "status": 200,
+      "normalWidth": 390,
+      "enlargedWidth": 390,
+      "undersizedTargets": [],
+      "sourceBox": null
+    },
+    {
+      "route": "/repair-15-missing",
+      "status": 404,
+      "normalWidth": 390,
+      "enlargedWidth": 390,
+      "undersizedTargets": [],
+      "sourceBox": null
+    }
+  ],
+  "axe": [
+    {
+      "route": "/",
+      "colorScheme": "light",
+      "seriousCritical": []
+    },
+    {
+      "route": "/demo",
+      "colorScheme": "light",
+      "seriousCritical": []
+    },
+    {
+      "route": "/privacy",
+      "colorScheme": "light",
+      "seriousCritical": []
+    },
+    {
+      "route": "/terms",
+      "colorScheme": "light",
+      "seriousCritical": []
+    },
+    {
+      "route": "/",
+      "colorScheme": "dark",
+      "seriousCritical": []
+    },
+    {
+      "route": "/demo",
+      "colorScheme": "dark",
+      "seriousCritical": []
+    },
+    {
+      "route": "/privacy",
+      "colorScheme": "dark",
+      "seriousCritical": []
+    },
+    {
+      "route": "/terms",
+      "colorScheme": "dark",
+      "seriousCritical": []
+    }
+  ],
+  "checks": {
+    "focusAppearance": {
+      "outlineStyle": "solid",
+      "outlineWidth": "3px",
+      "outlineColor": "rgb(49, 95, 137)"
+    },
+    "demo": {
+      "groups": 3,
+      "sampleFiles": 8,
+      "csvRows": 9,
+      "confirmation": "Move 2 files to /Sample drive/Proof Pile Quarantine? You can restore them from the decision log.",
+      "offOrigin": []
+    },
+    "reducedMotion": "1e-05s",
+    "pwa": {
+      "controlled": true,
+      "waiting": false,
+      "caches": [
+        "proof-pile-v22"
+      ],
+      "offlineStatus": 200
+    },
+    "release": {
+      "downloads": [
+        {
+          "label": "Download for macOS (Apple silicon)",
+          "href": "https://github.com/B-Divyesh/sf-photo-proof-pile/releases/download/v0.1.26/Proof-Pile_0.1.26_aarch64.dmg"
+        },
+        {
+          "label": "Download for macOS (Intel)",
+          "href": "https://github.com/B-Divyesh/sf-photo-proof-pile/releases/download/v0.1.26/Proof-Pile_0.1.26_x64.dmg"
+        },
+        {
+          "label": "Download for Windows",
+          "href": "https://github.com/B-Divyesh/sf-photo-proof-pile/releases/download/v0.1.26/Proof-Pile_0.1.26_x64-setup.exe"
+        },
+        {
+          "label": "Download for Linux",
+          "href": "https://github.com/B-Divyesh/sf-photo-proof-pile/releases/download/v0.1.26/Proof-Pile_0.1.26_amd64.AppImage"
+        }
+      ]
+    }
+  },
+  "errors": []
+}
