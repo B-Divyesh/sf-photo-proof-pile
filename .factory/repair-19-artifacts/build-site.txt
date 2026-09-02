@@ -1,0 +1,19 @@
+
+> photo-proof-pile@0.1.29 build
+> npm run build:site
+
+
+> photo-proof-pile@0.1.29 build:site
+> tsc --noEmit && vite build --outDir dist/site
+
+vite v7.3.6 building client environment for production...
+transforming...
+✓ 10 modules transformed.
+rendering chunks...
+computing gzip size...
+dist/site/index.html                  1.76 kB │ gzip:  0.60 kB
+dist/site/assets/index-BuLYwteV.css  18.64 kB │ gzip:  5.11 kB
+dist/site/assets/index-D9_B7hh1.js    1.30 kB │ gzip:  0.52 kB │ map:  8.80 kB
+dist/site/assets/core-DhEqZVGG.js     2.48 kB │ gzip:  1.01 kB │ map: 17.14 kB
+dist/site/assets/index-Czzl6uXZ.js   40.87 kB │ gzip: 14.08 kB │ map: 86.84 kB
+✓ built in 415ms

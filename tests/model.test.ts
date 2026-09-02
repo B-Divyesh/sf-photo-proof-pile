@@ -171,16 +171,16 @@ describe("review model", () => {
     expect(preparation).toContain('sha256sum -c SHA256SUMS');
   });
 
-  it("rejects verification 24's exact v0.1.28 candidate/release target mismatch before a package is accepted", () => {
+  it("rejects verification 25's exact v0.1.29 candidate/release target mismatch before a package is accepted", () => {
     const root = mkdtempSync(join(tmpdir(), "proof-pile-published-release-"));
-    const expectedCommit = "758ba98390c5a2ba49323b7682a6a86e5eca6103";
-    const oldCommit = "d58ab4e725a2498ca4be8232f050a1c6355d0f72";
-    const tag = "v0.1.28";
+    const expectedCommit = "d70a334ba782ae62a9bd3053cece835909f99cf5";
+    const oldCommit = "758ba98390c5a2ba49323b7682a6a86e5eca6103";
+    const tag = "v0.1.29";
     const repository = "B-Divyesh/sf-photo-proof-pile";
     const assets = [
-      "Proof-Pile_0.1.28_aarch64.dmg", "Proof-Pile_0.1.28_x64.dmg", "Proof-Pile_0.1.28_x64_en-US.msi",
-      "Proof-Pile_0.1.28_x64-setup.exe", "Proof-Pile_0.1.28_amd64.AppImage", "Proof-Pile_0.1.28_amd64.deb",
-      "Proof-Pile-0.1.28-1.x86_64.rpm", "latest.json", "SHA256SUMS"
+      "Proof-Pile_0.1.29_aarch64.dmg", "Proof-Pile_0.1.29_x64.dmg", "Proof-Pile_0.1.29_x64_en-US.msi",
+      "Proof-Pile_0.1.29_x64-setup.exe", "Proof-Pile_0.1.29_amd64.AppImage", "Proof-Pile_0.1.29_amd64.deb",
+      "Proof-Pile-0.1.29-1.x86_64.rpm", "latest.json", "SHA256SUMS"
     ];
     const release = {
       tag_name: tag,
@@ -305,18 +305,48 @@ esac
     expect(run).toThrow(new RegExp(`Published SHA-256 mismatch for ${packageNames[6]}`));
   });
 
-  it("@claim:desktop-release-identity rejects the verifier's exact v0.1.28 source mismatch", () => {
+  it("@claim:desktop-release-identity rejects the verifier's exact v0.1.29 source mismatch", () => {
     const assets = [
-      "Proof-Pile_0.1.28_aarch64.dmg", "Proof-Pile_0.1.28_x64.dmg", "Proof-Pile_0.1.28_x64_en-US.msi",
-      "Proof-Pile_0.1.28_x64-setup.exe", "Proof-Pile_0.1.28_amd64.AppImage", "Proof-Pile_0.1.28_amd64.deb",
-      "Proof-Pile-0.1.28-1.x86_64.rpm", "SHA256SUMS", "latest.json"
+      "Proof-Pile_0.1.29_aarch64.dmg", "Proof-Pile_0.1.29_x64.dmg", "Proof-Pile_0.1.29_x64_en-US.msi",
+      "Proof-Pile_0.1.29_x64-setup.exe", "Proof-Pile_0.1.29_amd64.AppImage", "Proof-Pile_0.1.29_amd64.deb",
+      "Proof-Pile-0.1.29-1.x86_64.rpm", "SHA256SUMS", "latest.json"
     ].map(name => ({ name, browser_download_url: `https://example.test/${name}` }));
     const published = resolvePublishedDesktopRelease({
-      tag_name: "v0.1.28",
-      target_commitish: "d58ab4e725a2498ca4be8232f050a1c6355d0f72",
+      tag_name: "v0.1.29",
+      target_commitish: "758ba98390c5a2ba49323b7682a6a86e5eca6103",
       assets
-    }, { version: "0.1.28", commit: "758ba98390c5a2ba49323b7682a6a86e5eca6103" });
+    }, { version: "0.1.29", commit: "d70a334ba782ae62a9bd3053cece835909f99cf5" });
     expect(published).toBeNull();
+  });
+
+  it("refuses package links that are not under the matching immutable release tag", () => {
+    const version = "0.1.30";
+    const commit = "a".repeat(40);
+    const names = [
+      `Proof-Pile_${version}_aarch64.dmg`, `Proof-Pile_${version}_x64.dmg`, `Proof-Pile_${version}_x64_en-US.msi`,
+      `Proof-Pile_${version}_x64-setup.exe`, `Proof-Pile_${version}_amd64.AppImage`, `Proof-Pile_${version}_amd64.deb`,
+      `Proof-Pile-${version}-1.x86_64.rpm`, "SHA256SUMS", "latest.json"
+    ];
+    const published = resolvePublishedDesktopRelease({
+      tag_name: `v${version}`,
+      target_commitish: commit,
+      assets: names.map(name => ({ name, browser_download_url: `https://github.com/B-Divyesh/sf-photo-proof-pile/releases/download/v0.1.29/${name}` }))
+    }, { version, commit });
+    expect(published).toBeNull();
+  });
+
+  it("stamps both public installers with the built site's exact version and source", () => {
+    const config = readFileSync(new URL("../vite.config.ts", import.meta.url), "utf8");
+    const shellInstaller = readFileSync(new URL("../public/install.sh", import.meta.url), "utf8");
+    const windowsInstaller = readFileSync(new URL("../public/install.ps1", import.meta.url), "utf8");
+    expect(config).toContain("stamp-installer-identity");
+    expect(config).toContain('.replaceAll("__PROOF_PILE_RELEASE_VERSION__", version)');
+    expect(config).toContain('.replaceAll("__PROOF_PILE_RELEASE_COMMIT__", commit)');
+    for (const installer of [shellInstaller, windowsInstaller]) {
+      expect(installer).toContain("__PROOF_PILE_RELEASE_VERSION__");
+      expect(installer).toContain("__PROOF_PILE_RELEASE_COMMIT__");
+      expect(installer).toContain("latest.json");
+    }
   });
 
   it("@claim:unsigned-package-state checks the built Windows and macOS packages before publication", () => {

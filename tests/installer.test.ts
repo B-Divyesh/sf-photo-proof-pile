@@ -6,8 +6,11 @@ import { join } from "node:path";
 import { expect, test } from "vitest";
 
 const payload = "proof-pile-test-appimage";
-const asset = "Proof.Pile_0.1.1_x64.AppImage";
-function runInstaller(checksum: string, releaseAvailable = true) {
+const releaseTag = "v__PROOF_PILE_RELEASE_VERSION__";
+const releaseCommit = "__PROOF_PILE_RELEASE_COMMIT__";
+const asset = "Proof.Pile_0.1.30_amd64.AppImage";
+const downloadBase = `https://github.com/B-Divyesh/sf-photo-proof-pile/releases/download/${releaseTag}/`;
+function runInstaller(checksum: string, releaseAvailable = true, publishedCommit = releaseCommit) {
   const root = mkdtempSync(join(tmpdir(), "proof-pile-installer-"));
   const bin = join(root, "bin");
   const target = join(root, "installed", "proof-pile.AppImage");
@@ -20,9 +23,10 @@ for arg in "$@"; do
   case "$arg" in http*) url="$arg" ;; esac
 done
 case "$url" in
-  *releases*) ${releaseAvailable ? `printf '%s' '[{"assets":[{"browser_download_url": "https://downloads.test/${asset}"},{"browser_download_url": "https://downloads.test/SHA256SUMS"}]}' > "$out"` : "printf '[]' > \"$out\""} ;;
-  *${asset}) printf '%s' '${payload}' > "$out" ;;
+  https://api.github.com/*) ${releaseAvailable ? `printf '%s\n' '{' '"tag_name": "${releaseTag}",' '"target_commitish": "${publishedCommit}",' '"assets": [' '{"browser_download_url": "${downloadBase}${asset}"},' '{"browser_download_url": "${downloadBase}SHA256SUMS"},' '{"browser_download_url": "${downloadBase}latest.json"}' ']}' > "$out"` : "exit 22"} ;;
+  *latest.json) printf '%s\n' '{' '"version": "${releaseTag}",' '"commit": "${publishedCommit}"' '}' > "$out" ;;
   *SHA256SUMS) printf '%s  %s\\n' '${checksum}' '${asset}' > "$out" ;;
+  *${asset}) printf '%s' '${payload}' > "$out" ;;
   *) exit 1 ;;
 esac
 `;
@@ -57,6 +61,13 @@ test("@claim:installer-checksum installs only a package matching SHA256SUMS", ()
     expect(unpublished.result.stderr).toContain("A Linux release is not published yet");
     expect(existsSync(unpublished.target)).toBe(false);
   } finally { rmSync(unpublished.root, { recursive: true, force: true }); }
+
+  const wrongSource = runInstaller(checksum, true, "758ba98390c5a2ba49323b7682a6a86e5eca6103");
+  try {
+    expect(wrongSource.result.status).toBe(1);
+    expect(wrongSource.result.stderr).toContain("does not match this site build");
+    expect(existsSync(wrongSource.target)).toBe(false);
+  } finally { rmSync(wrongSource.root, { recursive: true, force: true }); }
 });
 
 test("@claim:windows-installer-checksum verifies packages before opening the MSI", () => {
@@ -67,6 +78,9 @@ test("@claim:windows-installer-checksum verifies packages before opening the MSI
   const remove = script.indexOf("Remove-Item $download");
   const install = script.indexOf("Start-Process msiexec.exe");
   expect(script).toContain("SHA256SUMS");
+  expect(script).toContain("$release.target_commitish -ne $expectedCommit");
+  expect(script).toContain("$manifest.commit -ne $expectedCommit");
+  expect(script).toContain("releases/tags/$expectedTag");
   expect(script).toContain("'\\.msi$'");
   expect(script).toContain('throw "A Windows release is not published yet. Nothing was installed."');
   expect(download).toBeGreaterThan(-1);

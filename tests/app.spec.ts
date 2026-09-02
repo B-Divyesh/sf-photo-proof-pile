@@ -7,6 +7,8 @@ const sourceCommit = execFileSync("git", ["rev-parse", "HEAD"], { encoding: "utf
 const releaseVersion = JSON.parse(readFileSync(new URL("../package.json", import.meta.url), "utf8")).version as string;
 const releaseTag = `v${releaseVersion}`;
 const releaseApi = `https://api.github.com/repos/B-Divyesh/sf-photo-proof-pile/releases/tags/${releaseTag}`;
+const releaseAssetUrl = (name: string) => `https://github.com/B-Divyesh/sf-photo-proof-pile/releases/download/${releaseTag}/${name}`;
+const releaseAsset = (name: string) => ({ name, browser_download_url: releaseAssetUrl(name) });
 
 async function withIsolatedPage<T>(browser: Browser, run: (page: Page, context: BrowserContext) => Promise<T>, options?: BrowserContextOptions): Promise<T> {
   const context = await browser.newContext(options);
@@ -642,22 +644,21 @@ test("download picker offers both macOS architectures from a matching complete r
     status: 200,
     contentType: "application/json",
     body: JSON.stringify({ tag_name: releaseTag, target_commitish: sourceCommit, assets: [
-      { name: `Proof.Pile_${releaseVersion}_aarch64.dmg`, browser_download_url: "https://example.test/arm.dmg" },
-      { name: `Proof.Pile_${releaseVersion}_x86_64.dmg`, browser_download_url: "https://example.test/intel.dmg" },
-      { name: `Proof.Pile_${releaseVersion}_x64_en-US.msi`, browser_download_url: "https://example.test/app.msi" },
-      { name: `Proof.Pile_${releaseVersion}_x64-setup.exe`, browser_download_url: "https://example.test/app.exe" },
-      { name: `Proof.Pile_${releaseVersion}_amd64.AppImage`, browser_download_url: "https://example.test/app.AppImage" },
-      { name: `Proof.Pile_${releaseVersion}_amd64.deb`, browser_download_url: "https://example.test/app.deb" },
-      { name: `Proof-Pile-${releaseVersion}-1.x86_64.rpm`, browser_download_url: "https://example.test/app.rpm" },
-      { name: "SHA256SUMS", browser_download_url: "https://example.test/SHA256SUMS" },
-      { name: "latest.json", browser_download_url: "https://example.test/latest.json" }
+      releaseAsset(`Proof.Pile_${releaseVersion}_aarch64.dmg`),
+      releaseAsset(`Proof.Pile_${releaseVersion}_x86_64.dmg`),
+      releaseAsset(`Proof.Pile_${releaseVersion}_x64_en-US.msi`),
+      releaseAsset(`Proof.Pile_${releaseVersion}_x64-setup.exe`),
+      releaseAsset(`Proof.Pile_${releaseVersion}_amd64.AppImage`),
+      releaseAsset(`Proof.Pile_${releaseVersion}_amd64.deb`),
+      releaseAsset(`Proof-Pile-${releaseVersion}-1.x86_64.rpm`),
+      releaseAsset("SHA256SUMS"), releaseAsset("latest.json")
     ] })
   }));
   await page.goto("/");
   await page.getByRole("button", { name: "Check desktop downloads" }).click();
   await expect(page.getByText(`${releaseTag} is ready from this source.`)).toBeVisible();
-  await expect(page.getByRole("link", { name: "Download for macOS (Apple silicon)" })).toHaveAttribute("href", "https://example.test/arm.dmg");
-  await expect(page.getByRole("link", { name: "Download for macOS (Intel)" })).toHaveAttribute("href", "https://example.test/intel.dmg");
+  await expect(page.getByRole("link", { name: "Download for macOS (Apple silicon)" })).toHaveAttribute("href", releaseAssetUrl(`Proof.Pile_${releaseVersion}_aarch64.dmg`));
+  await expect(page.getByRole("link", { name: "Download for macOS (Intel)" })).toHaveAttribute("href", releaseAssetUrl(`Proof.Pile_${releaseVersion}_x86_64.dmg`));
   await expect(page.getByText("macOS packages lack Developer ID signing. Windows packages are unsigned. Match the SHA-256 file before opening one.")).toBeVisible();
 });
 
@@ -666,14 +667,13 @@ test("download picker hides every link when a matching release lacks one platfor
     status: 200,
     contentType: "application/json",
     body: JSON.stringify({ tag_name: releaseTag, target_commitish: sourceCommit, assets: [
-      { name: `Proof.Pile_${releaseVersion}_aarch64.dmg`, browser_download_url: "https://example.test/arm.dmg" },
-      { name: `Proof.Pile_${releaseVersion}_x64.dmg`, browser_download_url: "https://example.test/intel.dmg" },
-      { name: `Proof.Pile_${releaseVersion}_x64_en-US.msi`, browser_download_url: "https://example.test/app.msi" },
-      { name: `Proof.Pile_${releaseVersion}_x64-setup.exe`, browser_download_url: "https://example.test/app.exe" },
-      { name: `Proof.Pile_${releaseVersion}_amd64.AppImage`, browser_download_url: "https://example.test/app.AppImage" },
-      { name: `Proof.Pile_${releaseVersion}_amd64.deb`, browser_download_url: "https://example.test/app.deb" },
-      { name: "SHA256SUMS", browser_download_url: "https://example.test/SHA256SUMS" },
-      { name: "latest.json", browser_download_url: "https://example.test/latest.json" }
+      releaseAsset(`Proof.Pile_${releaseVersion}_aarch64.dmg`),
+      releaseAsset(`Proof.Pile_${releaseVersion}_x86_64.dmg`),
+      releaseAsset(`Proof.Pile_${releaseVersion}_x64_en-US.msi`),
+      releaseAsset(`Proof.Pile_${releaseVersion}_x64-setup.exe`),
+      releaseAsset(`Proof.Pile_${releaseVersion}_amd64.AppImage`),
+      releaseAsset(`Proof.Pile_${releaseVersion}_amd64.deb`),
+      releaseAsset("SHA256SUMS"), releaseAsset("latest.json")
     ] })
   }));
   await page.goto("/");
@@ -689,14 +689,13 @@ test("@claim:desktop-release-assets offers packages only after the complete rele
     status: 200,
     contentType: "application/json",
     body: JSON.stringify({ tag_name: releaseTag, target_commitish: sourceCommit, assets: [
-      { name: `Proof.Pile_${releaseVersion}_aarch64.dmg`, browser_download_url: "https://example.test/arm.dmg" },
-      { name: `Proof.Pile_${releaseVersion}_x64.dmg`, browser_download_url: "https://example.test/intel.dmg" },
-      { name: `Proof.Pile_${releaseVersion}_x64_en-US.msi`, browser_download_url: "https://example.test/app.msi" },
-      { name: `Proof.Pile_${releaseVersion}_x64-setup.exe`, browser_download_url: "https://example.test/app.exe" },
-      { name: `Proof.Pile_${releaseVersion}_amd64.AppImage`, browser_download_url: "https://example.test/app.AppImage" },
-      { name: `Proof.Pile_${releaseVersion}_amd64.deb`, browser_download_url: "https://example.test/app.deb" },
-      { name: `Proof-Pile-${releaseVersion}-1.x86_64.rpm`, browser_download_url: "https://example.test/app.rpm" },
-      { name: "SHA256SUMS", browser_download_url: "https://example.test/SHA256SUMS" }
+      releaseAsset(`Proof.Pile_${releaseVersion}_aarch64.dmg`),
+      releaseAsset(`Proof.Pile_${releaseVersion}_x86_64.dmg`),
+      releaseAsset(`Proof.Pile_${releaseVersion}_x64_en-US.msi`),
+      releaseAsset(`Proof.Pile_${releaseVersion}_x64-setup.exe`),
+      releaseAsset(`Proof.Pile_${releaseVersion}_amd64.AppImage`),
+      releaseAsset(`Proof.Pile_${releaseVersion}_amd64.deb`),
+      releaseAsset(`Proof-Pile-${releaseVersion}-1.x86_64.rpm`), releaseAsset("SHA256SUMS")
     ] })
   }));
   await page.goto("/");
@@ -711,22 +710,21 @@ test("@claim:desktop-release-assets offers packages only after the complete rele
     status: 200,
     contentType: "application/json",
     body: JSON.stringify({ tag_name: releaseTag, target_commitish: sourceCommit, assets: [
-      { name: `Proof.Pile_${releaseVersion}_aarch64.dmg`, browser_download_url: "https://example.test/arm.dmg" },
-      { name: `Proof.Pile_${releaseVersion}_x64.dmg`, browser_download_url: "https://example.test/intel.dmg" },
-      { name: `Proof.Pile_${releaseVersion}_x64_en-US.msi`, browser_download_url: "https://example.test/app.msi" },
-      { name: `Proof.Pile_${releaseVersion}_x64-setup.exe`, browser_download_url: "https://example.test/app.exe" },
-      { name: `Proof.Pile_${releaseVersion}_amd64.AppImage`, browser_download_url: "https://example.test/app.AppImage" },
-      { name: `Proof.Pile_${releaseVersion}_amd64.deb`, browser_download_url: "https://example.test/app.deb" },
-      { name: `Proof-Pile-${releaseVersion}-1.x86_64.rpm`, browser_download_url: "https://example.test/app.rpm" },
-      { name: "SHA256SUMS", browser_download_url: "https://example.test/SHA256SUMS" },
-      { name: "latest.json", browser_download_url: "https://example.test/latest.json" }
+      releaseAsset(`Proof.Pile_${releaseVersion}_aarch64.dmg`),
+      releaseAsset(`Proof.Pile_${releaseVersion}_x86_64.dmg`),
+      releaseAsset(`Proof.Pile_${releaseVersion}_x64_en-US.msi`),
+      releaseAsset(`Proof.Pile_${releaseVersion}_x64-setup.exe`),
+      releaseAsset(`Proof.Pile_${releaseVersion}_amd64.AppImage`),
+      releaseAsset(`Proof.Pile_${releaseVersion}_amd64.deb`),
+      releaseAsset(`Proof-Pile-${releaseVersion}-1.x86_64.rpm`),
+      releaseAsset("SHA256SUMS"), releaseAsset("latest.json")
     ] })
   }));
   await page.getByRole("button", { name: "Check desktop downloads" }).click();
   await expect(page.getByText(`${releaseTag} is ready from this source.`)).toBeVisible();
   await expect(page.getByText("macOS packages lack Developer ID signing. Windows packages are unsigned. Match the SHA-256 file before opening one.")).toBeVisible();
   await expect(page.getByRole("link", { name: /Download for/ })).toHaveCount(4);
-  await expect(page.getByRole("link", { name: "Download for Linux" })).toHaveAttribute("href", "https://example.test/app.AppImage");
+  await expect(page.getByRole("link", { name: "Download for Linux" })).toHaveAttribute("href", releaseAssetUrl(`Proof.Pile_${releaseVersion}_amd64.AppImage`));
   await page.getByRole("button", { name: "Close download window" }).click();
   await page.evaluate(() => localStorage.clear());
   await page.unroute(releaseApi);
@@ -743,15 +741,14 @@ test("@claim:desktop-release-identity refuses a complete package set from anothe
     status: 200,
     contentType: "application/json",
     body: JSON.stringify({ tag_name: releaseTag, target_commitish: "10c5525cc2c227d275296ba1cb583b1a83f3c8d1", assets: [
-      { name: `Proof-Pile_${releaseVersion}_aarch64.dmg`, browser_download_url: "https://example.test/arm.dmg" },
-      { name: `Proof-Pile_${releaseVersion}_x64.dmg`, browser_download_url: "https://example.test/intel.dmg" },
-      { name: `Proof-Pile_${releaseVersion}_x64_en-US.msi`, browser_download_url: "https://example.test/app.msi" },
-      { name: `Proof-Pile_${releaseVersion}_x64-setup.exe`, browser_download_url: "https://example.test/app.exe" },
-      { name: `Proof-Pile_${releaseVersion}_amd64.AppImage`, browser_download_url: "https://example.test/app.AppImage" },
-      { name: `Proof-Pile_${releaseVersion}_amd64.deb`, browser_download_url: "https://example.test/app.deb" },
-      { name: `Proof-Pile-${releaseVersion}-1.x86_64.rpm`, browser_download_url: "https://example.test/app.rpm" },
-      { name: "SHA256SUMS", browser_download_url: "https://example.test/SHA256SUMS" },
-      { name: "latest.json", browser_download_url: "https://example.test/latest.json" }
+      releaseAsset(`Proof-Pile_${releaseVersion}_aarch64.dmg`),
+      releaseAsset(`Proof-Pile_${releaseVersion}_x64.dmg`),
+      releaseAsset(`Proof-Pile_${releaseVersion}_x64_en-US.msi`),
+      releaseAsset(`Proof-Pile_${releaseVersion}_x64-setup.exe`),
+      releaseAsset(`Proof-Pile_${releaseVersion}_amd64.AppImage`),
+      releaseAsset(`Proof-Pile_${releaseVersion}_amd64.deb`),
+      releaseAsset(`Proof-Pile-${releaseVersion}-1.x86_64.rpm`),
+      releaseAsset("SHA256SUMS"), releaseAsset("latest.json")
     ] })
   }));
   await page.goto("/");

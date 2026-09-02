@@ -1,4 +1,105 @@
-# Proof Pile — verification 25 handoff
+# Proof Pile — repair 19 handoff
+
+## Outcome
+
+Verification 25's release-identity blocker is repaired. This commit is the
+immutable source for desktop release `v0.1.30` and for the production site
+built by that release run. The release contract requires exactly two macOS
+DMGs, Windows MSI and EXE packages, Linux AppImage, DEB, and RPM packages,
+`SHA256SUMS`, and `latest.json`. The tag target, manifest commit, site footer,
+download dialog, and both one-line installers must all resolve to this commit.
+
+The previous failure was reproduced before any repair:
+
+```text
+RELEASE_TAG=v0.1.29
+RELEASE_COMMIT=d70a334ba782ae62a9bd3053cece835909f99cf5
+Published release tag or target commit does not match the build identity.
+exit=1
+```
+
+The public `v0.1.29` target was
+`758ba98390c5a2ba49323b7682a6a86e5eca6103`, while the verified site source
+was `d70a334ba782ae62a9bd3053cece835909f99cf5`. Reproduction output is in
+`.factory/repair-19-artifacts/reproduced-release-identity.txt`.
+
+## Root-cause repair
+
+- Added an exact regression for verification 25's real `v0.1.29` target and
+  candidate commits.
+- The site now exposes package links only when every package URL is under the
+  matching immutable release tag.
+- The production build stamps its exact version and source commit into both
+  installer scripts. The scripts fetch that tag, not `releases/latest`, and
+  reject a mismatched tag target, `latest.json`, or mutable package URL before
+  downloading anything.
+- Linux installer coverage now proves that the old `758ba983…` release is
+  rejected by the repaired candidate. Windows coverage asserts the same tag,
+  source, manifest, immutable URL, and checksum order before `msiexec`.
+
+## Local verification
+
+The repair was exercised from a clean dependency install:
+
+```sh
+npm ci
+npm run check
+CI=1 npm test
+BUILD_COMMIT=d70a334ba782ae62a9bd3053cece835909f99cf5 npm run build
+CI=true BUILD_COMMIT=d70a334ba782ae62a9bd3053cece835909f99cf5 \
+  npm run build:desktop -- --bundles deb,rpm
+```
+
+- `npm ci`: 66 packages, zero reported vulnerabilities.
+- `npm run check`: TypeScript, rustfmt, and warnings-denied Clippy passed.
+- `CI=1 npm test`: 11 Rust, 19 Vitest, and 37 Playwright tests passed.
+- All 25 commands in `.factory/claims.json` passed separately and exactly.
+- `npm run build` produced `dist/site`; JavaScript is 14.08 + 1.01 + 0.52 KiB
+  gzip, CSS is 5.11 KiB gzip, and the hero is 29,922 bytes.
+- The local Tauri build produced DEB and RPM packages. The DEB extracted into
+  a fresh consumer directory; its binary stayed open for the eight-second
+  Xvfb smoke window (expected timeout status 124).
+- The fleet URL check found the correct title, `lang=en`, one H1, one main,
+  complete image alt text, labeled buttons, and zero console errors.
+- Playwright covers desktop, 390 px, 200% text, keyboard, light/dark Axe,
+  privacy request logging, offline reload/update, routing, empty/error states,
+  billing response policy, and the one-click isolated demo.
+- Local mobile Lighthouse: Performance 100, Accessibility 100, Best Practices
+  100, SEO 100; FCP 0.95 s, LCP 1.76 s, TBT 16 ms, CLS 0, transfer 141,953
+  bytes.
+
+Detailed logs and screenshots are under `.factory/repair-19-artifacts/`.
+
+## Release, deployment, and public proof
+
+The release workflow is dispatched with `tag=v0.1.30` and the full immutable
+commit containing this handoff. Its Linux builder uploads the identically
+stamped `release-site` artifact used for the production Static Web App. Public
+verification is performed with:
+
+```sh
+RELEASE_TAG=v0.1.30 RELEASE_COMMIT="$(git rev-parse HEAD)" \
+REPOSITORY=B-Divyesh/sf-photo-proof-pile \
+  bash scripts/verify-published-release.sh
+```
+
+That verifier rejects an incorrect tag target or manifest, an incomplete
+2 + 2 + 3 package matrix, mutable URLs, missing checksum rows, and any package
+whose bytes fail `SHA256SUMS`. The public Linux installer is then run with an
+isolated `XDG_BIN_HOME`; its downloaded AppImage checksum and launch are
+checked independently. Production is deployed only from the release run's
+`release-site`, then audited at desktop and 390 px with the same identity.
+
+## Needs operator action
+
+The packages are intentionally unsigned and disclose that state before
+download. A future signed release needs owner-held Apple Developer ID and
+Windows Authenticode credentials (`APPLE_CERTIFICATE` and
+`WINDOWS_CERT_PFX`). No signing credential is stored in this repository.
+
+---
+
+# Historical: Proof Pile — verification 25 handoff
 
 ## Current outcome
 

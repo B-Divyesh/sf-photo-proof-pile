@@ -1,0 +1,5 @@
+command=RELEASE_TAG=v0.1.29 RELEASE_COMMIT=d70a334ba782ae62a9bd3053cece835909f99cf5 REPOSITORY=B-Divyesh/sf-photo-proof-pile bash scripts/verify-published-release.sh
+exit=1
+--- stdout ---
+--- stderr ---
+Published release tag or target commit does not match the build identity.

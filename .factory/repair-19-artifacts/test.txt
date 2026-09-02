@@ -1,0 +1,158 @@
+
+> photo-proof-pile@0.1.29 test
+> npm run check:rust && npm run test:unit && npm run test:e2e
+
+
+> photo-proof-pile@0.1.29 check:rust
+> cargo test --manifest-path src-tauri/Cargo.toml --no-default-features
+
+   Compiling cfg-if v1.0.4
+   Compiling libc v0.2.189
+   Compiling bitflags v2.13.1
+   Compiling simd-adler32 v0.3.10
+   Compiling adler2 v2.0.1
+   Compiling selectors v0.36.1
+   Compiling parking_lot_core v0.9.12
+   Compiling parking_lot v0.12.5
+   Compiling string_cache v0.9.0
+   Compiling typenum v1.20.1
+   Compiling web_atoms v0.2.6
+   Compiling markup5ever v0.38.0
+   Compiling base64 v0.22.1
+   Compiling html5ever v0.38.0
+   Compiling same-file v1.0.6
+   Compiling walkdir v2.5.0
+   Compiling dirs-sys v0.5.0
+   Compiling dom_query v0.27.0
+   Compiling plist v1.10.0
+   Compiling generic-array v0.14.7
+   Compiling crc32fast v1.5.1
+   Compiling miniz_oxide v0.9.1
+   Compiling tauri-utils v2.9.3
+   Compiling flate2 v1.1.10
+   Compiling zerocopy v0.8.56
+   Compiling dirs v6.0.0
+   Compiling zune-core v0.5.3
+   Compiling weezl v0.1.12
+   Compiling quick-error v2.0.1
+   Compiling zune-jpeg v0.5.15
+   Compiling num-traits v0.2.19
+   Compiling half v2.7.1
+   Compiling tauri-build v2.6.3
+   Compiling crypto-common v0.1.7
+   Compiling block-buffer v0.10.4
+   Compiling miniz_oxide v0.8.9
+   Compiling fdeflate v0.3.7
+   Compiling color_quant v1.1.0
+   Compiling byteorder-lite v0.1.0
+   Compiling pxfm v0.1.30
+   Compiling fax v0.2.7
+   Compiling tiff v0.11.3
+   Compiling proof-pile v0.1.29 (/work/repo/src-tauri)
+   Compiling moxcms v0.8.1
+   Compiling image-webp v0.2.4
+   Compiling gif v0.14.2
+   Compiling png v0.18.1
+   Compiling digest v0.10.7
+   Compiling serde_core v1.0.229
+   Compiling cpufeatures v0.2.17
+   Compiling bytemuck v1.25.2
+   Compiling mutate_once v0.1.2
+   Compiling kamadak-exif v0.6.1
+   Compiling image v0.25.10
+   Compiling sha2 v0.10.9
+   Compiling serde v1.0.229
+   Compiling filetime v0.2.29
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 28.24s
+     Running unittests src/lib.rs (src-tauri/target/debug/deps/proof_pile_core-237cd6816482856a)
+
+running 11 tests
+test tests::claim_cross_drive_safety_preserves_dates_and_never_overwrites ... ok
+test tests::claim_licensed_scan_limit_is_removed ... ok
+test tests::claim_free_scan_limit ... ok
+test tests::claim_native_local_privacy_runs_scan_and_quarantine_without_network_clients ... ok
+test tests::claim_review_before_move_rejects_unreviewed_native_plans ... ok
+test tests::claim_scan_scope_only_reads_selected_folders_without_changing_sources ... ok
+test tests::exact_files_become_one_group ... ok
+test tests::imported_recovery_requires_containment_and_matching_hash ... ok
+test tests::quarantine_avoids_overwrite_and_restores ... ok
+test tests::test_temp_directories_are_unique_for_parallel_claims ... ok
+test tests::claim_native_matching_groups_exact_visual_and_exif_moments ... ok
+
+test result: ok. 11 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 1.08s
+
+   Doc-tests proof_pile_core
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+
+> photo-proof-pile@0.1.29 test:unit
+> vitest run
+
+
+ RUN  v3.2.7 /work/repo
+
+ ✓ tests/installer.test.ts (2 tests) 171ms
+ ✓ tests/model.test.ts (17 tests) 357ms
+
+ Test Files  2 passed (2)
+      Tests  19 passed (19)
+   Start at  05:45:57
+   Duration  1.04s (transform 267ms, setup 0ms, collect 286ms, tests 528ms, environment 0ms, prepare 283ms)
+
+
+> photo-proof-pile@0.1.29 test:e2e
+> playwright test
+
+[WebServer] (node:5707) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[WebServer] (Use `node --trace-warnings ...` to show where the warning was created)
+[WebServer] (node:5739) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[WebServer] (Use `node --trace-warnings ...` to show where the warning was created)
+
+Running 37 tests using 1 worker
+
+(node:5775) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:5775) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ✓   1 [chromium] › tests/app.spec.ts:76:1 › completed quarantine plans leave no pending work and repeat safely in demo and native flows (1.7s)
+  ✓   2 [chromium] › tests/app.spec.ts:108:1 › keyboard decisions move focus to the next file without restarting traversal (508ms)
+  ✓   3 [chromium] › tests/app.spec.ts:121:1 › @claim:demo-isolated keeps real storage untouched and discards only the sample session (640ms)
+  ✓   4 [chromium] › tests/app.spec.ts:145:1 › @claim:match-evidence shows every sample file with its complete evidence (1.2s)
+  ✓   5 [chromium] › tests/app.spec.ts:186:1 › @claim:csv-export downloads one decision row per sample file (384ms)
+  ✓   6 [chromium] › tests/app.spec.ts:200:1 › @claim:reversible-plan persists recovery records, exports them, and imports them again (1.2s)
+  ✓   7 [chromium] › tests/app.spec.ts:230:1 › @claim:free-safety-tools keeps quarantine, restore, and decision-log recovery available without a license (1.3s)
+  ✓   8 [chromium] › tests/app.spec.ts:267:1 › never allows a plan that quarantines a group's only kept copy (372ms)
+  ✓   9 [chromium] › tests/app.spec.ts:274:1 › @claim:review-before-move requires reviewed choices and confirms the exact destination (978ms)
+  ✓  10 [chromium] › tests/app.spec.ts:301:1 › hostile decision CSV cannot become an authoritative desktop recovery record (261ms)
+  ✓  11 [chromium] › tests/app.spec.ts:325:1 › @claim:local-privacy sends no sample photo data off origin (434ms)
+  ✓  12 [chromium] › tests/app.spec.ts:338:1 › @claim:no-ad-tracking loads no advertising or tracking scripts (518ms)
+  ✓  13 [chromium] › tests/app.spec.ts:351:1 › @claim:license-request-privacy sends only the license token to Sociobot (271ms)
+  ✓  14 [chromium] › tests/app.spec.ts:373:1 › @claim:no-account starts a review without sign-in (312ms)
+  ✓  15 [chromium] › tests/app.spec.ts:380:1 › @claim:paid-license restores a license and checks it at most once per 24 hours (1.2s)
+  ✓  16 [chromium] › tests/app.spec.ts:421:1 › a fresh invalid license verdict is reused without another request (603ms)
+  ✓  17 [chromium] › tests/app.spec.ts:440:1 › keeps a returned license active when billing verification has a network outage (348ms)
+  ✓  18 [chromium] › tests/app.spec.ts:453:1 › does not save a pasted token when the billing service returns 503 (432ms)
+  ✓  19 [chromium] › tests/app.spec.ts:464:1 › @claim:license-verification-allowance honors the 30-request allowance and Retry-After (3.7s)
+  ✓  20 [chromium] › tests/app.spec.ts:495:1 › @claim:paid-checkout shows the price, opens hosted checkout, and stores a returned license (633ms)
+  ✓  21 [chromium] › tests/app.spec.ts:519:1 › @claim:offline-reload reloads the demo without a network (614ms)
+  ✓  22 [chromium] › tests/app.spec.ts:531:1 › pages meet the automated accessibility baseline in light and dark presentations (7.2s)
+  ✓  23 [chromium] › tests/app.spec.ts:542:1 › the phone layout keeps actions usable (1.4s)
+  ✓  24 [chromium] › tests/app.spec.ts:560:1 › the source commit link has a 44px phone touch target (376ms)
+  ✓  25 [chromium] › tests/app.spec.ts:570:1 › review decision controls meet the 44px target baseline on desktop and phone (537ms)
+  ✓  26 [chromium] › tests/app.spec.ts:584:1 › Android and iPhone visitors receive desktop download guidance without a compatibility claim (578ms)
+  ✓  27 [chromium] › tests/app.spec.ts:600:1 › phone policy and not-found actions meet the touch target baseline (375ms)
+  ✓  28 [chromium] › tests/app.spec.ts:613:1 › the 390px review keeps all content available at 200% text size (411ms)
+  ✓  29 [chromium] › tests/app.spec.ts:623:1 › the standalone 404 header reflows at 390px with 200% text (249ms)
+  ✓  30 [chromium] › tests/app.spec.ts:635:1 › the skip link moves keyboard focus to main (407ms)
+  ✓  31 [chromium] › tests/app.spec.ts:642:1 › download picker offers both macOS architectures from a matching complete release (422ms)
+  ✓  32 [chromium] › tests/app.spec.ts:665:1 › download picker hides every link when a matching release lacks one platform package (398ms)
+  ✓  33 [chromium] › tests/app.spec.ts:685:1 › @claim:desktop-release-assets offers packages only after the complete release record is published (647ms)
+  ✓  34 [chromium] › tests/app.spec.ts:739:1 › @claim:desktop-release-identity refuses a complete package set from another source (419ms)
+  ✓  35 [chromium] › tests/app.spec.ts:761:1 › routes load without console errors and Back restores the previous scroll position (2.2s)
+  ✓  36 [chromium] › tests/app.spec.ts:786:1 › How it works keeps its hash and focuses the section from home and another route (1.4s)
+  ✓  37 [chromium] › tests/app.spec.ts:798:1 › the app route uses a product-first title and route metadata (239ms)
+
+  37 passed (40.9s)

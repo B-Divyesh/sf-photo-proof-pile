@@ -38,5 +38,8 @@ export function resolvePublishedDesktopRelease(value: unknown, identity: Release
   const checksums = assets.some(item => item.name === "SHA256SUMS");
   const manifest = assets.some(item => item.name === "latest.json");
   if (!checksums || !manifest || !macArm || !macIntel || !windows || !windowsExe || !linux || !linuxDeb || !linuxRpm) return null;
+  const immutableBase = `https://github.com/B-Divyesh/sf-photo-proof-pile/releases/download/v${identity.version}/`;
+  const packages = [macArm, macIntel, windows, windowsExe, linux, linuxDeb, linuxRpm];
+  if (packages.some(asset => asset.browser_download_url !== `${immutableBase}${asset.name}`)) return null;
   return { tag_name: release.tag_name, target_commitish: release.target_commitish, assets, macArm, macIntel, windows, linux };
 }
