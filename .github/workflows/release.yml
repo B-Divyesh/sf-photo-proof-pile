@@ -157,7 +157,8 @@ jobs:
           });
           updateJson("src-tauri/tauri.conf.json", value => { value.version = release; });
           replaceOnce("src-tauri/Cargo.toml", `version = "${source}"`, `version = "${release}"`);
-          replaceOnce("src-tauri/Cargo.lock", `name = "proof-pile"\nversion = "${source}"`, `name = "proof-pile"\nversion = "${release}"`);
+          const escapedSource = source.replaceAll(".", "\\.");
+          replaceOnce("src-tauri/Cargo.lock", new RegExp(`(name = "proof-pile"\\r?\\nversion = ")${escapedSource}(")`), `$1${release}$2`);
           replaceOnce("src/main.ts", `const VERSION = "${source}"`, `const VERSION = "${release}"`);
           replaceOnce("public/404.html", `<p>v${source}</p>`, `<p>v${release}</p>`);
           replaceOnce("public/sw.js", /const CACHE = "[^"]+";/, `const CACHE = "proof-pile-v${release}";`);

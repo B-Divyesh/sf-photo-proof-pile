@@ -159,6 +159,7 @@ describe("review model", () => {
     expect(workflow).toContain("A versioned repair requires workflow_dispatch and an exact source commit.");
     expect(workflow).toContain("Stamp release version without changing source identity");
     expect(workflow).toContain('release[2] !== source[2] + 1');
+    expect(workflow).toContain('name = "proof-pile"\\\\r?\\\\nversion');
     expect(workflow).toContain('RELEASE_COMMIT: ${{ needs.prepare-release.outputs.commit }}');
     expect(workflow).toContain('target_commitish: ${{ needs.prepare-release.outputs.commit }}');
     expect(verification).toContain('releases/download/${RELEASE_TAG}');
