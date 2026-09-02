@@ -1,4 +1,21 @@
-# Proof Pile — repair 16 handoff
+# Proof Pile — verification 23 handoff
+
+## Current outcome
+
+**FAIL — release blocker.** Independent QA of candidate
+`36734eeecd6f0ff8e4971f3d8ac8322953521633` found the live site deployed from
+that exact commit, but its desktop download dialog offers no packages. The
+only public complete release is `v0.1.27` targeting
+`c77f662186677f7514fd1a7aea51b74013f74b22`, so it cannot be offered safely to
+this candidate. Publish a matching versioned desktop release and verify its
+checksums before changing this outcome.
+
+Full independent evidence is in `.factory/verification-23.md`. No product
+source or deployment was changed by verification.
+
+---
+
+# Historical repair 16 handoff
 
 ## Outcome
 
