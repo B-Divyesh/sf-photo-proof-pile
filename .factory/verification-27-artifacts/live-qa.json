@@ -1,0 +1,482 @@
+{
+  "checkedAt": "2026-09-05T19:56:58.175Z",
+  "candidate": "b12d5727de44d71c91b4a496eece320e7247a853",
+  "routes": [
+    {
+      "route": "/",
+      "scheme": "light",
+      "status": 200,
+      "title": "Proof Pile — Review photo copies before cleanup",
+      "lang": "en",
+      "h1": 1,
+      "main": 1,
+      "header": 1,
+      "footer": 1,
+      "missingAlt": 0,
+      "headingLevels": [
+        1,
+        2,
+        2,
+        3,
+        3,
+        3,
+        2,
+        2
+      ],
+      "canonical": "https://photo-proof-pile.sociobot.in/",
+      "description": "Review duplicate photo evidence, quarantine extra copies, and keep a local decision log you can reverse."
+    },
+    {
+      "route": "/demo",
+      "scheme": "light",
+      "status": 200,
+      "title": "Demo — Proof Pile",
+      "lang": "en",
+      "h1": 1,
+      "main": 1,
+      "header": 1,
+      "footer": 1,
+      "missingAlt": 0,
+      "headingLevels": [
+        1,
+        2,
+        2,
+        2
+      ],
+      "canonical": "https://photo-proof-pile.sociobot.in/demo",
+      "description": "Try a separate sample review with realistic duplicate-photo evidence. Nothing is saved to your real review."
+    },
+    {
+      "route": "/app",
+      "scheme": "light",
+      "status": 200,
+      "title": "Proof Pile — Review photo copies",
+      "lang": "en",
+      "h1": 1,
+      "main": 1,
+      "header": 1,
+      "footer": 1,
+      "missingAlt": 0,
+      "headingLevels": [
+        1,
+        2
+      ],
+      "canonical": "https://photo-proof-pile.sociobot.in/app",
+      "description": "Choose photo folders, compare likely copies, and make a reversible quarantine plan."
+    },
+    {
+      "route": "/privacy",
+      "scheme": "light",
+      "status": 200,
+      "title": "Privacy — Proof Pile",
+      "lang": "en",
+      "h1": 1,
+      "main": 1,
+      "header": 1,
+      "footer": 1,
+      "missingAlt": 0,
+      "headingLevels": [
+        1,
+        2,
+        2,
+        2,
+        2,
+        2
+      ],
+      "canonical": "https://photo-proof-pile.sociobot.in/privacy",
+      "description": "Learn what Proof Pile stores locally and what the optional license check sends to Sociobot."
+    },
+    {
+      "route": "/terms",
+      "scheme": "light",
+      "status": 200,
+      "title": "Terms — Proof Pile",
+      "lang": "en",
+      "h1": 1,
+      "main": 1,
+      "header": 1,
+      "footer": 1,
+      "missingAlt": 0,
+      "headingLevels": [
+        1,
+        2,
+        2,
+        2,
+        2,
+        2
+      ],
+      "canonical": "https://photo-proof-pile.sociobot.in/terms",
+      "description": "Read Proof Pile terms, license limits, payment information, and file-care responsibilities."
+    },
+    {
+      "route": "/",
+      "scheme": "dark",
+      "status": 200,
+      "title": "Proof Pile — Review photo copies before cleanup",
+      "lang": "en",
+      "h1": 1,
+      "main": 1,
+      "header": 1,
+      "footer": 1,
+      "missingAlt": 0,
+      "headingLevels": [
+        1,
+        2,
+        2,
+        3,
+        3,
+        3,
+        2,
+        2
+      ],
+      "canonical": "https://photo-proof-pile.sociobot.in/",
+      "description": "Review duplicate photo evidence, quarantine extra copies, and keep a local decision log you can reverse."
+    },
+    {
+      "route": "/demo",
+      "scheme": "dark",
+      "status": 200,
+      "title": "Demo — Proof Pile",
+      "lang": "en",
+      "h1": 1,
+      "main": 1,
+      "header": 1,
+      "footer": 1,
+      "missingAlt": 0,
+      "headingLevels": [
+        1,
+        2,
+        2,
+        2
+      ],
+      "canonical": "https://photo-proof-pile.sociobot.in/demo",
+      "description": "Try a separate sample review with realistic duplicate-photo evidence. Nothing is saved to your real review."
+    },
+    {
+      "route": "/app",
+      "scheme": "dark",
+      "status": 200,
+      "title": "Proof Pile — Review photo copies",
+      "lang": "en",
+      "h1": 1,
+      "main": 1,
+      "header": 1,
+      "footer": 1,
+      "missingAlt": 0,
+      "headingLevels": [
+        1,
+        2
+      ],
+      "canonical": "https://photo-proof-pile.sociobot.in/app",
+      "description": "Choose photo folders, compare likely copies, and make a reversible quarantine plan."
+    },
+    {
+      "route": "/privacy",
+      "scheme": "dark",
+      "status": 200,
+      "title": "Privacy — Proof Pile",
+      "lang": "en",
+      "h1": 1,
+      "main": 1,
+      "header": 1,
+      "footer": 1,
+      "missingAlt": 0,
+      "headingLevels": [
+        1,
+        2,
+        2,
+        2,
+        2,
+        2
+      ],
+      "canonical": "https://photo-proof-pile.sociobot.in/privacy",
+      "description": "Learn what Proof Pile stores locally and what the optional license check sends to Sociobot."
+    },
+    {
+      "route": "/terms",
+      "scheme": "dark",
+      "status": 200,
+      "title": "Terms — Proof Pile",
+      "lang": "en",
+      "h1": 1,
+      "main": 1,
+      "header": 1,
+      "footer": 1,
+      "missingAlt": 0,
+      "headingLevels": [
+        1,
+        2,
+        2,
+        2,
+        2,
+        2
+      ],
+      "canonical": "https://photo-proof-pile.sociobot.in/terms",
+      "description": "Read Proof Pile terms, license limits, payment information, and file-care responsibilities."
+    }
+  ],
+  "axe": [
+    {
+      "route": "/",
+      "scheme": "light",
+      "seriousCritical": []
+    },
+    {
+      "route": "/demo",
+      "scheme": "light",
+      "seriousCritical": []
+    },
+    {
+      "route": "/app",
+      "scheme": "light",
+      "seriousCritical": []
+    },
+    {
+      "route": "/privacy",
+      "scheme": "light",
+      "seriousCritical": []
+    },
+    {
+      "route": "/terms",
+      "scheme": "light",
+      "seriousCritical": []
+    },
+    {
+      "route": "/",
+      "scheme": "dark",
+      "seriousCritical": []
+    },
+    {
+      "route": "/demo",
+      "scheme": "dark",
+      "seriousCritical": []
+    },
+    {
+      "route": "/app",
+      "scheme": "dark",
+      "seriousCritical": []
+    },
+    {
+      "route": "/privacy",
+      "scheme": "dark",
+      "seriousCritical": []
+    },
+    {
+      "route": "/terms",
+      "scheme": "dark",
+      "seriousCritical": []
+    }
+  ],
+  "checks": {
+    "firstRead:desktop": {
+      "title": "Proof Pile — Review photo copies before cleanup",
+      "headline": "Review photo copies before you remove them",
+      "viewportHeight": 900,
+      "action": {
+        "x": 67.1875,
+        "y": 556.765625,
+        "width": 249.015625,
+        "height": 44.390625,
+        "top": 556.765625,
+        "right": 316.203125,
+        "bottom": 601.15625,
+        "left": 67.1875
+      },
+      "text": "LOCAL DUPLICATE-PHOTO REVIEW\n\nReview photo copies before you remove them\n\nFor people with photos across several drives who fear removing the only meaningful copy.\n\nTry it with sample data\nOpens three ready-to-review groups.\nCheck desktop downloads\nPhotos stay on this device\nWorks without an account\nFree for 1,000 files; US$29 once for full libraries\nEach group keeps its file locations, dates, sizes, and match details.\n\nTHE REVIEW DESK\n\nSee why files match\n\nCompare file locations, image sizes, dates, and copies on other drives before making a plan.\n\nExact bytes\n3 copies · 2 drives\nHow photo cleanup works\n01\nScan your folders\n\nChoose photo folders on each connected drive. The app reads files where they are.\n\nStart with groups, not a delete list.\n02\nReview the evidence\n\nKeep one copy and mark extras. Every path and difference remains visible.\n\nCompare each copy and its metadata.\n03\nQuarantine, then verify\n\nMove extras to a folder you choose. Restore them from the decision log.\n\nMove reviewed files, then restore if needed.\n\nPRIVACY AND LIMITS\n\nYour photos are not uploaded\n\nCopies on other drives are matching files, not tested backups.\n\nKeep a tested backup.\n\nA matching copy can still live on a failing drive. Open important backups before cleanup.\n\nDESKTOP LICENSE\n\nReview a full library\n\nThe free app scans 1,000 files at a time. A license removes that scan limit.\n\nUS$29 one-time purchase\n\nBuy via Sociobot checkout ↗\nRestore a purchase\n\nSociobot checkout takes payment. For refunds, email support@sociobot.in."
+    },
+    "firstRead:phone": {
+      "title": "Proof Pile — Review photo copies before cleanup",
+      "headline": "Review photo copies before you remove them",
+      "viewportHeight": 844,
+      "action": {
+        "x": 16,
+        "y": 444.5625,
+        "width": 249.015625,
+        "height": 44.390625,
+        "top": 444.5625,
+        "right": 265.015625,
+        "bottom": 488.953125,
+        "left": 16
+      },
+      "text": "LOCAL DUPLICATE-PHOTO REVIEW\n\nReview photo copies before you remove them\n\nFor people with photos across several drives who fear removing the only meaningful copy.\n\nTry it with sample data\nOpens three ready-to-review groups.\n\nOpen this page on a desktop computer to check desktop packages.\n\nPhotos stay on this device\nWorks without an account\nFree for 1,000 files; US$29 once for full libraries\nEach group keeps its file locations, dates, sizes, and match details.\n\nTHE REVIEW DESK\n\nSee why files match\n\nCompare file locations, image sizes, dates, and copies on other drives before making a plan.\n\nExact bytes\n3 copies · 2 drives\nHow photo cleanup works\n01\nScan your folders\n\nChoose photo folders on each connected drive. The app reads files where they are.\n\nStart with groups, not a delete list.\n02\nReview the evidence\n\nKeep one copy and mark extras. Every path and difference remains visible.\n\nCompare each copy and its metadata.\n03\nQuarantine, then verify\n\nMove extras to a folder you choose. Restore them from the decision log.\n\nMove reviewed files, then restore if needed.\n\nPRIVACY AND LIMITS\n\nYour photos are not uploaded\n\nCopies on other drives are matching files, not tested backups.\n\nKeep a tested backup.\n\nA matching copy can still live on a failing drive. Open important backups before cleanup.\n\nDESKTOP LICENSE\n\nReview a full library\n\nThe free app scans 1,000 files at a time. A license removes that scan limit.\n\nUS$29 one-time purchase\n\nBuy via Sociobot checkout ↗\nRestore a purchase\n\nSociobot checkout takes payment. For refunds, email support@sociobot.in."
+    },
+    "notFound": {
+      "status": 404,
+      "title": "Page not found — Proof Pile",
+      "expected404Errors": [
+        "console https://photo-proof-pile.sociobot.in/verification-27-missing: Failed to load resource: the server responded with a status of 404 ()"
+      ]
+    },
+    "routing": {
+      "beforeBack": 517,
+      "afterBack": 504,
+      "hash": "https://photo-proof-pile.sociobot.in/#how"
+    },
+    "demo": {
+      "groups": 3,
+      "files": 8,
+      "csvRows": 9,
+      "focusRing": {
+        "style": "solid",
+        "width": "3px",
+        "color": "rgb(49, 95, 137)"
+      },
+      "confirmationText": "Move 2 files to /Sample drive/Proof Pile Quarantine? You can restore them from the decision log.",
+      "realSentinelPreserved": true,
+      "reset": true,
+      "invalidCsv": true,
+      "onlySameOrigin": true,
+      "requests": [
+        {
+          "url": "https://photo-proof-pile.sociobot.in/",
+          "method": "GET",
+          "body": null
+        },
+        {
+          "url": "https://photo-proof-pile.sociobot.in/assets/index-CvbyFR_6.js",
+          "method": "GET",
+          "body": null
+        },
+        {
+          "url": "https://photo-proof-pile.sociobot.in/assets/index-BuLYwteV.css",
+          "method": "GET",
+          "body": null
+        },
+        {
+          "url": "https://photo-proof-pile.sociobot.in/hero-proof-table.webp",
+          "method": "GET",
+          "body": null
+        },
+        {
+          "url": "https://photo-proof-pile.sociobot.in/samples/lake-a.svg",
+          "method": "GET",
+          "body": null
+        },
+        {
+          "url": "https://photo-proof-pile.sociobot.in/walkthrough/01-groups.webp",
+          "method": "GET",
+          "body": null
+        },
+        {
+          "url": "https://photo-proof-pile.sociobot.in/walkthrough/02-evidence.webp",
+          "method": "GET",
+          "body": null
+        },
+        {
+          "url": "https://photo-proof-pile.sociobot.in/walkthrough/03-quarantine.webp",
+          "method": "GET",
+          "body": null
+        },
+        {
+          "url": "https://photo-proof-pile.sociobot.in/samples/birthday.svg",
+          "method": "GET",
+          "body": null
+        },
+        {
+          "url": "https://photo-proof-pile.sociobot.in/samples/dog.svg",
+          "method": "GET",
+          "body": null
+        },
+        {
+          "url": "https://photo-proof-pile.sociobot.in/demo",
+          "method": "GET",
+          "body": null
+        },
+        {
+          "url": "https://photo-proof-pile.sociobot.in/assets/index-CvbyFR_6.js",
+          "method": "GET",
+          "body": null
+        },
+        {
+          "url": "https://photo-proof-pile.sociobot.in/assets/index-BuLYwteV.css",
+          "method": "GET",
+          "body": null
+        },
+        {
+          "url": "https://photo-proof-pile.sociobot.in/samples/lake-a.svg",
+          "method": "GET",
+          "body": null
+        },
+        {
+          "url": "https://photo-proof-pile.sociobot.in/samples/birthday.svg",
+          "method": "GET",
+          "body": null
+        },
+        {
+          "url": "https://photo-proof-pile.sociobot.in/samples/dog.svg",
+          "method": "GET",
+          "body": null
+        },
+        {
+          "url": "https://photo-proof-pile.sociobot.in/favicon.svg",
+          "method": "GET",
+          "body": null
+        }
+      ]
+    },
+    "phone:/": {
+      "status": 200,
+      "scrollWidth": 390,
+      "innerWidth": 390,
+      "scrollHeight": 6604,
+      "small": []
+    },
+    "phone:/demo": {
+      "status": 200,
+      "scrollWidth": 390,
+      "innerWidth": 390,
+      "scrollHeight": 3192,
+      "small": []
+    },
+    "phone:/app": {
+      "status": 200,
+      "scrollWidth": 390,
+      "innerWidth": 390,
+      "scrollHeight": 1169,
+      "small": []
+    },
+    "phone:/privacy": {
+      "status": 200,
+      "scrollWidth": 390,
+      "innerWidth": 390,
+      "scrollHeight": 1621,
+      "small": []
+    },
+    "phone:/terms": {
+      "status": 200,
+      "scrollWidth": 390,
+      "innerWidth": 390,
+      "scrollHeight": 1583,
+      "small": []
+    },
+    "phone:/verification-27-mobile-missing": {
+      "status": 404,
+      "scrollWidth": 390,
+      "innerWidth": 390,
+      "scrollHeight": 911,
+      "small": []
+    },
+    "reducedMotion": "1e-05s",
+    "pwa": {
+      "controlled": true,
+      "waiting": false,
+      "caches": [
+        "proof-pile-v29"
+      ],
+      "offlineStatus": 200
+    },
+    "release": {
+      "footer": "Review duplicate photos before moving extra copies. Privacy Terms Built by Param Factory ↗ v0.1.29 · source 68d676a8997c",
+      "sourceLinks": [
+        "https://github.com/B-Divyesh/sf-photo-proof-pile/commit/68d676a8997c07a1f58c9c7206f42f3cd172a7e4"
+      ],
+      "candidateLinked": false,
+      "downloads": [],
+      "dialogText": "× DESKTOP APP Desktop downloads Downloads for this build are being published. No package is offered until this source, the full package set, and the SHA-256 file match.",
+      "releaseApi": "https://api.github.com/repos/B-Divyesh/sf-photo-proof-pile/releases/tags/v0.1.29"
+    }
+  },
+  "errors": [
+    "console https://photo-proof-pile.sociobot.in/verification-27-mobile-missing: Failed to load resource: the server responded with a status of 404 ()"
+  ]
+}
