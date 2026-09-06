@@ -1,68 +1,71 @@
-# Proof Pile — verification 27 handoff
+# Proof Pile — repair 21 handoff
 
-## Current result
+## Result
 
-**FAIL — production does not offer the reviewed desktop release.**
+**PASS — the live desktop download path now serves the reviewed release.**
 
-- Implementation reviewed: `b12d5727de44d71c91b4a496eece320e7247a853`
-- Documentation SHA: `68d676a8997c07a1f58c9c7206f42f3cd172a7e4`
-- Intended release: `v0.1.30`
-- Live observation: `v0.1.29` at `68d676a8997c07a1f58c9c7206f42f3cd172a7e4`
-- Findings: 3
-- Untested claims: 0
+- Live implementation release: `v0.1.30`
+- Implementation commit: `b12d5727de44d71c91b4a496eece320e7247a853`
+- Release workflow run: `33596875103`
+- Repair/configuration commits: `bd04dcb` and `99a47a5`
+- Production URL: <https://photo-proof-pile.sociobot.in>
 
-Production has regressed from the release-site state recorded by repair 20.
-The footer and both installer scripts now identify the ordinary `v0.1.29`
-build at documentation SHA `68d676a…`. The live dialog requests `v0.1.29`,
-offers no download links, and the Linux installer exits 1 without writing a
-package. The complete public `v0.1.30` release still correctly targets
-implementation `b12d5727…`.
+Production is a release-matched static artifact. The footer, app bundle,
+download dialog, both installers, 404 page, and service-worker cache all name
+`v0.1.30` at `b12d5727…`. The dialog exposes four desktop choices: Apple
+silicon macOS, Intel macOS, Windows MSI, and Linux AppImage.
 
-Two minor repository issues also remain: `desktop-release-identity` has two
-tagged tests, and `.factory/copy-audit.md` still describes `v0.1.29` instead
-of the intended `v0.1.30` release-site copy.
+## What changed
 
-Full evidence and the earlier-finding ledger are in
-[verification-27.md](verification-27.md).
+- `npm run build` now reconstructs the immutable release source declared in
+  `scripts/production-release.env`, applies the exact release stamping used by
+  the desktop workflow, and rejects an incomplete or mismatched public
+  release before writing `dist/site`.
+- The release workflow and production build share
+  `scripts/stamp-release-source.mjs`, preventing release-stamp drift.
+- Browser-test builds now use `dist/test-site`; they cannot overwrite the
+  verified deploy directory.
+- Added an outcome regression test that builds a production site and checks
+  the emitted application, installers, 404, and service worker identity.
+- Kept a single canonical `@claim:desktop-release-identity` test tag.
+- Regenerated the copy audit release references for `v0.1.30`.
 
-## What passed
+## Verification
 
-- Fresh desktop and Android-sized first screens state the job, audience, and
-  first action before scrolling.
-- The one-click sample loaded three groups and eight files. Its persistent
-  label, reset, exit, invalid input, quarantine, CSV, reload, import, and
-  restore paths passed without changing the seeded real-review sentinel.
-- Every exact command in `.factory/claims.json` passed: 25/25.
+From a clean dependency setup (`npm ci`):
+
+- All 25 distinct commands declared in `.factory/claims.json` passed.
 - `npm run check` passed.
 - `CI=1 npm test` passed: 11 Rust, 22 Vitest, and 37 Playwright tests.
-- The static build passed and stayed within the JavaScript, CSS, font, and hero
-  budgets.
-- The Linux desktop build passed after installing the workflow's documented
-  GTK/WebKit prerequisites.
-- Public release verification passed for all seven `v0.1.30` packages.
-- The checksum-valid Debian package installed as `proof-pile 0.1.30 amd64` and
-  remained running for the eight-second Xvfb smoke.
-- Ten live Axe runs found zero serious or critical issues. Keyboard, focus,
-  390 px, 200% text, reduced motion, legal pages, route titles, Back, and the
-  designed HTTP 404 passed.
-- The demo stayed same-origin. Offline reload and service-worker update passed.
-- The live license API returned 200 for requests 1–30, then 429 with
-  `Retry-After: 4`. Checkout returned 303.
-- Lighthouse scored 100 in all categories; LCP was 1.4 s, TBT 20 ms, CLS 0,
-  and transfer was 141,251 bytes.
-- A fresh build at `68d676a…` matched the current live deployment 27/27,
-  proving the observed mismatch is deployed state rather than cache.
+- `npm run build` passed, produced `dist/site`, and verified the public
+  `v0.1.30` desktop release, package manifest, and all required assets.
+- The supplied URL verifier passed locally. Repository Playwright Axe checks
+  and fresh live Axe checks found zero serious or critical issues.
+- Fresh desktop and 390 px phone visits stated the job, audience, and first
+  action before scrolling. The one-click sample showed three groups/eight
+  files, a persistent sample label, reset, exit, and unchanged seeded real
+  data.
+- Live release smoke passed: 27/27 files matched the release-stamped local
+  `dist/site`; the real Linux installer verified its checksum and installed
+  the AppImage. The installed AppImage ran under Xvfb for eight seconds using
+  AppImage extraction fallback (this worker has no FUSE device).
+- Live service-worker update/offline reload passed with
+  `proof-pile-v0.1.30`. License verification returned 200 for requests 1–30,
+  then 429 with `Retry-After: 4` on request 31.
+- Fresh mobile Lighthouse: Performance 99, Accessibility 100, Best Practices
+  100, SEO 100; FCP 1.0 s, LCP 1.2 s, TBT 150 ms, CLS 0, transfer 138 KiB.
 
-## Required next steps
+## Known limitations
 
-1. Deploy the `release-site` artifact from successful release workflow run
-   `33596875103` for `v0.1.30` at `b12d5727…`.
-2. Ensure later documentation-only pushes cannot replace that artifact with a
-   normal `npm run build` result.
-3. Confirm the footer, download API request, four platform links, 404, service
-   worker, and both installers all identify `v0.1.30` at `b12d5727…`.
-4. Keep one canonical `@claim:desktop-release-identity` test tag.
-5. Regenerate `.factory/copy-audit.md` from the intended release-site copy.
-6. Run a fresh independent verification. PASS requires zero findings.
+- macOS packages do not have Developer ID signing and Windows packages are
+  Authenticode NotSigned. The download dialog and README disclose this and
+  checksum verification remains required.
+- `npm run build` intentionally fails closed if the configured immutable tag
+  is absent or its public package matrix no longer verifies. Before a future
+  desktop release is deployed, update `scripts/production-release.env` only
+  after that release workflow and its public verification have succeeded.
 
-No product source was modified during verification.
+## Operator action
+
+No deployment action is pending. Code-signing certificates remain the only
+future operator-supplied dependency for signed macOS and Windows packages.
