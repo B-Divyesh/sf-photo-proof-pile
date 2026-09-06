@@ -56,9 +56,15 @@ npm run build           # static site at dist/site
 npm run build:desktop   # native package for the current platform
 ```
 
-`npm run build:site` writes a local candidate to `dist/site`. Production must
-use the `release-site` artifact from the successful desktop release workflow,
-so the website and packages have one version and source commit:
+`npm run build` is the only production build. It reconstructs the source from
+the immutable release named in `scripts/production-release.env`, applies the
+same release stamping as the desktop workflow, and verifies the public package
+matrix before writing `dist/site`. It therefore keeps the website and packages
+on one version and source commit, even after documentation-only pushes.
+
+`npm run build:site` writes an ordinary local candidate and must not be
+deployed. The browser suite writes its temporary site to `dist/test-site`.
+To retrieve the original successful release artifact instead, use:
 
 ```sh
 RELEASE_TAG=v0.1.30 \

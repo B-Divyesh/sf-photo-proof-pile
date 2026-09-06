@@ -10,6 +10,8 @@
     "dev:desktop": "tauri dev",
     "build": "bash scripts/build-production-site.sh",
     "build:site": "tsc --noEmit && vite build --outDir dist/site",
+    "build:test": "tsc --noEmit && vite build --outDir dist/test-site",
+    "preview:test": "vite preview --outDir dist/test-site",
     "prepare:deployment": "bash scripts/fetch-release-site.sh",
     "verify:deployment": "bash scripts/verify-deployment-site.sh",
     "build:desktop": "tauri build",

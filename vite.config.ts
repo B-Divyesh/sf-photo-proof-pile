@@ -1,6 +1,7 @@
-import { defineConfig } from "vite";
+import { defineConfig, type ResolvedConfig } from "vite";
 import { execFileSync } from "node:child_process";
 import { readFileSync, writeFileSync } from "node:fs";
+import { resolve } from "node:path";
 
 const version = JSON.parse(readFileSync(new URL("./package.json", import.meta.url), "utf8")).version as string;
 
@@ -13,10 +14,14 @@ function sourceCommit() {
 const commit = sourceCommit();
 
 function stampInstallerIdentity() {
+  let outDir = "dist/site";
   return {
     name: "stamp-installer-identity",
+    configResolved(config: ResolvedConfig) {
+      outDir = config.build.outDir;
+    },
     closeBundle() {
-      for (const path of ["dist/site/install.sh", "dist/site/install.ps1"]) {
+      for (const path of [resolve(outDir, "install.sh"), resolve(outDir, "install.ps1")]) {
         const source = readFileSync(path, "utf8");
         const stamped = source
           .replaceAll("__PROOF_PILE_RELEASE_VERSION__", version)
