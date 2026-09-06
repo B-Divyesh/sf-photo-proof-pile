@@ -159,7 +159,7 @@ describe("review model", () => {
     expect(workflow).toContain("A versioned repair requires workflow_dispatch and an exact source commit.");
     expect(workflow).toContain("Stamp release version without changing source identity");
     expect(workflow).toContain('release[2] !== source[2] + 1');
-    expect(workflow).toContain('name = "proof-pile"\\\\r?\\\\nversion');
+    expect(workflow).toContain('node scripts/stamp-release-source.mjs . "$SOURCE_VERSION" "$RELEASE_VERSION"');
     expect(workflow).toContain('RELEASE_COMMIT: ${{ needs.prepare-release.outputs.commit }}');
     expect(workflow).toContain('target_commitish: ${{ needs.prepare-release.outputs.commit }}');
     expect(verification).toContain('releases/download/${RELEASE_TAG}');
@@ -305,7 +305,7 @@ esac
     expect(run).toThrow(new RegExp(`Published SHA-256 mismatch for ${packageNames[6]}`));
   });
 
-  it("@claim:desktop-release-identity rejects the verifier's exact v0.1.29 source mismatch", () => {
+  it("rejects the verifier's exact v0.1.29 source mismatch", () => {
     const assets = [
       "Proof-Pile_0.1.29_aarch64.dmg", "Proof-Pile_0.1.29_x64.dmg", "Proof-Pile_0.1.29_x64_en-US.msi",
       "Proof-Pile_0.1.29_x64-setup.exe", "Proof-Pile_0.1.29_amd64.AppImage", "Proof-Pile_0.1.29_amd64.deb",

@@ -132,37 +132,7 @@ jobs:
         env:
           SOURCE_VERSION: ${{ needs.prepare-release.outputs.source_version }}
           RELEASE_VERSION: ${{ needs.prepare-release.outputs.release_version }}
-        run: |
-          node --input-type=module <<'NODE'
-          import { readFileSync, writeFileSync } from "node:fs";
-
-          const source = process.env.SOURCE_VERSION;
-          const release = process.env.RELEASE_VERSION;
-          const replaceOnce = (path, before, after) => {
-            const value = readFileSync(path, "utf8");
-            const found = before instanceof RegExp ? before.test(value) : value.includes(before);
-            if (!found) throw new Error(`${path} does not contain the expected source value`);
-            writeFileSync(path, value.replace(before, after));
-          };
-          const updateJson = (path, update) => {
-            const value = JSON.parse(readFileSync(path, "utf8"));
-            update(value);
-            writeFileSync(path, `${JSON.stringify(value, null, 2)}\n`);
-          };
-
-          updateJson("package.json", value => { value.version = release; });
-          updateJson("package-lock.json", value => {
-            value.version = release;
-            value.packages[""].version = release;
-          });
-          updateJson("src-tauri/tauri.conf.json", value => { value.version = release; });
-          replaceOnce("src-tauri/Cargo.toml", `version = "${source}"`, `version = "${release}"`);
-          const escapedSource = source.replaceAll(".", "\\.");
-          replaceOnce("src-tauri/Cargo.lock", new RegExp(`(name = "proof-pile"\\r?\\nversion = ")${escapedSource}(")`), `$1${release}$2`);
-          replaceOnce("src/main.ts", `const VERSION = "${source}"`, `const VERSION = "${release}"`);
-          replaceOnce("public/404.html", `<p>v${source}</p>`, `<p>v${release}</p>`);
-          replaceOnce("public/sw.js", /const CACHE = "[^"]+";/, `const CACHE = "proof-pile-v${release}";`);
-          NODE
+        run: node scripts/stamp-release-source.mjs . "$SOURCE_VERSION" "$RELEASE_VERSION"
       - name: Build desktop packages
         env:
           BUILD_COMMIT: ${{ needs.prepare-release.outputs.commit }}

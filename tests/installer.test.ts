@@ -1,6 +1,6 @@
 import { spawnSync } from "node:child_process";
 import { createHash } from "node:crypto";
-import { chmodSync, existsSync, mkdtempSync, mkdirSync, readFileSync, rmSync, writeFileSync } from "node:fs";
+import { chmodSync, existsSync, mkdtempSync, mkdirSync, readFileSync, readdirSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { fileURLToPath } from "node:url";
@@ -201,12 +201,25 @@ test("deployment gate rejects verification 26's exact v0.1.29 site and v0.1.30 d
   } finally { rmSync(root, { recursive: true, force: true }); }
 });
 
-test("production preparation downloads only the successful matching release-site artifact", () => {
-  const script = readFileSync(fileURLToPath(new URL("../scripts/fetch-release-site.sh", import.meta.url)), "utf8");
-  const packageJson = JSON.parse(readFileSync(fileURLToPath(new URL("../package.json", import.meta.url)), "utf8"));
-  expect(packageJson.scripts["prepare:deployment"]).toBe("bash scripts/fetch-release-site.sh");
-  expect(script).toContain('.head_sha == $commit');
-  expect(script).toContain('.conclusion == "success"');
-  expect(script).toContain('.name == "release-site" and .expired == false');
-  expect(script).toContain('verify-deployment-site.sh" "$output_dir"');
+test("production build outputs the immutable release identity, not the current documentation checkout", () => {
+  const root = mkdtempSync(join(tmpdir(), "proof-pile-production-build-"));
+  try {
+    const site = join(root, "site");
+    const result = spawnSync("bash", ["scripts/build-production-site.sh"], {
+      cwd: process.cwd(),
+      env: { ...process.env, PROOF_PILE_OUTPUT_DIR: site },
+      encoding: "utf8"
+    });
+    expect(result.status, `${result.stdout}\n${result.stderr}`).toBe(0);
+    const app = readdirSync(join(site, "assets"))
+      .filter(name => name.endsWith(".js"))
+      .map(name => readFileSync(join(site, "assets", name), "utf8"))
+      .find(contents => contents.includes(verifiedReleaseCommit));
+    expect(app).toBeDefined();
+    expect(app).toContain('"0.1.30"');
+    expect(readFileSync(join(site, "install.sh"), "utf8")).toContain(`expected_tag="${verifiedReleaseTag}"`);
+    expect(readFileSync(join(site, "install.ps1"), "utf8")).toContain(`$expectedCommit = "${verifiedReleaseCommit}"`);
+    expect(readFileSync(join(site, "404.html"), "utf8")).toContain("<p>v0.1.30</p>");
+    expect(readFileSync(join(site, "sw.js"), "utf8")).toContain('const CACHE = "proof-pile-v0.1.30";');
+  } finally { rmSync(root, { recursive: true, force: true }); }
 });
