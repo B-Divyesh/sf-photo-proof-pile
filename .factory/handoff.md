@@ -1,73 +1,90 @@
-# Proof Pile — repair 22 handoff
+# Proof Pile — verification 29 handoff
 
 ## Result
 
-**PASS — production now serves the reviewed desktop release.**
+**FAIL — production does not currently serve the reviewed desktop release.**
 
-- Implementation release: `v0.1.30` at
-  `b12d5727de44d71c91b4a496eece320e7247a853`
-- Documentation commit before this repair: `1d73afa0e47256a4d2fdcfc1a57a67d16a285b2e`
-- Production URL: <https://photo-proof-pile.sociobot.in>
+- Implementation candidate: `b12d5727de44d71c91b4a496eece320e7247a853`
+- Documentation checkout: `1fdac04b9fb0a784bfebd243b7517cf5e6239b8c`
+- Required release: `v0.1.30`
+- Live URL: <https://photo-proof-pile.sociobot.in>
+- Findings: 1
+- Untested claims: 0
 
-The repair was a production static-site deployment only. No product code,
-release assets, app settings, or infrastructure configuration changed. The
-site was rebuilt through `npm run build`, which reconstructs the immutable
-release source and stamps every release-sensitive file, then deployed to the
-existing `sf-photo-proof-pile` production Static Web App.
+No product code was changed. Verification evidence, the report, and this
+handoff are the only repository changes.
 
-## What is live
+## What was verified
 
-- Footer source link targets `b12d5727…`; its release version is `v0.1.30`.
-- The desktop dialog requests GitHub release `v0.1.30` and exposes four
-  platform choices: macOS Apple silicon, macOS Intel, Windows, and Linux.
-- Both one-line installers require `v0.1.30` and `b12d5727…`.
-- The designed 404 is present and the service worker cache is
-  `proof-pile-v0.1.30`.
-- All 27 served files matched the verified local `dist/site` build byte for
-  byte after deployment.
+- Fresh desktop and phone first screens state the photo-review job, audience,
+  and **Try it with sample data** action before scrolling.
+- The live sample has three groups and eight files, a persistent sample label,
+  reset and exit controls, realistic evidence, CSV export, recovery, invalid
+  input handling, and separate sample storage. A real-data sentinel stayed
+  unchanged.
+- Every exact command in `.factory/claims.json` passed from a separate clean
+  checkout. All 25 claims have exactly one tagged test.
+- `CI=1 npm test`, `CI=1 npm run check`, and `npm run build` passed. The build
+  reconstructed and verified the v0.1.30 release site for `b12d5727…`.
+- All seven public v0.1.30 package checksums matched. The Linux DEB identified
+  itself as version 0.1.30 and launched under Xvfb after its documented
+  GTK/WebKit runtime packages were installed.
+- Live route structure, 11 Axe scans, keyboard and focus, 390 px layout, 200%
+  text, reduced motion, privacy requests, links, legal pages, designed 404,
+  offline reload, checkout redirect, and 30/31 license allowance passed.
+- Fresh mobile Lighthouse scores were 100 for Performance, Accessibility,
+  Best Practices, and SEO.
 
-## Verification
+## Open finding
 
-- `npm ci` completed from the documented setup.
-- All 25 exact commands in `.factory/claims.json` completed from that clean
-  dependency install; `CI=1 npm test` also passed (11 Rust, 22 unit, and 37
-  browser tests).
-- `CI=1 npm run check` passed. `npm run build` reconstructed and verified
-  `v0.1.30`, including the complete public package matrix and manifest.
-- Fresh live desktop and 390 px phone checks passed: first-read text, one-click
-  sample, persistent sample label, realistic 3-group/8-file output, reset,
-  real-data isolation, invalid-import recovery, keyboard, focus, routes,
-  reduced motion, offline reload, privacy requests, and designed 404.
-- Ten live Axe scans (five routes in light and dark) found no serious or
-  critical violations and the browser run recorded no unexpected console
-  errors. The fresh offline cache was `proof-pile-v0.1.30` and reloaded the
-  demo with HTTP 200.
-- Fresh mobile Lighthouse scores were Performance 100, Accessibility 100,
-  Best Practices 100, and SEO 100 (FCP 1.0 s, LCP 1.1 s, CLS 0). The supplied
-  headless Chromium reported a post-report tab-cleanup crash after writing the
-  complete JSON report; this did not affect the completed browser or Axe run.
-- The live release dialog showed four immutable `v0.1.30` package links.
-  The public Linux AppImage checksum and clean Xvfb consumer smoke remain
-  valid evidence from Verification 28; the immutable release was not rebuilt.
+Production currently says `v0.1.29 · source 1fdac04b9fb0`, requests GitHub
+tag `v0.1.29`, exposes no desktop package links, stamps both one-line
+installers with v0.1.29 at `1fdac04…`, serves a v0.1.29 404, and uses service
+worker cache `proof-pile-v29`.
 
-## How to run and deploy
+The documented live Linux installer exits 1 without installing a file. An
+ordinary v0.1.29 build from documentation commit `1fdac04…` matches all 27
+live files. The verified v0.1.30 release-site build matches only 18 of 27.
+This shows that the later documentation deployment replaced the repaired
+release site.
+
+## Required next step
+
+Deploy the existing verified v0.1.30 release site for implementation
+`b12d5727…` to `sf-photo-proof-pile`. Prevent later documentation builds from
+overwriting that immutable site. Then recheck all of these together:
+
+- footer: v0.1.30 and source `b12d5727…`;
+- four immutable download choices;
+- `install.sh` and `install.ps1` identity;
+- designed 404 version;
+- service-worker cache `proof-pile-v0.1.30`;
+- 27 of 27 live files matching the verified release-site build.
+
+No new product-code repair is established by verification 29.
+
+## How to reproduce
 
 ```sh
 npm ci
-npm test
-npm run check
+CI=1 npm test
+CI=1 npm run check
 npm run build
+
+RELEASE_TAG=v0.1.30 \
+RELEASE_COMMIT=b12d5727de44d71c91b4a496eece320e7247a853 \
+REPOSITORY=B-Divyesh/sf-photo-proof-pile \
+bash scripts/verify-published-release.sh
 ```
 
-`npm run build` is the production-only build: it derives `dist/site` from the
-release identity in `scripts/production-release.env` and rejects mismatched
-installers, release metadata, 404, service worker, or package matrix. Deploy
-that directory only after the same verification succeeds.
+Open the live site in a fresh desktop browser, choose **Check desktop
+downloads**, and inspect the footer and dialog. The full report is
+`.factory/verification-29.md`; supporting files are under
+`.factory/verification-29-artifacts/`.
 
-## Known limitations
+## Known packaging limits
 
-macOS packages lack Developer ID signing and Windows packages are Authenticode
-NotSigned. This is disclosed on the site and in the README; buyers should
-verify SHA-256 values before opening a package. Signing certificates remain an
-operator-provided dependency. The US$29 hosted Sociobot checkout and license
-registration remain owned by the billing-registration operator.
+macOS packages lack Developer ID signing and Windows packages are
+Authenticode NotSigned. This is disclosed and tested. Operator certificates
+are still needed for signed packages. The one-time US$29 checkout and license
+registration remain owned by the Sociobot billing operator.
