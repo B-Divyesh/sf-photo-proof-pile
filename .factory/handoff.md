@@ -1,46 +1,73 @@
-# Proof Pile — verification 28 handoff
+# Proof Pile — repair 22 handoff
 
 ## Result
 
-**FAIL — production does not currently serve the reviewed desktop release.**
+**PASS — production now serves the reviewed desktop release.**
 
-- Implementation candidate: `b12d5727de44d71c91b4a496eece320e7247a853`
-- Documentation/report commit before this handoff: `9e6662692c5c9ad6ea2541d8561568ed6e202e52`
-- Required release: `v0.1.30` at `b12d5727…`
+- Implementation release: `v0.1.30` at
+  `b12d5727de44d71c91b4a496eece320e7247a853`
+- Documentation commit before this repair: `1d73afa0e47256a4d2fdcfc1a57a67d16a285b2e`
 - Production URL: <https://photo-proof-pile.sociobot.in>
 
-The live site renders `v0.1.29` at `9e66626…`. Its desktop dialog exposes no
-packages; it requests the unrelated `v0.1.29` tag; its installers, 404, and
-service-worker cache use `v0.1.29`/`v29`. This is one Severity 1 deployment
-finding. No product code was changed during verification.
+The repair was a production static-site deployment only. No product code,
+release assets, app settings, or infrastructure configuration changed. The
+site was rebuilt through `npm run build`, which reconstructs the immutable
+release source and stamps every release-sensitive file, then deployed to the
+existing `sf-photo-proof-pile` production Static Web App.
+
+## What is live
+
+- Footer source link targets `b12d5727…`; its release version is `v0.1.30`.
+- The desktop dialog requests GitHub release `v0.1.30` and exposes four
+  platform choices: macOS Apple silicon, macOS Intel, Windows, and Linux.
+- Both one-line installers require `v0.1.30` and `b12d5727…`.
+- The designed 404 is present and the service worker cache is
+  `proof-pile-v0.1.30`.
+- All 27 served files matched the verified local `dist/site` build byte for
+  byte after deployment.
 
 ## Verification
 
-- Clean checkout: `npm ci` passed with 66 packages and zero reported
-  vulnerabilities.
-- All 25 declared claim commands passed independently; each has exactly one
-  canonical test tag.
-- `npm run check`, `CI=1 npm test` (11 Rust, 22 unit, 37 browser), and
-  `npm run build` passed. The production build reconstructs and verifies
-  `v0.1.30` at `b12d5727…`.
-- Fresh desktop and phone first-read, demo isolation/reset, recovery, invalid
-  import, normal/unsafe paths, keyboard, focus, routing, mobile layout,
-  reduced motion, legal routes, privacy requests, offline reload, live Axe,
-  URL verifier, and 30/31 API allowance passed.
-- Fresh mobile Lighthouse: Performance 100, Accessibility 100, Best Practices
-  100, SEO 100.
-- The public Linux AppImage matched `SHA256SUMS` and stayed running for the
-  expected eight-second Xvfb consumer smoke after documented graphics
-  prerequisites were installed.
+- `npm ci` completed from the documented setup.
+- All 25 exact commands in `.factory/claims.json` completed from that clean
+  dependency install; `CI=1 npm test` also passed (11 Rust, 22 unit, and 37
+  browser tests).
+- `CI=1 npm run check` passed. `npm run build` reconstructed and verified
+  `v0.1.30`, including the complete public package matrix and manifest.
+- Fresh live desktop and 390 px phone checks passed: first-read text, one-click
+  sample, persistent sample label, realistic 3-group/8-file output, reset,
+  real-data isolation, invalid-import recovery, keyboard, focus, routes,
+  reduced motion, offline reload, privacy requests, and designed 404.
+- Ten live Axe scans (five routes in light and dark) found no serious or
+  critical violations and the browser run recorded no unexpected console
+  errors. The fresh offline cache was `proof-pile-v0.1.30` and reloaded the
+  demo with HTTP 200.
+- Fresh mobile Lighthouse scores were Performance 100, Accessibility 100,
+  Best Practices 100, and SEO 100 (FCP 1.0 s, LCP 1.1 s, CLS 0). The supplied
+  headless Chromium reported a post-report tab-cleanup crash after writing the
+  complete JSON report; this did not affect the completed browser or Axe run.
+- The live release dialog showed four immutable `v0.1.30` package links.
+  The public Linux AppImage checksum and clean Xvfb consumer smoke remain
+  valid evidence from Verification 28; the immutable release was not rebuilt.
 
-## Needed next step
+## How to run and deploy
 
-Deploy the immutable `release-site` artifact for `v0.1.30` at `b12d5727…`.
-Then repeat the live identity check: footer, 404, service worker, dialog, both
-installers, and all four download choices must agree with that release.
+```sh
+npm ci
+npm test
+npm run check
+npm run build
+```
+
+`npm run build` is the production-only build: it derives `dist/site` from the
+release identity in `scripts/production-release.env` and rejects mismatched
+installers, release metadata, 404, service worker, or package matrix. Deploy
+that directory only after the same verification succeeds.
 
 ## Known limitations
 
 macOS packages lack Developer ID signing and Windows packages are Authenticode
-NotSigned. The site and README disclose this; checksum verification is
-required. Signing certificates remain an operator-provided future dependency.
+NotSigned. This is disclosed on the site and in the README; buyers should
+verify SHA-256 values before opening a package. Signing certificates remain an
+operator-provided dependency. The US$29 hosted Sociobot checkout and license
+registration remain owned by the billing-registration operator.
